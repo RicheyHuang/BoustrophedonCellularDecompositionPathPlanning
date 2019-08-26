@@ -256,10 +256,13 @@ std::vector<CellNode> executeOpenOperation(CellNode& curr_cell, Point2D in, Poin
     new_cells.back().cellIndex = 3;
     //
 
+    new_cells.front().neighbor_cells.emplace_back(&curr_cell);
+    new_cells.back().neighbor_cells.emplace_front(&curr_cell);
+
     curr_cell.neighbor_cells.emplace_front(&new_cells.front());
     curr_cell.neighbor_cells.emplace_front(&new_cells.back());
-    cell_list.emplace_back(curr_cell);
 
+    cell_list.emplace_back(curr_cell);
     return new_cells;
 }
 
@@ -300,22 +303,25 @@ CellNode executeCloseOperation(std::vector<CellNode>& curr_cells, Point2D out, P
         bottom_cell_floor_points++;
     }
 
-    cell_list.insert(cell_list.end(), curr_cells.begin(), curr_cells.end());
-
     CellNode new_cell;
-
-    // for test
-    new_cell.cellIndex = 4;
-    //
 
     Edge new_cell_ceil = {c};
     Edge new_floor_ceil = {f};
     new_cell.ceiling.emplace_back(new_cell_ceil);
     new_cell.floor.emplace_back(new_floor_ceil);
 
+
+    // for test
+    new_cell.cellIndex = 4;
+    //
+
     new_cell.neighbor_cells.emplace_back(&curr_cells.front());
     new_cell.neighbor_cells.emplace_back(&curr_cells.back());
 
+    curr_cells.front().neighbor_cells.emplace_front(&new_cell);
+    curr_cells.back().neighbor_cells.emplace_back(&new_cell);
+
+    cell_list.insert(cell_list.end(), curr_cells.begin(), curr_cells.end());
     return new_cell;
 }
 
@@ -498,19 +504,19 @@ int main() {
 //    cv::imshow("cells", map);
 //    cv::waitKey(0);
 
-    for(int i = 0; i < cell1.neighbor_cells.size(); i++)
+    for(int i = 0; i < cell_list[0].neighbor_cells.size(); i++)
     {
-        std::cout<<"cell1's neighbor: cell "<<cell1.neighbor_cells[i]->cellIndex<<std::endl;
+        std::cout<<"cell1's neighbor: cell "<<cell_list[0].neighbor_cells[i]->cellIndex<<std::endl;
     }
 
-    for(int i = 0; i < cell2.neighbor_cells.size(); i++)
+    for(int i = 0; i < cell_list[1].neighbor_cells.size(); i++)
     {
-        std::cout<<"cell2's neighbor: cell "<<cell2.neighbor_cells[i]->cellIndex<<std::endl;
+        std::cout<<"cell2's neighbor: cell "<<cell_list[1].neighbor_cells[i]->cellIndex<<std::endl;
     }
 
-    for(int i = 0; i < cell3.neighbor_cells.size(); i++)
+    for(int i = 0; i < cell_list[2].neighbor_cells.size(); i++)
     {
-        std::cout<<"cell3's neighbor: cell "<<cell3.neighbor_cells[i]->cellIndex<<std::endl;
+        std::cout<<"cell3's neighbor: cell "<<cell_list[2].neighbor_cells[i]->cellIndex<<std::endl;
     }
 
     for(int i = 0; i < cell4.neighbor_cells.size(); i++)
