@@ -4,6 +4,12 @@
 #include <list>
 #include <algorithm>
 
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+cv::Mat map;
+
 enum EventType
 {
     IN,
@@ -46,7 +52,7 @@ public:
     EventType event_type;
 };
 
-class CellNode
+class CellNode  // ceiling.size() == floor.size()
 {
 public:
     CellNode()
@@ -61,7 +67,7 @@ public:
     EdgeList floor;
 
     CellNode* derivedFrom;
-    std::vector<CellNode*> neighbor_cells;
+    std::deque<CellNode*> neighbor_cells;
 
     int cellIndex;
 };
@@ -209,11 +215,166 @@ std::vector<Event> EventListGenerator(PolygonList polygons)
 }
 
 
+std::vector<CellNode> cell_list;
+
+std::vector<CellNode> executeOpenOperation(CellNode& curr_cell, Point2D in, Point2D c, Point2D f) // in event
+{
+    Point2D last_ceil_point = curr_cell.ceiling.back()[0];
+    cv::LineIterator ceil_points(map, cv::Point(last_ceil_point.x, last_ceil_point.y), cv::Point(c.x, c.y), 8, true);
+    ceil_points++;
+    for(int i = 1; i < ceil_points.count; i++)
+    {
+        curr_cell.ceiling.back().emplace_back(Point2D(ceil_points.pos().x, ceil_points.pos().y));
+        ceil_points++;
+    }
+
+    Point2D last_floor_point = curr_cell.floor.back()[0];
+    cv::LineIterator floor_points(map, cv::Point(last_floor_point.x, last_floor_point.y), cv::Point(f.x, f.y), 8, true);
+    floor_points++;
+    for(int i = 1; i < floor_points.count; i++)
+    {
+        curr_cell.floor.back().emplace_back(Point2D(floor_points.pos().x, floor_points.pos().y));
+        floor_points++;
+    }
+
+    CellNode top_cell, bottom_cell;
+
+    Edge top_cell_ceil = {c};
+    top_cell.ceiling.emplace_back(top_cell_ceil);
+    Edge top_cell_floor = {in};
+    top_cell.floor.emplace_back(top_cell_floor);
+
+    Edge bottom_cell_ceil = {in};
+    bottom_cell.ceiling.emplace_back(bottom_cell_ceil);
+    Edge bottom_cell_floor = {f};
+    bottom_cell.floor.emplace_back(bottom_cell_floor);
+
+    curr_cell.neighbor_cells.emplace_front(&top_cell);
+    curr_cell.neighbor_cells.emplace_front(&bottom_cell);
+    cell_list.emplace_back(curr_cell);
+
+    std::vector<CellNode> new_cells = {top_cell, bottom_cell};
+    return new_cells;
+}
+
+// top cell和bottom cell按前后排列
+CellNode executeCloseOperation(std::vector<CellNode>& curr_cells, Point2D out, Point2D c, Point2D f) // out event
+{
+    Point2D top_cell_last_ceil_point = curr_cells.front().ceiling.back()[0];
+    Point2D top_cell_last_floor_point = curr_cells.front().floor.back()[0];
+    cv::LineIterator top_cell_ceil_points(map, cv::Point(top_cell_last_ceil_point.x, top_cell_last_ceil_point.y), cv::Point(c.x, c.y), 8, true);
+    cv::LineIterator top_cell_floor_points(map, cv::Point(top_cell_last_floor_point.x, top_cell_last_floor_point.y), cv::Point(out.x, out.y), 8, true);
+    top_cell_ceil_points++;
+    top_cell_floor_points++;
+    for(int i = 1; i < top_cell_ceil_points.count; i++)
+    {
+        curr_cells.front().ceiling.back().emplace_back(Point2D(top_cell_ceil_points.pos().x, top_cell_ceil_points.pos().y));
+        top_cell_ceil_points++;
+    }
+    for(int i = 1; i < top_cell_floor_points.count; i++)
+    {
+        curr_cells.front().floor.back().emplace_back(Point2D(top_cell_floor_points.pos().x, top_cell_floor_points.pos().y));
+        top_cell_floor_points++;
+    }
+
+    Point2D bottom_cell_last_ceil_point = curr_cells.back().ceiling.back()[0];
+    Point2D bottom_cell_last_floor_point = curr_cells.back().floor.back()[0];
+    cv::LineIterator bottom_cell_ceil_points(map, cv::Point(bottom_cell_last_ceil_point.x, bottom_cell_last_ceil_point.y), cv::Point(out.x, out.y), 8, true);
+    cv::LineIterator bottom_cell_floor_points(map, cv::Point(bottom_cell_last_floor_point.x, bottom_cell_last_floor_point.y), cv::Point(f.x, f.y), 8, true);
+    bottom_cell_ceil_points++;
+    bottom_cell_floor_points++;
+    for(int i = 1; i < bottom_cell_ceil_points.count; i++)
+    {
+        curr_cells.back().ceiling.back().emplace_back(Point2D(bottom_cell_ceil_points.pos().x, bottom_cell_ceil_points.pos().y));
+        bottom_cell_ceil_points++;
+    }
+    for(int i = 1; i < bottom_cell_floor_points.count; i++)
+    {
+        curr_cells.back().floor.back().emplace_back(Point2D(bottom_cell_floor_points.pos().x, bottom_cell_floor_points.pos().y));
+        bottom_cell_floor_points++;
+    }
+
+    cell_list.insert(cell_list.end(), curr_cells.begin(), curr_cells.end());
+
+    CellNode new_cell;
+    Edge new_cell_ceil = {c};
+    Edge new_floor_ceil = {f};
+    new_cell.ceiling.emplace_back(new_cell_ceil);
+    new_cell.floor.emplace_back(new_floor_ceil);
+
+    new_cell.neighbor_cells.emplace_back(&curr_cells.front());
+    new_cell.neighbor_cells.emplace_back(&curr_cells.back());
+
+    return new_cell;
+}
+
+void executeCeilOperation(CellNode& curr_cell, const Point2D& ceil_point) // finish constructing last ceiling edge
+{
+    Point2D last_ceil_point = curr_cell.ceiling.back()[0];
+
+    cv::LineIterator ceil_points(map, cv::Point(last_ceil_point.x, last_ceil_point.y), cv::Point(ceil_point.x, ceil_point.y), 8, true);
+    ceil_points++;
+
+    for(int i = 1; i < ceil_points.count-1; i++)
+    {
+        curr_cell.ceiling.back().emplace_back(Point2D(ceil_points.pos().x, ceil_points.pos().y));
+        ceil_points++;
+    }
+
+    Edge new_ceil_points;
+    new_ceil_points.emplace_back(ceil_point);
+    curr_cell.ceiling.emplace_back(new_ceil_points);
+}
+
+void executeFloorOperation(CellNode& curr_cell, const Point2D& floor_point) // finish constructing last floor edge
+{
+    Point2D last_floor_point = curr_cell.floor.back()[0];
+
+    cv::LineIterator floor_points(map, cv::Point(last_floor_point.x, last_floor_point.y), cv::Point(floor_point.x, floor_point.y), 8, true);
+    floor_points++;
+
+    for(int i = 1; i < floor_points.count-1; i++)
+    {
+        curr_cell.floor.back().emplace_back(Point2D(floor_points.pos().x, floor_points.pos().y));
+        floor_points++;
+    }
+
+    Edge new_floor_points;
+    new_floor_points.emplace_back(floor_point);
+    curr_cell.floor.emplace_back(new_floor_points);
+}
+
 
 void CellDecomposition()
 {
+    // 需要添加第一条ceiling边的第一个点 添加第一条floor边的第一个点
     return;
 }
+
+
+
+void drawing_test(const CellNode& cell)
+{
+    for(int i = 0; i < cell.ceiling.size(); i++)
+    {
+        for(int j = 0; j < cell.ceiling[i].size(); j++)
+        {
+            map.at<cv::Vec3f>(cell.ceiling[i][j].y, cell.ceiling[i][j].x) = cv::Vec3f(0, 0, 255);
+        }
+    }
+
+    for(int i = 0; i < cell.floor.size(); i++)
+    {
+        for(int j = 0; j < cell.floor[i].size(); j++)
+        {
+            map.at<cv::Vec3f>(cell.floor[i][j].y, cell.floor[i][j].x) = cv::Vec3f(0, 0, 255);
+        }
+    }
+
+    cv::line(map, cv::Point(cell.ceiling.front().front().x,cell.ceiling.front().front().y), cv::Point(cell.floor.front().front().x,cell.floor.front().front().y), cv::Scalar(0,0,255));
+    cv::line(map, cv::Point(cell.ceiling.back().back().x,cell.ceiling.back().back().y), cv::Point(cell.floor.back().back().x,cell.floor.back().back().y), cv::Scalar(0,0,255));
+}
+
 
 
 
@@ -263,6 +424,68 @@ int main() {
 //    {
 //        std::cout<< "x:" << it.x << ", y:"<< it.y << ", type:" << it.event_type << std::endl;
 //    }
+
+//  test simple cell decomposition
+    map = cv::Mat::zeros(400, 400, CV_32FC3);
+
+    CellNode cell1;
+    Edge ceil = {Point2D(0,0)}, floor = {Point2D(0,399)}; // 初始化最初的ceil和floor点
+    cell1.ceiling.emplace_back(ceil);
+    cell1.floor.emplace_back(floor);
+
+    Point2D in = Point2D(100,200), c = Point2D(100,0), f = Point2D(100,399);
+
+    std::vector<CellNode> new_cells = executeOpenOperation(cell1, in, c, f);
+    executeFloorOperation(new_cells.front(), Point2D(200, 100));
+    executeCeilOperation(new_cells.back(), Point2D(200, 300));
+
+
+    Point2D out = Point2D(300,200), c_=Point2D(300,0), f_=Point2D(300,399);
+    CellNode cell4 = executeCloseOperation(new_cells, out, c_, f_);
+
+    CellNode cell2 = new_cells.front(); // top cell
+    CellNode cell3 = new_cells.back();  // bottom cell
+
+
+    // 封闭最后的ceil点和floor点
+
+    Point2D c_end = Point2D(399, 0), f_end = Point2D(399, 399);
+    cv::LineIterator c_it(map, cv::Point(cell4.ceiling.back()[0].x,cell4.ceiling.back()[0].y), cv::Point(c_end.x, c_end.y), 8, true);
+    cv::LineIterator f_it(map, cv::Point(cell4.floor.back()[0].x, cell4.floor.back()[0].y), cv::Point(f_end.x, f_end.y), 8, true);
+    c_it++;
+    f_it++;
+    for(int i = 1; i < c_it.count; i++)
+    {
+        cell4.ceiling.back().emplace_back(c_it.pos().x, c_it.pos().y);
+        c_it++;
+    }
+    for(int i = 1; i < f_it.count; i++)
+    {
+        cell4.floor.back().emplace_back(f_it.pos().x, f_it.pos().y);
+        f_it++;
+    }
+
+
+
+    drawing_test(cell1);
+    cv::imshow("cells", map);
+    cv::waitKey(0);
+
+    drawing_test(cell2);
+    cv::imshow("cells", map);
+    cv::waitKey(0);
+
+    drawing_test(cell3);
+    cv::imshow("cells", map);
+    cv::waitKey(0);
+
+    drawing_test(cell4);
+    cv::imshow("cells", map);
+    cv::waitKey(0);
+
+    cv::imshow("cells", map);
+    cv::waitKey(0);
+
 
     return 0;
 }
