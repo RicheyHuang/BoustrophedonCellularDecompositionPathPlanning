@@ -249,11 +249,17 @@ std::vector<CellNode> executeOpenOperation(CellNode& curr_cell, Point2D in, Poin
     Edge bottom_cell_floor = {f};
     bottom_cell.floor.emplace_back(bottom_cell_floor);
 
-    curr_cell.neighbor_cells.emplace_front(&top_cell);
-    curr_cell.neighbor_cells.emplace_front(&bottom_cell);
+    std::vector<CellNode> new_cells = {top_cell, bottom_cell};
+
+    // for test
+    new_cells.front().cellIndex = 2;
+    new_cells.back().cellIndex = 3;
+    //
+
+    curr_cell.neighbor_cells.emplace_front(&new_cells.front());
+    curr_cell.neighbor_cells.emplace_front(&new_cells.back());
     cell_list.emplace_back(curr_cell);
 
-    std::vector<CellNode> new_cells = {top_cell, bottom_cell};
     return new_cells;
 }
 
@@ -297,6 +303,11 @@ CellNode executeCloseOperation(std::vector<CellNode>& curr_cells, Point2D out, P
     cell_list.insert(cell_list.end(), curr_cells.begin(), curr_cells.end());
 
     CellNode new_cell;
+
+    // for test
+    new_cell.cellIndex = 4;
+    //
+
     Edge new_cell_ceil = {c};
     Edge new_floor_ceil = {f};
     new_cell.ceiling.emplace_back(new_cell_ceil);
@@ -429,6 +440,8 @@ int main() {
     map = cv::Mat::zeros(400, 400, CV_32FC3);
 
     CellNode cell1;
+    cell1.cellIndex = 1;
+
     Edge ceil = {Point2D(0,0)}, floor = {Point2D(0,399)}; // 初始化最初的ceil和floor点
     cell1.ceiling.emplace_back(ceil);
     cell1.floor.emplace_back(floor);
@@ -466,26 +479,44 @@ int main() {
     }
 
 
+//    drawing_test(cell1);
+//    cv::imshow("cells", map);
+//    cv::waitKey(0);
+//
+//    drawing_test(cell2);
+//    cv::imshow("cells", map);
+//    cv::waitKey(0);
+//
+//    drawing_test(cell3);
+//    cv::imshow("cells", map);
+//    cv::waitKey(0);
+//
+//    drawing_test(cell4);
+//    cv::imshow("cells", map);
+//    cv::waitKey(0);
+//
+//    cv::imshow("cells", map);
+//    cv::waitKey(0);
 
-    drawing_test(cell1);
-    cv::imshow("cells", map);
-    cv::waitKey(0);
+    for(int i = 0; i < cell1.neighbor_cells.size(); i++)
+    {
+        std::cout<<"cell1's neighbor: cell "<<cell1.neighbor_cells[i]->cellIndex<<std::endl;
+    }
 
-    drawing_test(cell2);
-    cv::imshow("cells", map);
-    cv::waitKey(0);
+    for(int i = 0; i < cell2.neighbor_cells.size(); i++)
+    {
+        std::cout<<"cell2's neighbor: cell "<<cell2.neighbor_cells[i]->cellIndex<<std::endl;
+    }
 
-    drawing_test(cell3);
-    cv::imshow("cells", map);
-    cv::waitKey(0);
+    for(int i = 0; i < cell3.neighbor_cells.size(); i++)
+    {
+        std::cout<<"cell3's neighbor: cell "<<cell3.neighbor_cells[i]->cellIndex<<std::endl;
+    }
 
-    drawing_test(cell4);
-    cv::imshow("cells", map);
-    cv::waitKey(0);
-
-    cv::imshow("cells", map);
-    cv::waitKey(0);
-
+    for(int i = 0; i < cell4.neighbor_cells.size(); i++)
+    {
+        std::cout<<"cell4's neighbor: cell "<<cell4.neighbor_cells[i]->cellIndex<<std::endl;
+    }
 
     return 0;
 }
