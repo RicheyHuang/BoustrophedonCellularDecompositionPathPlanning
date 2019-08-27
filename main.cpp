@@ -249,12 +249,12 @@ std::vector<CellNode> executeOpenOperation(CellNode& curr_cell, Point2D in, Poin
     Edge bottom_cell_floor = {f};
     bottom_cell.floor.emplace_back(bottom_cell_floor);
 
-    std::vector<CellNode> new_cells = {top_cell, bottom_cell};
-
     // for test
-    new_cells.front().cellIndex = 2;
-    new_cells.back().cellIndex = 3;
+    top_cell.cellIndex = 2;
+    bottom_cell.cellIndex = 3;
     //
+
+    std::vector<CellNode> new_cells = {top_cell, bottom_cell};
 
     new_cells.front().neighbor_cells.emplace_back(&curr_cell);
     new_cells.back().neighbor_cells.emplace_front(&curr_cell);
@@ -309,7 +309,6 @@ CellNode executeCloseOperation(std::vector<CellNode>& curr_cells, Point2D out, P
     Edge new_floor_ceil = {f};
     new_cell.ceiling.emplace_back(new_cell_ceil);
     new_cell.floor.emplace_back(new_floor_ceil);
-
 
     // for test
     new_cell.cellIndex = 4;
@@ -444,22 +443,20 @@ int main() {
 
 //  test simple cell decomposition
     map = cv::Mat::zeros(400, 400, CV_32FC3);
+    Point2D in = Point2D(100,200), c = Point2D(100,0), f = Point2D(100,399);
+    Point2D out = Point2D(300,200), c_=Point2D(300,0), f_=Point2D(300,399);
+    Point2D c_end = Point2D(399, 0), f_end = Point2D(399, 399);
 
     CellNode cell1;
     cell1.cellIndex = 1;
-
     Edge ceil = {Point2D(0,0)}, floor = {Point2D(0,399)}; // 初始化最初的ceil和floor点
     cell1.ceiling.emplace_back(ceil);
     cell1.floor.emplace_back(floor);
 
-    Point2D in = Point2D(100,200), c = Point2D(100,0), f = Point2D(100,399);
 
     std::vector<CellNode> new_cells = executeOpenOperation(cell1, in, c, f);
     executeFloorOperation(new_cells.front(), Point2D(200, 100));
     executeCeilOperation(new_cells.back(), Point2D(200, 300));
-
-
-    Point2D out = Point2D(300,200), c_=Point2D(300,0), f_=Point2D(300,399);
     CellNode cell4 = executeCloseOperation(new_cells, out, c_, f_);
 
     CellNode cell2 = new_cells.front(); // top cell
@@ -467,8 +464,6 @@ int main() {
 
 
     // 封闭最后的ceil点和floor点
-
-    Point2D c_end = Point2D(399, 0), f_end = Point2D(399, 399);
     cv::LineIterator c_it(map, cv::Point(cell4.ceiling.back()[0].x,cell4.ceiling.back()[0].y), cv::Point(c_end.x, c_end.y), 8, true);
     cv::LineIterator f_it(map, cv::Point(cell4.floor.back()[0].x, cell4.floor.back()[0].y), cv::Point(f_end.x, f_end.y), 8, true);
     c_it++;
@@ -483,7 +478,7 @@ int main() {
         cell4.floor.back().emplace_back(f_it.pos().x, f_it.pos().y);
         f_it++;
     }
-
+    cell_list.emplace_back(cell4);
 
 //    drawing_test(cell1);
 //    cv::imshow("cells", map);
@@ -519,10 +514,13 @@ int main() {
         std::cout<<"cell3's neighbor: cell "<<cell_list[2].neighbor_cells[i]->cellIndex<<std::endl;
     }
 
-    for(int i = 0; i < cell4.neighbor_cells.size(); i++)
+    for(int i = 0; i < cell_list[3].neighbor_cells.size(); i++)
     {
-        std::cout<<"cell4's neighbor: cell "<<cell4.neighbor_cells[i]->cellIndex<<std::endl;
+        std::cout<<"cell4's neighbor: cell "<<cell_list[3].neighbor_cells[i]->cellIndex<<std::endl;
     }
 
+    DepthFirstSearch(cell_list[0]);
+
     return 0;
+
 }
