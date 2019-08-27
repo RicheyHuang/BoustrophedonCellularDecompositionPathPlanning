@@ -250,8 +250,8 @@ void ExecuteOpenOperation(int curr_cell_idx, Point2D in, Point2D c, Point2D f) /
     Edge bottom_cell_floor = {f};
     bottom_cell.floor.emplace_back(bottom_cell_floor);
 
-    int top_cell_index = curr_cell_idx + 1;
-    int bottom_cell_index = curr_cell_idx + 2;
+    int top_cell_index = cell_graph.size();
+    int bottom_cell_index = cell_graph.size() + 1;
 
     top_cell.cellIndex = top_cell_index;
     bottom_cell.cellIndex = bottom_cell_index;
@@ -310,7 +310,7 @@ void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out, P
     new_cell.ceiling.emplace_back(new_cell_ceil);
     new_cell.floor.emplace_back(new_floor_ceil);
 
-    int new_cell_idx = bottom_cell_idx + 1;
+    int new_cell_idx = cell_graph.size();
     new_cell.cellIndex = new_cell_idx;
 
     cell_graph.emplace_back(new_cell);
@@ -398,9 +398,12 @@ void FinishCellDecomposition()
     }
 }
 
-void ExecuteCellDecomposition()
+void ExecuteCellDecomposition(std::vector<Event> event_list)
 {
-
+//    for(auto event : event_list)
+//    {
+//        ;
+//    }
 
     return;
 }
