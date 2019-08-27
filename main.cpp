@@ -217,8 +217,6 @@ std::vector<Event> EventListGenerator(PolygonList polygons)
 }
 
 
-std::vector<CellNode> cell_list;
-
 void ExecuteOpenOperation(int curr_cell_idx, Point2D in, Point2D c, Point2D f) // in event  add two new node
 {
     Point2D last_ceil_point = cell_graph[curr_cell_idx].ceiling.back()[0];
@@ -363,9 +361,47 @@ void ExecuteFloorOperation(int curr_cell_idx, const Point2D& floor_point) // fin
 }
 
 
-void CellDecomposition()
+void InitializeCellDecomposition()
 {
-    // 需要添加第一条ceiling边的第一个点 添加第一条floor边的第一个点
+    CellNode cell_0;
+
+    int cell_0_idx = 0;
+    cell_0.cellIndex = cell_0_idx;
+
+    Edge ceil = {Point2D(0,0)};
+    Edge floor = {Point2D(0,map.rows-1)}; // 初始化最初的ceil和floor点
+
+    cell_0.ceiling.emplace_back(ceil);
+    cell_0.floor.emplace_back(floor);
+    cell_graph.emplace_back(cell_0);
+}
+
+void FinishCellDecomposition()
+{
+    int last_cell_idx = cell_graph.size()-1;
+
+    // 封闭最后的ceil点和floor点
+
+    cv::LineIterator ceiling(map, cv::Point(cell_graph[last_cell_idx].ceiling.back()[0].x,cell_graph[last_cell_idx].ceiling.back()[0].y), cv::Point(map.cols-1, 0), 8, true);
+    cv::LineIterator floor(map, cv::Point(cell_graph[last_cell_idx].floor.back()[0].x, cell_graph[last_cell_idx].floor.back()[0].y), cv::Point(map.cols-1, map.rows-1), 8, true);
+    ceiling++;
+    floor++;
+    for(int i = 1; i < ceiling.count; i++)
+    {
+        cell_graph[last_cell_idx].ceiling.back().emplace_back(ceiling.pos().x, ceiling.pos().y);
+        ceiling++;
+    }
+    for(int i = 1; i < floor.count; i++)
+    {
+        cell_graph[last_cell_idx].floor.back().emplace_back(floor.pos().x, floor.pos().y);
+        floor++;
+    }
+}
+
+void ExecuteCellDecomposition()
+{
+
+
     return;
 }
 
@@ -479,7 +515,6 @@ int main() {
         cell_graph[cell3_idx].floor.back().emplace_back(f_it.pos().x, f_it.pos().y);
         f_it++;
     }
-    cell_list.emplace_back(cell_graph[cell3_idx]);
 
     drawing_test(cell_graph[cell0_idx]);
     cv::imshow("cells", map);
