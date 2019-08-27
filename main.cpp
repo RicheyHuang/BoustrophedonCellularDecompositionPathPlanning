@@ -60,6 +60,7 @@ public:
         isVisited = false;
         isCleaned = false;
         derivedFrom = nullptr;
+        parentIndex = 10000;
     }
     bool isVisited;
     bool isCleaned;
@@ -67,7 +68,9 @@ public:
     EdgeList floor;
 
     CellNode* derivedFrom;
+    int parentIndex;
     std::deque<CellNode*> neighbor_cells;
+    std::vector<int> neighbor_indices;
 
     int cellIndex;
 };
@@ -392,26 +395,156 @@ void drawing_test(const CellNode& cell)
 }
 
 
-CellNode find_neighbor_test(CellNode& cell, int new_cell_index)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//CellNode find_neighbor_test(CellNode& curr_cell, int new_cell_index)
+//{
+//    CellNode new_cell;
+//    new_cell.cellIndex = new_cell_index;
+//    new_cell.neighbor_cells.emplace_back(&curr_cell);
+//    curr_cell.neighbor_cells.emplace_back(&new_cell);
+//    cell_list.emplace_back(curr_cell);
+//    return new_cell;
+//}
+
+
+
+
+std::vector<CellNode> cell_graph;
+
+void graph_walk_test(int cell_index)
+{
+    cell_graph[cell_index].isVisited = true;
+    path.emplace_front(cell_graph[cell_index]);
+    std::cout<< "cell: " <<cell_graph[cell_index].cellIndex<<std::endl;
+
+    CellNode neighbor;
+    int neighbor_idx;
+
+    for(int i = 0; i < cell_graph[cell_index].neighbor_indices.size(); i++)
+    {
+        neighbor = cell_graph[cell_graph[cell_index].neighbor_indices[i]];
+        neighbor_idx = cell_graph[cell_index].neighbor_indices[i];
+        if(!neighbor.isVisited)
+        {
+            break;
+        }
+    }
+
+    if(!neighbor.isVisited) // unvisited neighbor found
+    {
+        neighbor.parentIndex = cell_graph[cell_index].cellIndex;
+        graph_walk_test(neighbor_idx);
+    }
+    else  // unvisited neighbor not found
+    {
+
+        if (cell_graph[cell_index].parentIndex == 10000) // cannot go on back-tracking
+        {
+            return;
+        }
+        else
+        {
+            graph_walk_test(cell_graph[cell_index].parentIndex);
+        }
+    }
+}
+
+
+
+
+void find_neighbor_test(int curr_cell_index, int new_cell_index)
 {
     CellNode new_cell;
     new_cell.cellIndex = new_cell_index;
-    new_cell.neighbor_cells.emplace_back(&cell);
-    cell.neighbor_cells.emplace_back(&new_cell);
-    cell_list.emplace_back(cell);
-    return new_cell;
+    cell_graph.emplace_back(new_cell);
+
+    cell_graph[curr_cell_index].neighbor_indices.emplace_back(new_cell_index);
+    cell_graph[new_cell_index].neighbor_indices.emplace_back(curr_cell_index);
+
 }
 
 
 int main() {
 
-    CellNode cell1;
-    cell1.cellIndex =1;
-    CellNode cell2 = find_neighbor_test(cell1,2);
-    CellNode cell3 = find_neighbor_test(cell2,3);
-    CellNode cell4 = find_neighbor_test(cell3,4);
-    cell_list.emplace_back(cell4);
-    DepthFirstSearch(cell_list[0]);
+    CellNode cell0;
+    cell0.cellIndex = 0;
+    cell_graph.emplace_back(cell0);
+
+    find_neighbor_test(cell_graph.back().cellIndex, 1);
+    find_neighbor_test(cell_graph.back().cellIndex, 2);
+    find_neighbor_test(cell_graph.back().cellIndex, 3);
+
+    graph_walk_test(0);
+
+
+//    CellNode cell1, cell2, cell3, cell4;
+//    cell1.cellIndex=1;
+//    cell2.cellIndex=2;
+//    cell3.cellIndex=3;
+//    cell4.cellIndex=4;
+//    cell1.neighbor_cells={&cell2, &cell4};
+//    cell2.neighbor_cells={&cell1, &cell3};
+//    cell3.neighbor_cells={&cell2, &cell4};
+//    cell4.neighbor_cells={&cell3, &cell1};
+//    graph_walk_test(cell1);
+
+//    CellNode cell1;
+//    cell1.cellIndex =1;
+//    CellNode cell2 = find_neighbor_test(cell1,2);
+//    CellNode cell3 = find_neighbor_test(cell2,3);
+//    CellNode cell4 = find_neighbor_test(cell3,4);
+//    cell_graph.emplace_back(cell4);
+
+//    CellNode cell1, cell2, cell3, cell4;
+//    cell_graph.emplace_back(cell1);
+//    cell_graph.emplace_back(cell2);
+//    cell_graph.emplace_back(cell3);
+//    cell_graph.emplace_back(cell4);
+//    cell_graph[0].cellIndex =1;
+//    cell_graph[0].neighbor_cells.emplace_back(&cell_graph[1]);
+//    cell_graph[0].neighbor_cells.emplace_back(&cell_graph[3]);
+//    cell_graph[1].cellIndex =2;
+//    cell_graph[1].neighbor_cells.emplace_back(&cell_graph[0]);
+//    cell_graph[1].neighbor_cells.emplace_back(&cell_graph[2]);
+//    cell_graph[2].cellIndex =3;
+//    cell_graph[2].neighbor_cells.emplace_back(&cell_graph[3]);
+//    cell_graph[2].neighbor_cells.emplace_back(&cell_graph[1]);
+//    cell_graph[3].cellIndex =4;
+//    cell_graph[3].neighbor_cells.emplace_back(&cell_graph[2]);
+//    cell_graph[3].neighbor_cells.emplace_back(&cell_graph[0]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
