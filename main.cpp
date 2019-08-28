@@ -38,8 +38,9 @@ typedef std::vector<Edge> EdgeList;
 class Event
 {
 public:
-    Event(int x_pos, int y_pos, EventType type)
+    Event(int obstacle_idx, int x_pos, int y_pos, EventType type)
     {
+        obstacle_index = obstacle_idx;
         x = x_pos;
         y = y_pos;
         event_type = type;
@@ -47,6 +48,7 @@ public:
 
     int x;
     int y;
+    int obstacle_index;
     Edge ceiling_edge;
     Edge floor_edge;
     EventType event_type;
@@ -63,8 +65,8 @@ public:
     }
     bool isVisited;
     bool isCleaned;
-    EdgeList ceiling;
-    EdgeList floor;
+    Edge ceiling;
+    Edge floor;
 
     int parentIndex;
     std::deque<int> neighbor_indices;
@@ -166,7 +168,7 @@ bool operator<(const Event& e1, const Event& e2)
 }
 
 
-std::vector<Event> EventListGenerator(PolygonList polygons)
+std::vector<Event> EventListGenerator(PolygonList polygons) // 多边形按照左顶点x从小到大的顺序排列
 {
     std::vector<Event> event_list;
 
@@ -179,8 +181,8 @@ std::vector<Event> EventListGenerator(PolygonList polygons)
         leftmost_idx = std::distance(polygon.begin(),std::min_element(polygon.begin(),polygon.end()));
         rightmost_idx = std::distance(polygon.begin(), std::max_element(polygon.begin(),polygon.end()));
 
-        event_list.emplace_back(Event(polygon[leftmost_idx].x, polygon[leftmost_idx].y, IN));
-        event_list.emplace_back(Event(polygon[rightmost_idx].x, polygon[rightmost_idx].y, OUT));
+        event_list.emplace_back(Event(i, polygon[leftmost_idx].x, polygon[leftmost_idx].y, IN));
+        event_list.emplace_back(Event(i, polygon[rightmost_idx].x, polygon[rightmost_idx].y, OUT));
 
         // 假设多边形为凸壳 且各个顶点按照逆时针的顺序排列
         if (leftmost_idx < rightmost_idx)
@@ -189,11 +191,11 @@ std::vector<Event> EventListGenerator(PolygonList polygons)
             {
                 if(leftmost_idx < m && m < rightmost_idx)
                 {
-                    event_list.emplace_back(Event(polygon[m].x, polygon[m].y, CEILING));
+                    event_list.emplace_back(Event(i, polygon[m].x, polygon[m].y, CEILING));
                 }
                 if(m < leftmost_idx || m >rightmost_idx)
                 {
-                    event_list.emplace_back(Event(polygon[m].x, polygon[m].y, FLOOR));
+                    event_list.emplace_back(Event(i, polygon[m].x, polygon[m].y, FLOOR));
                 }
             }
         }
@@ -203,11 +205,11 @@ std::vector<Event> EventListGenerator(PolygonList polygons)
             {
                 if(rightmost_idx < n && n < leftmost_idx)
                 {
-                    event_list.emplace_back(Event(polygon[n].x, polygon[n].y, FLOOR));
+                    event_list.emplace_back(Event(i, polygon[n].x, polygon[n].y, FLOOR));
                 }
                 if(n < rightmost_idx || n > leftmost_idx)
                 {
-                    event_list.emplace_back(Event(polygon[n].x, polygon[n].y, CEILING));
+                    event_list.emplace_back(Event(i, polygon[n].x, polygon[n].y, CEILING));
                 }
             }
         }
@@ -219,36 +221,14 @@ std::vector<Event> EventListGenerator(PolygonList polygons)
 
 void ExecuteOpenOperation(int curr_cell_idx, Point2D in, Point2D c, Point2D f) // in event  add two new node
 {
-    Point2D last_ceil_point = cell_graph[curr_cell_idx].ceiling.back()[0];
-    cv::LineIterator ceil_points(map, cv::Point(last_ceil_point.x, last_ceil_point.y), cv::Point(c.x, c.y), 8, true);
-    ceil_points++;
-    for(int i = 1; i < ceil_points.count; i++)
-    {
-        cell_graph[curr_cell_idx].ceiling.back().emplace_back(Point2D(ceil_points.pos().x, ceil_points.pos().y));
-        ceil_points++;
-    }
-
-    Point2D last_floor_point = cell_graph[curr_cell_idx].floor.back()[0];
-    cv::LineIterator floor_points(map, cv::Point(last_floor_point.x, last_floor_point.y), cv::Point(f.x, f.y), 8, true);
-    floor_points++;
-    for(int i = 1; i < floor_points.count; i++)
-    {
-        cell_graph[curr_cell_idx].floor.back().emplace_back(Point2D(floor_points.pos().x, floor_points.pos().y));
-        floor_points++;
-    }
-
 
     CellNode top_cell, bottom_cell;
 
-    Edge top_cell_ceil = {c};
-    top_cell.ceiling.emplace_back(top_cell_ceil);
-    Edge top_cell_floor = {in};
-    top_cell.floor.emplace_back(top_cell_floor);
+    top_cell.ceiling.emplace_back(c);
+    top_cell.floor.emplace_back(in);
 
-    Edge bottom_cell_ceil = {in};
-    bottom_cell.ceiling.emplace_back(bottom_cell_ceil);
-    Edge bottom_cell_floor = {f};
-    bottom_cell.floor.emplace_back(bottom_cell_floor);
+    bottom_cell.ceiling.emplace_back(in);
+    bottom_cell.floor.emplace_back(f);
 
     int top_cell_index = cell_graph.size();
     int bottom_cell_index = cell_graph.size() + 1;
@@ -269,46 +249,10 @@ void ExecuteOpenOperation(int curr_cell_idx, Point2D in, Point2D c, Point2D f) /
 // top cell和bottom cell按前后排列
 void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out, Point2D c, Point2D f) // out event  add one new node
 {
-    Point2D top_cell_last_ceil_point = cell_graph[top_cell_idx].ceiling.back()[0];
-    Point2D top_cell_last_floor_point = cell_graph[top_cell_idx].floor.back()[0];
-    cv::LineIterator top_cell_ceil_points(map, cv::Point(top_cell_last_ceil_point.x, top_cell_last_ceil_point.y), cv::Point(c.x, c.y), 8, true);
-    cv::LineIterator top_cell_floor_points(map, cv::Point(top_cell_last_floor_point.x, top_cell_last_floor_point.y), cv::Point(out.x, out.y), 8, true);
-    top_cell_ceil_points++;
-    top_cell_floor_points++;
-    for(int i = 1; i < top_cell_ceil_points.count; i++)
-    {
-        cell_graph[top_cell_idx].ceiling.back().emplace_back(Point2D(top_cell_ceil_points.pos().x, top_cell_ceil_points.pos().y));
-        top_cell_ceil_points++;
-    }
-    for(int i = 1; i < top_cell_floor_points.count; i++)
-    {
-        cell_graph[top_cell_idx].floor.back().emplace_back(Point2D(top_cell_floor_points.pos().x, top_cell_floor_points.pos().y));
-        top_cell_floor_points++;
-    }
-
-    Point2D bottom_cell_last_ceil_point = cell_graph[bottom_cell_idx].ceiling.back()[0];
-    Point2D bottom_cell_last_floor_point = cell_graph[bottom_cell_idx].floor.back()[0];
-    cv::LineIterator bottom_cell_ceil_points(map, cv::Point(bottom_cell_last_ceil_point.x, bottom_cell_last_ceil_point.y), cv::Point(out.x, out.y), 8, true);
-    cv::LineIterator bottom_cell_floor_points(map, cv::Point(bottom_cell_last_floor_point.x, bottom_cell_last_floor_point.y), cv::Point(f.x, f.y), 8, true);
-    bottom_cell_ceil_points++;
-    bottom_cell_floor_points++;
-    for(int i = 1; i < bottom_cell_ceil_points.count; i++)
-    {
-        cell_graph[bottom_cell_idx].ceiling.back().emplace_back(Point2D(bottom_cell_ceil_points.pos().x, bottom_cell_ceil_points.pos().y));
-        bottom_cell_ceil_points++;
-    }
-    for(int i = 1; i < bottom_cell_floor_points.count; i++)
-    {
-        cell_graph[bottom_cell_idx].floor.back().emplace_back(Point2D(bottom_cell_floor_points.pos().x, bottom_cell_floor_points.pos().y));
-        bottom_cell_floor_points++;
-    }
-
     CellNode new_cell;
 
-    Edge new_cell_ceil = {c};
-    Edge new_floor_ceil = {f};
-    new_cell.ceiling.emplace_back(new_cell_ceil);
-    new_cell.floor.emplace_back(new_floor_ceil);
+    new_cell.ceiling.emplace_back(c);
+    new_cell.floor.emplace_back(f);
 
     int new_cell_idx = cell_graph.size();
     new_cell.cellIndex = new_cell_idx;
@@ -326,84 +270,50 @@ void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out, P
 
 void ExecuteCeilOperation(int curr_cell_idx, const Point2D& ceil_point) // finish constructing last ceiling edge
 {
-    Point2D last_ceil_point = cell_graph[curr_cell_idx].ceiling.back()[0];
-
-    cv::LineIterator ceil_points(map, cv::Point(last_ceil_point.x, last_ceil_point.y), cv::Point(ceil_point.x, ceil_point.y), 8, true);
-    ceil_points++;
-
-    for(int i = 1; i < ceil_points.count-1; i++)
-    {
-        cell_graph[curr_cell_idx].ceiling.back().emplace_back(Point2D(ceil_points.pos().x, ceil_points.pos().y));
-        ceil_points++;
-    }
-
-    Edge new_ceil_points;
-    new_ceil_points.emplace_back(ceil_point);
-    cell_graph[curr_cell_idx].ceiling.emplace_back(new_ceil_points);
+    cell_graph[curr_cell_idx].ceiling.emplace_back(ceil_point);
 }
 
 void ExecuteFloorOperation(int curr_cell_idx, const Point2D& floor_point) // finish constructing last floor edge
 {
-    Point2D last_floor_point = cell_graph[curr_cell_idx].floor.back()[0];
-
-    cv::LineIterator floor_points(map, cv::Point(last_floor_point.x, last_floor_point.y), cv::Point(floor_point.x, floor_point.y), 8, true);
-    floor_points++;
-
-    for(int i = 1; i < floor_points.count-1; i++)
-    {
-        cell_graph[curr_cell_idx].floor.back().emplace_back(Point2D(floor_points.pos().x, floor_points.pos().y));
-        floor_points++;
-    }
-
-    Edge new_floor_points;
-    new_floor_points.emplace_back(floor_point);
-    cell_graph[curr_cell_idx].floor.emplace_back(new_floor_points);
+    cell_graph[curr_cell_idx].floor.emplace_back(floor_point);
 }
 
 
-void InitializeCellDecomposition()
+void InitializeCellDecomposition(Point2D first_in_pos)
 {
     CellNode cell_0;
 
     int cell_0_idx = 0;
     cell_0.cellIndex = cell_0_idx;
 
-    Edge ceil = {Point2D(0,0)};
-    Edge floor = {Point2D(0,map.rows-1)}; // 初始化最初的ceil和floor点
+    for(int i = 0; i < first_in_pos.x; i++)
+    {
+        cell_0.ceiling.emplace_back(Point2D(i,0));
+        cell_0.floor.emplace_back(Point2D(i,map.rows-1));
+    }
 
-    cell_0.ceiling.emplace_back(ceil);
-    cell_0.floor.emplace_back(floor);
+
     cell_graph.emplace_back(cell_0);
 }
 
-void FinishCellDecomposition()
+void FinishCellDecomposition(Point2D last_out_pos)
 {
     int last_cell_idx = cell_graph.size()-1;
 
     // 封闭最后的ceil点和floor点
-
-    cv::LineIterator ceiling(map, cv::Point(cell_graph[last_cell_idx].ceiling.back()[0].x,cell_graph[last_cell_idx].ceiling.back()[0].y), cv::Point(map.cols-1, 0), 8, true);
-    cv::LineIterator floor(map, cv::Point(cell_graph[last_cell_idx].floor.back()[0].x, cell_graph[last_cell_idx].floor.back()[0].y), cv::Point(map.cols-1, map.rows-1), 8, true);
-    ceiling++;
-    floor++;
-    for(int i = 1; i < ceiling.count; i++)
+    for(int i = last_out_pos.x + 1; i <= map.cols-1; i++)
     {
-        cell_graph[last_cell_idx].ceiling.back().emplace_back(ceiling.pos().x, ceiling.pos().y);
-        ceiling++;
-    }
-    for(int i = 1; i < floor.count; i++)
-    {
-        cell_graph[last_cell_idx].floor.back().emplace_back(floor.pos().x, floor.pos().y);
-        floor++;
+        cell_graph[last_cell_idx].ceiling.emplace_back(Point2D(i, 0));
+        cell_graph[last_cell_idx].floor.emplace_back(Point2D(i, map.rows-1));
     }
 }
 
 void ExecuteCellDecomposition(std::vector<Event> event_list)
 {
-//    for(auto event : event_list)
-//    {
-//        ;
-//    }
+    for(auto event : event_list)
+    {
+        ;
+    }
 
     return;
 }
@@ -414,22 +324,16 @@ void drawing_test(const CellNode& cell)
 {
     for(int i = 0; i < cell.ceiling.size(); i++)
     {
-        for(int j = 0; j < cell.ceiling[i].size(); j++)
-        {
-            map.at<cv::Vec3f>(cell.ceiling[i][j].y, cell.ceiling[i][j].x) = cv::Vec3f(0, 0, 255);
-        }
+        map.at<cv::Vec3f>(cell.ceiling[i].y, cell.ceiling[i].x) = cv::Vec3f(0, 0, 255);
     }
 
     for(int i = 0; i < cell.floor.size(); i++)
     {
-        for(int j = 0; j < cell.floor[i].size(); j++)
-        {
-            map.at<cv::Vec3f>(cell.floor[i][j].y, cell.floor[i][j].x) = cv::Vec3f(0, 0, 255);
-        }
+        map.at<cv::Vec3f>(cell.floor[i].y, cell.floor[i].x) = cv::Vec3f(0, 0, 255);
     }
 
-    cv::line(map, cv::Point(cell.ceiling.front().front().x,cell.ceiling.front().front().y), cv::Point(cell.floor.front().front().x,cell.floor.front().front().y), cv::Scalar(0,0,255));
-    cv::line(map, cv::Point(cell.ceiling.back().back().x,cell.ceiling.back().back().y), cv::Point(cell.floor.back().back().x,cell.floor.back().back().y), cv::Scalar(0,0,255));
+    cv::line(map, cv::Point(cell.ceiling.front().x,cell.ceiling.front().y), cv::Point(cell.floor.front().x,cell.floor.front().y), cv::Scalar(0,0,255));
+    cv::line(map, cv::Point(cell.ceiling.back().x,cell.ceiling.back().y), cv::Point(cell.floor.back().x,cell.floor.back().y), cv::Scalar(0,0,255));
 }
 
 
@@ -482,7 +386,7 @@ int main() {
 //        std::cout<< "x:" << it.x << ", y:"<< it.y << ", type:" << it.event_type << std::endl;
 //    }
 
-//  test simple cell decomposition
+//    test simple cell decomposition
     map = cv::Mat::zeros(400, 400, CV_32FC3);
     Point2D in = Point2D(100,200), c = Point2D(100,0), f = Point2D(100,399);
     Point2D out = Point2D(300,200), c_=Point2D(300,0), f_=Point2D(300,399);
@@ -491,33 +395,67 @@ int main() {
     CellNode cell0;
     int cell0_idx = 0;
     cell0.cellIndex = cell0_idx;
-    Edge ceil = {Point2D(0,0)}, floor = {Point2D(0,399)}; // 初始化最初的ceil和floor点
-    cell0.ceiling.emplace_back(ceil);
-    cell0.floor.emplace_back(floor);
+    // 初始化最初的ceil和floor点
+    cell0.ceiling.emplace_back(Point2D(0,0));
+    cell0.floor.emplace_back(Point2D(0,399));
+
+    for(int i = 0; i < in.x; i++)
+    {
+        cell0.ceiling.emplace_back(Point2D(i,0));
+        cell0.floor.emplace_back(Point2D(i,map.rows-1));
+    }
+
     cell_graph.emplace_back(cell0);
+
     ExecuteOpenOperation(cell0_idx, in, c, f);
     int cell1_idx = cell_graph.size()-2;
     int cell2_idx = cell_graph.size()-1;
-    ExecuteFloorOperation(cell1_idx, Point2D(200, 100));
-    ExecuteCeilOperation(cell2_idx, Point2D(200, 300));
+
+    cv::LineIterator floor_edge1(map, cv::Point(in.x, in.y), cv::Point(200, 100), 8, true);
+    cv::LineIterator floor_edge2(map, cv::Point(200, 100), cv::Point(out.x, out.y), 8, true);
+    cv::LineIterator ceil_edge1(map, cv::Point(in.x, in.y), cv::Point(200, 300), 8, true);
+    cv::LineIterator ceil_edge2(map, cv::Point(200, 300), cv::Point(out.x, out.y), 8, true);
+
+    for(int i = 1; i < floor_edge1.count; i++)
+    {
+        ExecuteCeilOperation(cell1_idx, Point2D(floor_edge1.pos().x, 0));
+        ExecuteFloorOperation(cell1_idx, Point2D(floor_edge1.pos().x, floor_edge1.pos().y));
+        floor_edge1++;
+    }
+
+    for(int i = 1; i < floor_edge2.count; i++)
+    {
+        ExecuteCeilOperation(cell1_idx, Point2D(floor_edge2.pos().x, 0));
+        ExecuteFloorOperation(cell1_idx, Point2D(floor_edge2.pos().x, floor_edge2.pos().y));
+        floor_edge2++;
+    }
+
+    for(int i = 1; i < ceil_edge1.count; i++)
+    {
+        ExecuteCeilOperation(cell2_idx, Point2D(ceil_edge1.pos().x, ceil_edge1.pos().y));
+        ExecuteFloorOperation(cell2_idx, Point2D(ceil_edge1.pos().x, map.rows-1));
+        ceil_edge1++;
+    }
+
+    for(int i = 1; i < ceil_edge2.count; i++)
+    {
+        ExecuteCeilOperation(cell2_idx, Point2D(ceil_edge2.pos().x, ceil_edge2.pos().y));
+        ExecuteFloorOperation(cell2_idx, Point2D(ceil_edge2.pos().x, map.rows-1));
+        ceil_edge2++;
+    }
+
+
     ExecuteCloseOperation(cell1_idx, cell2_idx, out, c_, f_);
     int cell3_idx = cell_graph.size()-1;
 
+
     // 封闭最后的ceil点和floor点
-    cv::LineIterator c_it(map, cv::Point(cell_graph[cell3_idx].ceiling.back()[0].x,cell_graph[cell3_idx].ceiling.back()[0].y), cv::Point(c_end.x, c_end.y), 8, true);
-    cv::LineIterator f_it(map, cv::Point(cell_graph[cell3_idx].floor.back()[0].x, cell_graph[cell3_idx].floor.back()[0].y), cv::Point(f_end.x, f_end.y), 8, true);
-    c_it++;
-    f_it++;
-    for(int i = 1; i < c_it.count; i++)
+    for(int i = out.x + 1; i <= map.cols-1; i++)
     {
-        cell_graph[cell3_idx].ceiling.back().emplace_back(c_it.pos().x, c_it.pos().y);
-        c_it++;
+        cell_graph[cell3_idx].ceiling.emplace_back(Point2D(i, 0));
+        cell_graph[cell3_idx].floor.emplace_back(Point2D(i, map.rows-1));
     }
-    for(int i = 1; i < f_it.count; i++)
-    {
-        cell_graph[cell3_idx].floor.back().emplace_back(f_it.pos().x, f_it.pos().y);
-        f_it++;
-    }
+
 
     drawing_test(cell_graph[cell0_idx]);
     cv::imshow("cells", map);
