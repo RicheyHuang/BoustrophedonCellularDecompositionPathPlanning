@@ -352,7 +352,7 @@ void drawing_test(const CellNode& cell)
 }
 
 
-std::vector<std::vector<int>> cell_index_slices;
+std::vector<int> cell_index_slices;
 
 /***
  * in.y在哪个cell的ceil和floor中间，就选取哪个cell作为in operation的curr cell， in上面的点为c, in下面的点为f
