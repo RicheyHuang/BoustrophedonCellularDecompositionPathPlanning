@@ -333,16 +333,6 @@ void FinishCellDecomposition(Point2D last_out_pos)
     }
 }
 
-void ExecuteCellDecomposition(std::vector<Event> event_list)
-{
-    for(auto event : event_list)
-    {
-        ;
-    }
-
-    return;
-}
-
 
 
 void drawing_test(const CellNode& cell)
@@ -359,6 +349,57 @@ void drawing_test(const CellNode& cell)
 
     cv::line(map, cv::Point(cell.ceiling.front().x,cell.ceiling.front().y), cv::Point(cell.floor.front().x,cell.floor.front().y), cv::Scalar(0,0,255));
     cv::line(map, cv::Point(cell.ceiling.back().x,cell.ceiling.back().y), cv::Point(cell.floor.back().x,cell.floor.back().y), cv::Scalar(0,0,255));
+}
+
+
+std::vector<std::vector<int>> cell_index_slices;
+
+/***
+ * in.y在哪个cell的ceil和floor中间，就选取哪个cell作为in operation的curr cell， in上面的点为c, in下面的点为f
+ * 若out.y在cell A的上界A_c以下，在cell B的下界以上B_f，则cell A为out operation的top cell， cell B为out operation的bottom cell，A_c为c, B_f为f
+ * cell A和cell B在cell slice中必需是紧挨着的，中间不能插有别的cell
+ * 对于一个event slice分别在最前和最后补上最上的c和最下的f后，从上往下遍历该event slice，将是一对一对的cf，按顺序将每一对cf赋给cell slice从上往下的每个cell
+ */
+
+void ExecuteCellDecomposition(std::vector<std::vector<Event>> slice_list)
+{
+    int curr_cell_idx = INT_MAX;
+    int top_cell_idx = INT_MAX;
+    int bottom_cell_idx = INT_MAX;
+
+    for(int i = 0; i < slice_list.size(); i++)
+    {
+        for(int j = 0; j < slice_list[i].size(); j++)
+        {
+            if(slice_list[i].size() == 1)
+            {
+                if(slice_list[i][j].event_type == IN)
+                {
+
+                }
+                if(slice_list[i][j].event_type == OUT)
+                {}
+                if(slice_list[i][j].event_type == CEILING)
+                {}
+                if(slice_list[i][j].event_type == FLOOR)
+                {}
+            }
+            else
+            {
+                if(slice_list[i][j].event_type == IN)
+                {}
+                if(slice_list[i][j].event_type == OUT)
+                {}
+                if(slice_list[i][j].event_type == CEILING)
+                {}
+                if(slice_list[i][j].event_type == FLOOR)
+                {}
+            }
+
+        }
+    }
+
+    return;
 }
 
 
