@@ -146,7 +146,7 @@ std::vector<Point2D> GetBoustrophedonPath(std::vector<Point2D> ceiling, std::vec
             for(y = y_start; y <= y_end; y++)
             {
                 path.emplace_back(Point2D(x, y));
-                std::cout<< x << "," << y << std::endl;
+//                std::cout<< x << "," << y << std::endl;
             }
             reverse = !reverse;
         }
@@ -158,7 +158,7 @@ std::vector<Point2D> GetBoustrophedonPath(std::vector<Point2D> ceiling, std::vec
             for (y = y_start; y >= y_end; y--)
             {
                 path.emplace_back(Point2D(x, y));
-                std::cout<< x << "," << y << std::endl;
+//                std::cout<< x << "," << y << std::endl;
             }
             reverse = !reverse;
         }
@@ -425,7 +425,7 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                                                                 Point2D(slice_list[i][j+1].x, slice_list[i][j+1].y));
                             cell_index_slice.erase(cell_index_slice.begin()+k);
                             sub_cell_index_slices.clear();
-                            sub_cell_index_slices = {int(cell_graph.size()-1), int(cell_graph.size()-2)};
+                            sub_cell_index_slices = {int(cell_graph.size()-2), int(cell_graph.size()-1)};
                             cell_index_slice.insert(cell_index_slice.begin()+k, sub_cell_index_slices.begin(), sub_cell_index_slices.end());
                             break;
                         }
