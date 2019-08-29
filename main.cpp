@@ -513,15 +513,15 @@ int main() {
 
     for(int i = path.size()-1; i >= 0; i--)
     {
-        sub_path = GetBoustrophedonPath(path[i].ceiling, path[i].floor, 10);
+        sub_path = GetBoustrophedonPath(path[i].ceiling, path[i].floor);
         for(int j = 0; j < sub_path.size(); j++)
         {
             map.at<cv::Vec3f>(sub_path[j].y, sub_path[j].x) = cv::Vec3f(0, 255, 0);
-            cv::imshow("cell", map);
+            cv::imshow("trajectory", map);
             cv::waitKey(1);
         }
-        cv::waitKey(0);
     }
+    cv::waitKey(0);
 
     return 0;
 }
