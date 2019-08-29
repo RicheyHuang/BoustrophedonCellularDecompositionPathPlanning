@@ -218,10 +218,10 @@ std::vector<Event> EventListGenerator(PolygonList polygons) // 多边形按照�
     return event_list;
 }
 
-std::vector<std::vector<Event>> SliceListGenerator(std::vector<Event> event_list)
+std::deque<std::deque<Event>> SliceListGenerator(std::vector<Event> event_list)
 {
-    std::vector<std::vector<Event>> slice_list;
-    std::vector<Event> slice;
+    std::deque<std::deque<Event>> slice_list;
+    std::deque<Event> slice;
     int x = event_list.front().x;
 
     for(int i = 0; i < event_list.size(); i++)
@@ -352,50 +352,98 @@ void drawing_test(const CellNode& cell)
 }
 
 
-std::vector<int> cell_index_slices;
+std::vector<int> cell_index_slice; // 按y从小到大排列
 
 /***
  * in.y在哪个cell的ceil和floor中间，就选取哪个cell作为in operation的curr cell， in上面的点为c, in下面的点为f
- * 若out.y在cell A的上界A_c以下，在cell B的下界以上B_f，则cell A为out operation的top cell， cell B为out operation的bottom cell，A_c为c, B_f为f
+ * 若out.y在cell A的上界A_c以下，在cell B的下界B_f以上，则cell A为out operation的top cell， cell B为out operation的bottom cell，A_c为c, B_f为f
  * cell A和cell B在cell slice中必需是紧挨着的，中间不能插有别的cell
  * 对于一个event slice分别在最前和最后补上最上的c和最下的f后，从上往下遍历该event slice，将是一对一对的cf，按顺序将每一对cf赋给cell slice从上往下的每个cell
  */
 
-void ExecuteCellDecomposition(std::vector<std::vector<Event>> slice_list)
+void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
 {
     int curr_cell_idx = INT_MAX;
     int top_cell_idx = INT_MAX;
     int bottom_cell_idx = INT_MAX;
 
+    int slice_x = INT_MAX;
+    int event_y = INT_MAX;
+
+    std::vector<int> sub_cell_index_slices;
+    std::vector<Event> ceil_floor_pair;
+
+    cell_index_slice.emplace_back(0); // initialization
+
     for(int i = 0; i < slice_list.size(); i++)
     {
+        slice_x = slice_list[i].front().x;
+        slice_list[i].emplace_front(Event(INT_MAX, slice_x, 0, CEILING));       // add map upper boundary
+        slice_list[i].emplace_back(Event(INT_MAX, slice_x, map.rows-1, FLOOR)); // add map lower boundary
+
         for(int j = 0; j < slice_list[i].size(); j++)
         {
-            if(slice_list[i].size() == 1)
+            if(slice_list[i][j].event_type == IN)
             {
-                if(slice_list[i][j].event_type == IN)
+                if(slice_list[i].size() == 3)
                 {
-
+                    curr_cell_idx = cell_index_slice.back();
+                    ExecuteOpenOperation(curr_cell_idx, Point2D(slice_list[i][j].x, slice_list[i][j].y),
+                                                        Point2D(slice_list[i][j-1].x, slice_list[i][j-1].y),
+                                                        Point2D(slice_list[i][j+1].x, slice_list[i][j+1].y));
+                    cell_index_slice.pop_back();
+                    cell_index_slice.emplace_back(curr_cell_idx+1);
+                    cell_index_slice.emplace_back(curr_cell_idx+2);
                 }
-                if(slice_list[i][j].event_type == OUT)
-                {}
-                if(slice_list[i][j].event_type == CEILING)
-                {}
-                if(slice_list[i][j].event_type == FLOOR)
-                {}
+                else
+                {
+                    event_y = slice_list[i][j].y;
+                    for(int k = 0; k < cell_index_slice.size(); k++)
+                    {
+                        if(event_y > cell_graph[cell_index_slice[k]].ceiling.back().y && event_y < cell_graph[cell_index_slice[k]].floor.back().y)
+                        {
+                            curr_cell_idx = cell_index_slice[k];
+                            ExecuteOpenOperation(curr_cell_idx, Point2D(slice_list[i][j].x, slice_list[i][j].y),
+                                                                Point2D(slice_list[i][j-1].x, slice_list[i][j-1].y),
+                                                                Point2D(slice_list[i][j+1].x, slice_list[i][j+1].y));
+                            cell_index_slice.erase(cell_index_slice.begin()+k);
+                            sub_cell_index_slices.clear();
+                            sub_cell_index_slices = {int(cell_graph.size()-1), int(cell_graph.size()-2)};
+                            cell_index_slice.insert(cell_index_slice.begin()+k, sub_cell_index_slices.begin(), sub_cell_index_slices.end());
+                            break;
+                        }
+                    }
+                }
             }
+            if(slice_list[i][j].event_type == OUT)
+            {
+                event_y = slice_list[i][j].y;
+                for(int k = 1; k < cell_index_slice.size(); k++)
+                {
+                    if(event_y > cell_graph[cell_index_slice[k-1]].ceiling.back().y && event_y < cell_graph[cell_index_slice[k]].floor.back().y)
+                    {
+                        top_cell_idx = cell_index_slice[k-1];
+                        bottom_cell_idx = cell_index_slice[k];
+                        ExecuteCloseOperation(top_cell_idx, bottom_cell_idx,
+                                              Point2D(slice_list[i][j].x, slice_list[i][j].y),
+                                              cell_graph[top_cell_idx].ceiling.back(),
+                                              cell_graph[bottom_cell_idx].floor.back());
+                        cell_index_slice.erase(cell_index_slice.begin()+k-1);
+                        cell_index_slice.erase(cell_index_slice.begin()+k-1);
+                        cell_index_slice.insert(cell_index_slice.begin()+k-1, int(cell_graph.size()-1));
+                        break;
+                    }
+                }
+
+            }
+            if(slice_list[i][j].event_type == CEILING)
+            {}
+            if(slice_list[i][j].event_type == FLOOR)
+            {}
             else
             {
-                if(slice_list[i][j].event_type == IN)
-                {}
-                if(slice_list[i][j].event_type == OUT)
-                {}
-                if(slice_list[i][j].event_type == CEILING)
-                {}
-                if(slice_list[i][j].event_type == FLOOR)
-                {}
+                std::cout<<"event uninitialized." << std::endl;
             }
-
         }
     }
 
@@ -585,6 +633,19 @@ int main() {
 //        }
 //    }
 
+    std::vector<int> vec = {0,1,2,3,4,5};
+    std::vector<int> subvec = {6,7};
+
+    vec.erase(vec.begin()+1);
+    vec.erase(vec.begin()+1);
+    vec.insert(vec.begin()+1, 6);
+//    vec.insert(vec.begin()+1, subvec.begin(), subvec.end());
+
+
+    for(int i = 0; i < vec.size(); i++)
+    {
+        std::cout<<vec[i]<<" ";
+    }
 
     return 0;
 }
