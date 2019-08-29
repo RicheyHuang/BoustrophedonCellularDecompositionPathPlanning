@@ -453,10 +453,6 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                 ExecuteFloorOperation(curr_cell_idx, Point2D(slice_list[i][j].x, slice_list[i][j].y));
                 cell_counter++;
             }
-//            else
-//            {
-//                std::cout<<"event uninitialized." << std::endl;
-//            }
         }
     }
 }
@@ -464,186 +460,6 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
 
 
 int main() {
-
-//    test GetBoustrophedonPath
-//    std::vector<Point2D> ceil = {Point2D(0,0),Point2D(1,0),Point2D(2,0),Point2D(3,0),Point2D(4,0)};
-//    std::vector<Point2D> floor = {Point2D(0,4),Point2D(1,4),Point2D(2,4),Point2D(3,4),Point2D(4,4)};
-//
-//    std::vector<Point2D> path = GetBoustrophedonPath(ceil, floor);
-//    std::vector<Point2D>::iterator it = path.begin();
-
-//    test DepthFirstSearch
-//    CellNode cell1,cell2,cell3,cell4,cell5,cell6,cell7,cell8,cell9,cell10,cell11;
-//    cell1.cellIndex=1;
-//    cell2.cellIndex=2;
-//    cell3.cellIndex=3;
-//    cell4.cellIndex=4;
-//    cell5.cellIndex=5;
-//    cell6.cellIndex=6;
-//    cell7.cellIndex=7;
-//    cell8.cellIndex=8;
-//    cell9.cellIndex=9;
-//    cell10.cellIndex=10;
-//    cell11.cellIndex=11;
-//
-//    cell1.neighbor_cells={&cell2,&cell3};
-//    cell2.neighbor_cells={&cell4,&cell5,&cell1};
-//    cell3.neighbor_cells={&cell6,&cell7,&cell1};
-//    cell4.neighbor_cells={&cell8,&cell9,&cell2};
-//    cell5.neighbor_cells={&cell2};
-//    cell6.neighbor_cells={&cell3};
-//    cell7.neighbor_cells={&cell10,&cell11,&cell3};
-//    cell8.neighbor_cells={&cell4};
-//    cell9.neighbor_cells={&cell4};
-//    cell10.neighbor_cells={&cell7};
-//    cell11.neighbor_cells={&cell7};
-//
-//    DepthFirstSearch(cell1);
-
-//    test EventListGenerator
-//    Polygon polygon = {Point2D(2,3), Point2D(4,3), Point2D(5,2), Point2D(3,1), Point2D(1,2)};
-//    PolygonList polygons = {polygon};
-//
-//    std::vector<Event> event_list = EventListGenerator(polygons);
-//
-//    for(auto it : event_list)
-//    {
-//        std::cout<< "x:" << it.x << ", y:"<< it.y << ", type:" << it.event_type << std::endl;
-//    }
-
-//    test simple cell decomposition
-//    map = cv::Mat::zeros(400, 400, CV_32FC3);
-//    Point2D in = Point2D(100,200), c = Point2D(100,0), f = Point2D(100,399);
-//    Point2D out = Point2D(300,200), c_=Point2D(300,0), f_=Point2D(300,399);
-//    Point2D c_end = Point2D(399, 0), f_end = Point2D(399, 399);
-//
-//    CellNode cell0;
-//    int cell0_idx = 0;
-//    cell0.cellIndex = cell0_idx;
-//    // 初始化最初的ceil和floor点
-//    cell0.ceiling.emplace_back(Point2D(0,0));
-//    cell0.floor.emplace_back(Point2D(0,399));
-//
-//    for(int i = 0; i < in.x; i++)
-//    {
-//        cell0.ceiling.emplace_back(Point2D(i,0));
-//        cell0.floor.emplace_back(Point2D(i,map.rows-1));
-//    }
-//
-//    cell_graph.emplace_back(cell0);
-//
-//    ExecuteOpenOperation(cell0_idx, in, c, f);
-//    int cell1_idx = cell_graph.size()-2;
-//    int cell2_idx = cell_graph.size()-1;
-//
-//    cv::LineIterator floor_edge1(map, cv::Point(in.x, in.y), cv::Point(200, 100), 8, true);
-//    cv::LineIterator floor_edge2(map, cv::Point(200, 100), cv::Point(out.x, out.y), 8, true);
-//    cv::LineIterator ceil_edge1(map, cv::Point(in.x, in.y), cv::Point(200, 300), 8, true);
-//    cv::LineIterator ceil_edge2(map, cv::Point(200, 300), cv::Point(out.x, out.y), 8, true);
-//
-//    for(int i = 1; i < floor_edge1.count; i++)
-//    {
-//        ExecuteCeilOperation(cell1_idx, Point2D(floor_edge1.pos().x, 0));
-//        ExecuteFloorOperation(cell1_idx, Point2D(floor_edge1.pos().x, floor_edge1.pos().y));
-//        floor_edge1++;
-//    }
-//
-//    for(int i = 1; i < floor_edge2.count; i++)
-//    {
-//        ExecuteCeilOperation(cell1_idx, Point2D(floor_edge2.pos().x, 0));
-//        ExecuteFloorOperation(cell1_idx, Point2D(floor_edge2.pos().x, floor_edge2.pos().y));
-//        floor_edge2++;
-//    }
-//
-//    for(int i = 1; i < ceil_edge1.count; i++)
-//    {
-//        ExecuteCeilOperation(cell2_idx, Point2D(ceil_edge1.pos().x, ceil_edge1.pos().y));
-//        ExecuteFloorOperation(cell2_idx, Point2D(ceil_edge1.pos().x, map.rows-1));
-//        ceil_edge1++;
-//    }
-//
-//    for(int i = 1; i < ceil_edge2.count; i++)
-//    {
-//        ExecuteCeilOperation(cell2_idx, Point2D(ceil_edge2.pos().x, ceil_edge2.pos().y));
-//        ExecuteFloorOperation(cell2_idx, Point2D(ceil_edge2.pos().x, map.rows-1));
-//        ceil_edge2++;
-//    }
-//
-//
-//    ExecuteCloseOperation(cell1_idx, cell2_idx, out, c_, f_);
-//    int cell3_idx = cell_graph.size()-1;
-//
-//
-//    // 封闭最后的ceil点和floor点
-//    for(int i = out.x + 1; i <= map.cols-1; i++)
-//    {
-//        cell_graph[cell3_idx].ceiling.emplace_back(Point2D(i, 0));
-//        cell_graph[cell3_idx].floor.emplace_back(Point2D(i, map.rows-1));
-//    }
-//
-//
-//    drawing_test(cell_graph[cell0_idx]);
-//    cv::imshow("cells", map);
-//    cv::waitKey(0);
-//
-//    drawing_test(cell_graph[cell1_idx]);
-//    cv::imshow("cells", map);
-//    cv::waitKey(0);
-//
-//    drawing_test(cell_graph[cell2_idx]);
-//    cv::imshow("cells", map);
-//    cv::waitKey(0);
-//
-//    drawing_test(cell_graph[cell3_idx]);
-//    cv::imshow("cells", map);
-//    cv::waitKey(0);
-//
-//    cv::imshow("cells", map);
-//    cv::waitKey(0);
-//
-//    for(int i = 0; i < cell_graph[0].neighbor_indices.size(); i++)
-//    {
-//        std::cout<<"cell0's neighbor: cell "<<cell_graph[cell_graph[0].neighbor_indices[i]].cellIndex<<std::endl;
-//    }
-//
-//    for(int i = 0; i < cell_graph[1].neighbor_indices.size(); i++)
-//    {
-//        std::cout<<"cell1's neighbor: cell "<<cell_graph[cell_graph[1].neighbor_indices[i]].cellIndex<<std::endl;
-//    }
-//
-//    for(int i = 0; i < cell_graph[2].neighbor_indices.size(); i++)
-//    {
-//        std::cout<<"cell2's neighbor: cell "<<cell_graph[cell_graph[2].neighbor_indices[i]].cellIndex<<std::endl;
-//    }
-//
-//    for(int i = 0; i < cell_graph[3].neighbor_indices.size(); i++)
-//    {
-//        std::cout<<"cell3's neighbor: cell "<<cell_graph[cell_graph[3].neighbor_indices[i]].cellIndex<<std::endl;
-//    }
-//
-//    WalkingThroughGraph(cell0_idx);
-//
-
-//  test SliceListGenerator
-//    Event e1 = Event(1, 10, 20, IN);
-//    Event e2 = Event(2, 10, 30, IN);
-//    Event e3 = Event(3, 20, 20, IN);
-//    Event e4 = Event(4, 30, 20, IN);
-//    Event e5 = Event(5, 30, 30, IN);
-//    Event e6 = Event(6, 40, 20, IN);
-//
-//    std::vector<Event> event_list = {e1, e2, e3, e4, e5, e6};
-//    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
-//
-//    std::cout<< "slice num: "<< slice_list.size() << std::endl;
-//    for(int i = 0; i < slice_list.size(); i++)
-//    {
-//        for(int j = 0; j < slice_list[i].size(); j++)
-//        {
-//            std::cout<< "slice" << i << ": event " << slice_list[i][j].obstacle_index << std::endl;
-//        }
-//    }
-
 
     map = cv::Mat::zeros(400, 400, CV_32FC3);
     cv::LineIterator line1(map, cv::Point(200,300), cv::Point(300,200));
@@ -673,11 +489,25 @@ int main() {
     }
     PolygonList polygons = {polygon};
     std::vector<Event> event_list = EventListGenerator(polygons);
+
+
     std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
-    InitializeCellDecomposition(Point2D(100,200));
+    InitializeCellDecomposition(Point2D(slice_list.front().front().x, slice_list.front().front().y));
     ExecuteCellDecomposition(slice_list);
-    FinishCellDecomposition(Point2D(300,200));
+    FinishCellDecomposition(Point2D(slice_list.back().back().x, slice_list.back().back().y));
     WalkingThroughGraph(0);
+
+
+    std::vector<cv::Point> contour = {cv::Point(200,300), cv::Point(300,200), cv::Point(200,100), cv::Point(100,200)};
+    std::vector<std::vector<cv::Point>> contours = {contour};
+    cv::fillPoly(map, contours, cv::Scalar(255, 255, 255));
+
+    for(int i = 0; i < cell_graph.size(); i++)
+    {
+        drawing_test(cell_graph[i]);
+        cv::imshow("cells", map);
+        cv::waitKey(0);
+    }
 
     return 0;
 }
