@@ -79,9 +79,15 @@ std::deque<CellNode> path;
 
 std::vector<CellNode> cell_graph;
 
+int unvisited_counter = INT_MAX;
+
 void WalkingThroughGraph(int cell_index)
 {
-    cell_graph[cell_index].isVisited = true;
+    if(!cell_graph[cell_index].isVisited)
+    {
+        cell_graph[cell_index].isVisited = true;
+        unvisited_counter--;
+    }
     path.emplace_front(cell_graph[cell_index]);
     std::cout<< "cell: " <<cell_graph[cell_index].cellIndex<<std::endl;
 
@@ -100,13 +106,17 @@ void WalkingThroughGraph(int cell_index)
 
     if(!neighbor.isVisited) // unvisited neighbor found
     {
-        neighbor.parentIndex = cell_graph[cell_index].cellIndex;
+        cell_graph[neighbor_idx].parentIndex = cell_graph[cell_index].cellIndex;
         WalkingThroughGraph(neighbor_idx);
     }
     else  // unvisited neighbor not found
     {
 
         if (cell_graph[cell_index].parentIndex == INT_MAX) // cannot go on back-tracking
+        {
+            return;
+        }
+        else if(unvisited_counter == 0)
         {
             return;
         }
@@ -331,6 +341,8 @@ void FinishCellDecomposition(Point2D last_out_pos)
         cell_graph[last_cell_idx].ceiling.emplace_back(Point2D(i, 0));
         cell_graph[last_cell_idx].floor.emplace_back(Point2D(i, map.rows-1));
     }
+
+    unvisited_counter = cell_graph.size();
 }
 
 
@@ -462,32 +474,60 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
 int main() {
 
     map = cv::Mat::zeros(400, 400, CV_32FC3);
+    Polygon polygon1, polygon2;
     cv::LineIterator line1(map, cv::Point(200,300), cv::Point(300,200));
     cv::LineIterator line2(map, cv::Point(300,200), cv::Point(200,100));
     cv::LineIterator line3(map, cv::Point(200,100), cv::Point(100,200));
     cv::LineIterator line4(map, cv::Point(100,200), cv::Point(200,300));
-    Polygon polygon;
+
     for(int i = 0; i < line1.count-1; i++)
     {
-        polygon.emplace_back(Point2D(line1.pos().x, line1.pos().y));
+        polygon1.emplace_back(Point2D(line1.pos().x, line1.pos().y));
         line1++;
     }
     for(int i = 0; i < line2.count-1; i++)
     {
-        polygon.emplace_back(Point2D(line2.pos().x, line2.pos().y));
+        polygon1.emplace_back(Point2D(line2.pos().x, line2.pos().y));
         line2++;
     }
     for(int i = 0; i < line3.count-1; i++)
     {
-        polygon.emplace_back(Point2D(line3.pos().x, line3.pos().y));
+        polygon1.emplace_back(Point2D(line3.pos().x, line3.pos().y));
         line3++;
     }
     for(int i = 0; i < line4.count-1; i++)
     {
-        polygon.emplace_back(Point2D(line4.pos().x, line4.pos().y));
+        polygon1.emplace_back(Point2D(line4.pos().x, line4.pos().y));
         line4++;
     }
-    PolygonList polygons = {polygon};
+
+    cv::LineIterator line5(map, cv::Point(320,350), cv::Point(370,300));
+    cv::LineIterator line6(map, cv::Point(370,300), cv::Point(320,250));
+    cv::LineIterator line7(map, cv::Point(320,250), cv::Point(270,300));
+    cv::LineIterator line8(map, cv::Point(270,300), cv::Point(320,350));
+    for(int i = 0; i < line5.count-1; i++)
+    {
+        polygon2.emplace_back(Point2D(line5.pos().x, line5.pos().y));
+        line5++;
+    }
+    for(int i = 0; i < line6.count-1; i++)
+    {
+        polygon2.emplace_back(Point2D(line6.pos().x, line6.pos().y));
+        line6++;
+    }
+    for(int i = 0; i < line7.count-1; i++)
+    {
+        polygon2.emplace_back(Point2D(line7.pos().x, line7.pos().y));
+        line7++;
+    }
+    for(int i = 0; i < line8.count-1; i++)
+    {
+        polygon2.emplace_back(Point2D(line8.pos().x, line8.pos().y));
+        line8++;
+    }
+
+
+    PolygonList polygons = {polygon1, polygon2};
     std::vector<Event> event_list = EventListGenerator(polygons);
 
 
@@ -497,9 +537,20 @@ int main() {
     FinishCellDecomposition(Point2D(slice_list.back().back().x, slice_list.back().back().y));
     WalkingThroughGraph(0);
 
+    std::cout<<cell_graph.size()<<std::endl;
 
-    std::vector<cv::Point> contour = {cv::Point(200,300), cv::Point(300,200), cv::Point(200,100), cv::Point(100,200)};
-    std::vector<std::vector<cv::Point>> contours = {contour};
+    for(int i = 0; i < cell_graph.size(); i++)
+    {
+        for(int j = 0; j < cell_graph[i].neighbor_indices.size(); j++)
+        {
+            std::cout<<"cell "<< i << "'s neighbor: cell "<<cell_graph[cell_graph[i].neighbor_indices[j]].cellIndex<<std::endl;
+        }
+    }
+
+
+    std::vector<cv::Point> contour1 = {cv::Point(200,300), cv::Point(300,200), cv::Point(200,100), cv::Point(100,200)};
+    std::vector<cv::Point> contour2 = {cv::Point(320,350), cv::Point(370,300), cv::Point(320,250), cv::Point(270,300)};
+    std::vector<std::vector<cv::Point>> contours = {contour1, contour2};
     cv::fillPoly(map, contours, cv::Scalar(255, 255, 255));
 
     for(int i = 0; i < cell_graph.size(); i++)
@@ -513,6 +564,8 @@ int main() {
 
     for(int i = path.size()-1; i >= 0; i--)
     {
+        if(path[i].isCleaned)
+        { continue;}
         sub_path = GetBoustrophedonPath(path[i].ceiling, path[i].floor);
         for(int j = 0; j < sub_path.size(); j++)
         {
@@ -520,6 +573,7 @@ int main() {
             cv::imshow("trajectory", map);
             cv::waitKey(1);
         }
+        path[i].isCleaned = true;
     }
     cv::waitKey(0);
 
