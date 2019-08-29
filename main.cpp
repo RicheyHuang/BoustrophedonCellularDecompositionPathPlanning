@@ -358,7 +358,8 @@ std::vector<int> cell_index_slice; // 按y从小到大排列
  * in.y在哪个cell的ceil和floor中间，就选取哪个cell作为in operation的curr cell， in上面的点为c, in下面的点为f
  * 若out.y在cell A的上界A_c以下，在cell B的下界B_f以上，则cell A为out operation的top cell， cell B为out operation的bottom cell，A_c为c, B_f为f
  * cell A和cell B在cell slice中必需是紧挨着的，中间不能插有别的cell
- * 对于一个event slice分别在最前和最后补上最上的c和最下的f后，从上往下遍历该event slice，将是一对一对的cf，按顺序将每一对cf赋给cell slice从上往下的每个cell
+ * 对于每个slice，从上往下统计有几个in或out或floor（都可代表某个cell的下界），每有一个就代表该slice上有几个cell完成上下界的确定。ceil或floor属于该slice上的哪个cell，就看之前完成了对几个cell
+ * 的上下界的确定，则ceil和floor是属于该slice上的下一个cell
  */
 
 void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
@@ -372,13 +373,14 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
 
     std::vector<int> sub_cell_index_slices;
 
-    int ceil_counter = 0;
-    int floor_counter = 0;
+    int cell_counter = 0;
 
     cell_index_slice.emplace_back(0); // initialization
 
     for(int i = 0; i < slice_list.size(); i++)
     {
+        cell_counter = 0;
+
         slice_x = slice_list[i].front().x;
         slice_list[i].emplace_front(Event(INT_MAX, slice_x, 0, CEILING));       // add map upper boundary
         slice_list[i].emplace_back(Event(INT_MAX, slice_x, map.rows-1, FLOOR)); // add map lower boundary
@@ -387,6 +389,7 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
         {
             if(slice_list[i][j].event_type == IN)
             {
+                cell_counter++;
                 if(slice_list[i].size() == 3)
                 {
                     curr_cell_idx = cell_index_slice.back();
@@ -419,6 +422,7 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
             }
             if(slice_list[i][j].event_type == OUT)
             {
+                cell_counter++;
                 event_y = slice_list[i][j].y;
                 for(int k = 1; k < cell_index_slice.size(); k++)
                 {
@@ -440,20 +444,19 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
             }
             if(slice_list[i][j].event_type == CEILING)
             {
-                curr_cell_idx = cell_index_slice[ceil_counter];
+                curr_cell_idx = cell_index_slice[cell_counter];
                 ExecuteCeilOperation(curr_cell_idx, Point2D(slice_list[i][j].x, slice_list[i][j].y));
-                ceil_counter++;
             }
             if(slice_list[i][j].event_type == FLOOR)
             {
-                curr_cell_idx = cell_index_slice[floor_counter];
+                curr_cell_idx = cell_index_slice[cell_counter];
                 ExecuteFloorOperation(curr_cell_idx, Point2D(slice_list[i][j].x, slice_list[i][j].y));
-                floor_counter++;
+                cell_counter++;
             }
-            else
-            {
-                std::cout<<"event uninitialized." << std::endl;
-            }
+//            else
+//            {
+//                std::cout<<"event uninitialized." << std::endl;
+//            }
         }
     }
 }
@@ -674,5 +677,7 @@ int main() {
     InitializeCellDecomposition(Point2D(100,200));
     ExecuteCellDecomposition(slice_list);
     FinishCellDecomposition(Point2D(300,200));
+    WalkingThroughGraph(0);
+
     return 0;
 }
