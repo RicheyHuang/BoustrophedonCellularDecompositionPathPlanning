@@ -509,5 +509,19 @@ int main() {
         cv::waitKey(0);
     }
 
+    std::vector<Point2D> sub_path;
+
+    for(int i = path.size()-1; i >= 0; i--)
+    {
+        sub_path = GetBoustrophedonPath(path[i].ceiling, path[i].floor, 10);
+        for(int j = 0; j < sub_path.size(); j++)
+        {
+            map.at<cv::Vec3f>(sub_path[j].y, sub_path[j].x) = cv::Vec3f(0, 255, 0);
+            cv::imshow("cell", map);
+            cv::waitKey(1);
+        }
+        cv::waitKey(0);
+    }
+
     return 0;
 }
