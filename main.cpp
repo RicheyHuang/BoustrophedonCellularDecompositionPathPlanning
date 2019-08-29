@@ -371,7 +371,9 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
     int event_y = INT_MAX;
 
     std::vector<int> sub_cell_index_slices;
-    std::vector<Event> ceil_floor_pair;
+
+    int ceil_counter = 0;
+    int floor_counter = 0;
 
     cell_index_slice.emplace_back(0); // initialization
 
@@ -437,17 +439,23 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
 
             }
             if(slice_list[i][j].event_type == CEILING)
-            {}
+            {
+                curr_cell_idx = cell_index_slice[ceil_counter];
+                ExecuteCeilOperation(curr_cell_idx, Point2D(slice_list[i][j].x, slice_list[i][j].y));
+                ceil_counter++;
+            }
             if(slice_list[i][j].event_type == FLOOR)
-            {}
+            {
+                curr_cell_idx = cell_index_slice[floor_counter];
+                ExecuteFloorOperation(curr_cell_idx, Point2D(slice_list[i][j].x, slice_list[i][j].y));
+                floor_counter++;
+            }
             else
             {
                 std::cout<<"event uninitialized." << std::endl;
             }
         }
     }
-
-    return;
 }
 
 
@@ -622,7 +630,7 @@ int main() {
 //    Event e6 = Event(6, 40, 20, IN);
 //
 //    std::vector<Event> event_list = {e1, e2, e3, e4, e5, e6};
-//    std::vector<std::vector<Event>> slice_list = SliceListGenerator(event_list);
+//    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
 //
 //    std::cout<< "slice num: "<< slice_list.size() << std::endl;
 //    for(int i = 0; i < slice_list.size(); i++)
@@ -633,19 +641,38 @@ int main() {
 //        }
 //    }
 
-    std::vector<int> vec = {0,1,2,3,4,5};
-    std::vector<int> subvec = {6,7};
 
-    vec.erase(vec.begin()+1);
-    vec.erase(vec.begin()+1);
-    vec.insert(vec.begin()+1, 6);
-//    vec.insert(vec.begin()+1, subvec.begin(), subvec.end());
-
-
-    for(int i = 0; i < vec.size(); i++)
+    map = cv::Mat::zeros(400, 400, CV_32FC3);
+    cv::LineIterator line1(map, cv::Point(200,300), cv::Point(300,200));
+    cv::LineIterator line2(map, cv::Point(300,200), cv::Point(200,100));
+    cv::LineIterator line3(map, cv::Point(200,100), cv::Point(100,200));
+    cv::LineIterator line4(map, cv::Point(100,200), cv::Point(200,300));
+    Polygon polygon;
+    for(int i = 0; i < line1.count-1; i++)
     {
-        std::cout<<vec[i]<<" ";
+        polygon.emplace_back(Point2D(line1.pos().x, line1.pos().y));
+        line1++;
     }
-
+    for(int i = 0; i < line2.count-1; i++)
+    {
+        polygon.emplace_back(Point2D(line2.pos().x, line2.pos().y));
+        line2++;
+    }
+    for(int i = 0; i < line3.count-1; i++)
+    {
+        polygon.emplace_back(Point2D(line3.pos().x, line3.pos().y));
+        line3++;
+    }
+    for(int i = 0; i < line4.count-1; i++)
+    {
+        polygon.emplace_back(Point2D(line4.pos().x, line4.pos().y));
+        line4++;
+    }
+    PolygonList polygons = {polygon};
+    std::vector<Event> event_list = EventListGenerator(polygons);
+    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
+    InitializeCellDecomposition(Point2D(100,200));
+    ExecuteCellDecomposition(slice_list);
+    FinishCellDecomposition(Point2D(300,200));
     return 0;
 }
