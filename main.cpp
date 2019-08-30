@@ -134,7 +134,7 @@ std::vector<Point2D> GetBoustrophedonPath(std::vector<Point2D> ceiling, std::vec
     int x=0, y=0, y_start=0, y_end=0;
     bool reverse = false;
 
-    for(int i = (robot_radius + 1); i < ceiling.size() - (robot_radius + 1); i++)
+    for(int i = (robot_radius + 1); i < ceiling.size() - (robot_radius + 1); i=i+robot_radius)
     {
         x = ceiling[i].x;
 
@@ -146,8 +146,16 @@ std::vector<Point2D> GetBoustrophedonPath(std::vector<Point2D> ceiling, std::vec
             for(y = y_start; y <= y_end; y++)
             {
                 path.emplace_back(Point2D(x, y));
-//                std::cout<< x << "," << y << std::endl;
             }
+
+            if(robot_radius != 0)
+            {
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(x+j, floor[i+j].y-(robot_radius + 1)));
+                }
+            }
+
             reverse = !reverse;
         }
         else
@@ -158,8 +166,16 @@ std::vector<Point2D> GetBoustrophedonPath(std::vector<Point2D> ceiling, std::vec
             for (y = y_start; y >= y_end; y--)
             {
                 path.emplace_back(Point2D(x, y));
-//                std::cout<< x << "," << y << std::endl;
             }
+
+            if(robot_radius != 0)
+            {
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(x+j, ceiling[i+j].y+(robot_radius + 1)));
+                }
+            }
+
             reverse = !reverse;
         }
     }
@@ -566,7 +582,7 @@ int main() {
     {
         if(path[i].isCleaned)
         { continue;}
-        sub_path = GetBoustrophedonPath(path[i].ceiling, path[i].floor);
+        sub_path = GetBoustrophedonPath(path[i].ceiling, path[i].floor, 5);
         for(int j = 0; j < sub_path.size(); j++)
         {
             map.at<cv::Vec3f>(sub_path[j].y, sub_path[j].x) = cv::Vec3f(0, 255, 0);
