@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <deque>
-#include <list>
+#include <map>
 #include <algorithm>
 
 #include <opencv2/core/core.hpp>
@@ -44,10 +44,12 @@ public:
         x = x_pos;
         y = y_pos;
         event_type = type;
+        original_index_in_slice = INT_MAX;
     }
 
     int x;
     int y;
+    int original_index_in_slice;
     int obstacle_index;
     Edge ceiling_edge;
     Edge floor_edge;
@@ -382,12 +384,64 @@ void drawing_test(const CellNode& cell)
 
 std::vector<int> cell_index_slice; // 按y从小到大排列
 
+
+std::deque<Event> SortSliceEvent(const std::deque<Event>& slice)
+{
+    std::deque<Event> sorted_slice(slice);
+    std::deque<Event> sub_slice;
+
+    for(int i = 0; i < sorted_slice.size(); i++)
+    {
+        sorted_slice[i].original_index_in_slice = i;
+    }
+
+    for(int i = 0; i < sorted_slice.size(); i++)
+    {
+        if(sorted_slice[i].event_type == IN)
+        {
+            sub_slice.emplace_back(sorted_slice[i]);
+            sorted_slice.erase(sorted_slice.begin()+i);
+        }
+        if(sorted_slice[i].event_type == OUT)
+        {
+            sub_slice.emplace_back(sorted_slice[i]);
+            sorted_slice.erase(sorted_slice.begin()+i);
+        }
+    }
+    std::sort(sub_slice.begin(), sub_slice.end());
+    sorted_slice.insert(sorted_slice.begin(), sub_slice.begin(), sub_slice.end());
+
+    return sorted_slice;
+}
+
+int CountCells(const std::deque<Event>& slice, int curr_idx)
+{
+    int cell_num = 0;
+    for(int i = 0; i < curr_idx; i++)
+    {
+        if(slice[i].event_type==IN)
+        {
+            cell_num++;
+        }
+        if(slice[i].event_type==OUT)
+        {
+            cell_num++;
+        }
+        if(slice[i].event_type==FLOOR)
+        {
+            cell_num++;
+        }
+    }
+    return cell_num;
+}
+
+
 /***
  * in.y在哪个cell的ceil和floor中间，就选取哪个cell作为in operation的curr cell， in上面的点为c, in下面的点为f
  * 若out.y在cell A的上界A_c以下，在cell B的下界B_f以上，则cell A为out operation的top cell， cell B为out operation的bottom cell，A_c为c, B_f为f
  * cell A和cell B在cell slice中必需是紧挨着的，中间不能插有别的cell
  * 对于每个slice，从上往下统计有几个in或out或floor（都可代表某个cell的下界），每有一个就代表该slice上有几个cell完成上下界的确定。ceil或floor属于该slice上的哪个cell，就看之前完成了对几个cell
- * 的上下界的确定，则ceil和floor是属于该slice上的下一个cell
+ * 的上下界的确定，则ceil和floor是属于该slice上的下一个cell。应等执行完该slice中所有的in和out事件后再统计cell数。
  */
 
 void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
@@ -399,6 +453,8 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
     int slice_x = INT_MAX;
     int event_y = INT_MAX;
 
+    std::deque<Event> sorted_slice;
+
     std::vector<int> sub_cell_index_slices;
 
     int cell_counter = 0;
@@ -407,38 +463,37 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
 
     for(int i = 0; i < slice_list.size(); i++)
     {
-        cell_counter = 0;
-
         slice_x = slice_list[i].front().x;
         slice_list[i].emplace_front(Event(INT_MAX, slice_x, 0, CEILING));       // add map upper boundary
         slice_list[i].emplace_back(Event(INT_MAX, slice_x, map.rows-1, FLOOR)); // add map lower boundary
 
-        for(int j = 0; j < slice_list[i].size(); j++)
+        sorted_slice = SortSliceEvent(slice_list[i]);
+
+        for(int j = 0; j < sorted_slice.size(); j++)
         {
-            if(slice_list[i][j].event_type == IN)
+            if(sorted_slice[j].event_type == IN)
             {
-                cell_counter++;
-                if(slice_list[i].size() == 3)
+                if(sorted_slice.size() == 3)
                 {
                     curr_cell_idx = cell_index_slice.back();
-                    ExecuteOpenOperation(curr_cell_idx, Point2D(slice_list[i][j].x, slice_list[i][j].y),
-                                                        Point2D(slice_list[i][j-1].x, slice_list[i][j-1].y),
-                                                        Point2D(slice_list[i][j+1].x, slice_list[i][j+1].y));
+                    ExecuteOpenOperation(curr_cell_idx, Point2D(sorted_slice[j].x, sorted_slice[j].y),
+                                                        Point2D(slice_list[i][sorted_slice[j].original_index_in_slice-1].x, slice_list[i][sorted_slice[j].original_index_in_slice-1].y),
+                                                        Point2D(slice_list[i][sorted_slice[j].original_index_in_slice+1].x, slice_list[i][sorted_slice[j].original_index_in_slice+1].y));
                     cell_index_slice.pop_back();
                     cell_index_slice.emplace_back(curr_cell_idx+1);
                     cell_index_slice.emplace_back(curr_cell_idx+2);
                 }
                 else
                 {
-                    event_y = slice_list[i][j].y;
+                    event_y = sorted_slice[j].y;
                     for(int k = 0; k < cell_index_slice.size(); k++)
                     {
                         if(event_y > cell_graph[cell_index_slice[k]].ceiling.back().y && event_y < cell_graph[cell_index_slice[k]].floor.back().y)
                         {
                             curr_cell_idx = cell_index_slice[k];
-                            ExecuteOpenOperation(curr_cell_idx, Point2D(slice_list[i][j].x, slice_list[i][j].y),
-                                                                Point2D(slice_list[i][j-1].x, slice_list[i][j-1].y),
-                                                                Point2D(slice_list[i][j+1].x, slice_list[i][j+1].y));
+                            ExecuteOpenOperation(curr_cell_idx, Point2D(sorted_slice[j].x, sorted_slice[j].y),
+                                                                Point2D(slice_list[i][sorted_slice[j].original_index_in_slice-1].x, slice_list[i][sorted_slice[j].original_index_in_slice-1].y),
+                                                                Point2D(slice_list[i][sorted_slice[j].original_index_in_slice+1].x, slice_list[i][sorted_slice[j].original_index_in_slice+1].y));
                             cell_index_slice.erase(cell_index_slice.begin()+k);
                             sub_cell_index_slices.clear();
                             sub_cell_index_slices = {int(cell_graph.size()-2), int(cell_graph.size()-1)};
@@ -448,10 +503,9 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                     }
                 }
             }
-            if(slice_list[i][j].event_type == OUT)
+            if(sorted_slice[j].event_type == OUT)
             {
-                cell_counter++;
-                event_y = slice_list[i][j].y;
+                event_y = sorted_slice[j].y;
                 for(int k = 1; k < cell_index_slice.size(); k++)
                 {
                     if(event_y > cell_graph[cell_index_slice[k-1]].ceiling.back().y && event_y < cell_graph[cell_index_slice[k]].floor.back().y)
@@ -459,7 +513,7 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                         top_cell_idx = cell_index_slice[k-1];
                         bottom_cell_idx = cell_index_slice[k];
                         ExecuteCloseOperation(top_cell_idx, bottom_cell_idx,
-                                              Point2D(slice_list[i][j].x, slice_list[i][j].y),
+                                              Point2D(sorted_slice[j].x, sorted_slice[j].y),
                                               cell_graph[top_cell_idx].ceiling.back(),
                                               cell_graph[bottom_cell_idx].floor.back());
                         cell_index_slice.erase(cell_index_slice.begin()+k-1);
@@ -470,21 +524,21 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                 }
 
             }
-            if(slice_list[i][j].event_type == CEILING)
+            if(sorted_slice[j].event_type == CEILING)
             {
+                cell_counter = CountCells(slice_list[i],sorted_slice[j].original_index_in_slice);
                 curr_cell_idx = cell_index_slice[cell_counter];
-                ExecuteCeilOperation(curr_cell_idx, Point2D(slice_list[i][j].x, slice_list[i][j].y));
+                ExecuteCeilOperation(curr_cell_idx, Point2D(sorted_slice[j].x, sorted_slice[j].y));
             }
-            if(slice_list[i][j].event_type == FLOOR)
+            if(sorted_slice[j].event_type == FLOOR)
             {
+                cell_counter = CountCells(slice_list[i],sorted_slice[j].original_index_in_slice);
                 curr_cell_idx = cell_index_slice[cell_counter];
-                ExecuteFloorOperation(curr_cell_idx, Point2D(slice_list[i][j].x, slice_list[i][j].y));
-                cell_counter++;
+                ExecuteFloorOperation(curr_cell_idx, Point2D(sorted_slice[j].x, sorted_slice[j].y));
             }
         }
     }
 }
-
 
 
 int main() {
@@ -517,10 +571,10 @@ int main() {
         line4++;
     }
 
-    cv::LineIterator line5(map, cv::Point(320,350), cv::Point(370,300));
-    cv::LineIterator line6(map, cv::Point(370,300), cv::Point(320,250));
-    cv::LineIterator line7(map, cv::Point(320,250), cv::Point(270,300));
-    cv::LineIterator line8(map, cv::Point(270,300), cv::Point(320,350));
+    cv::LineIterator line5(map, cv::Point(300,350), cv::Point(350,300));
+    cv::LineIterator line6(map, cv::Point(350,300), cv::Point(300,250));
+    cv::LineIterator line7(map, cv::Point(300,250), cv::Point(250,300));
+    cv::LineIterator line8(map, cv::Point(250,300), cv::Point(300,350));
     for(int i = 0; i < line5.count-1; i++)
     {
         polygon2.emplace_back(Point2D(line5.pos().x, line5.pos().y));
@@ -553,7 +607,15 @@ int main() {
     FinishCellDecomposition(Point2D(slice_list.back().back().x, slice_list.back().back().y));
     WalkingThroughGraph(0);
 
+
+    for(int i = 0; i < cell_graph.size(); i++)
+    {
+        std::cout<<"cell "<<i<<" 's ceiling points number:" << cell_graph[i].ceiling.size()<<std::endl;
+        std::cout<<"cell "<<i<<" 's floor points number:" << cell_graph[i].floor.size()<<std::endl;
+    }
+
     std::cout<<cell_graph.size()<<std::endl;
+
 
     for(int i = 0; i < cell_graph.size(); i++)
     {
@@ -565,7 +627,7 @@ int main() {
 
 
     std::vector<cv::Point> contour1 = {cv::Point(200,300), cv::Point(300,200), cv::Point(200,100), cv::Point(100,200)};
-    std::vector<cv::Point> contour2 = {cv::Point(320,350), cv::Point(370,300), cv::Point(320,250), cv::Point(270,300)};
+    std::vector<cv::Point> contour2 = {cv::Point(300,350), cv::Point(350,300), cv::Point(300,250), cv::Point(250,300)};
     std::vector<std::vector<cv::Point>> contours = {contour1, contour2};
     cv::fillPoly(map, contours, cv::Scalar(255, 255, 255));
 
