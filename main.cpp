@@ -528,13 +528,19 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
             {
                 cell_counter = CountCells(slice_list[i],sorted_slice[j].original_index_in_slice);
                 curr_cell_idx = cell_index_slice[cell_counter];
-                ExecuteCeilOperation(curr_cell_idx, Point2D(sorted_slice[j].x, sorted_slice[j].y));
+                if(cell_graph[curr_cell_idx].ceiling.back().x != sorted_slice[j].x)
+                {
+                    ExecuteCeilOperation(curr_cell_idx, Point2D(sorted_slice[j].x, sorted_slice[j].y));
+                }
             }
             if(sorted_slice[j].event_type == FLOOR)
             {
                 cell_counter = CountCells(slice_list[i],sorted_slice[j].original_index_in_slice);
                 curr_cell_idx = cell_index_slice[cell_counter];
-                ExecuteFloorOperation(curr_cell_idx, Point2D(sorted_slice[j].x, sorted_slice[j].y));
+                if(cell_graph[curr_cell_idx].floor.back().x != sorted_slice[j].x)
+                {
+                    ExecuteFloorOperation(curr_cell_idx, Point2D(sorted_slice[j].x, sorted_slice[j].y));
+                }
             }
         }
     }
