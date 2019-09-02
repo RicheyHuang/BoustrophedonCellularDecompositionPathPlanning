@@ -45,6 +45,7 @@ public:
         y = y_pos;
         event_type = type;
         original_index_in_slice = INT_MAX;
+        isUsed = false;
     }
 
     int x;
@@ -54,6 +55,8 @@ public:
     Edge ceiling_edge;
     Edge floor_edge;
     EventType event_type;
+
+    bool isUsed;
 };
 
 class CellNode  // ceiling.size() == floor.size()
@@ -423,10 +426,6 @@ int CountCells(const std::deque<Event>& slice, int curr_idx)
         {
             cell_num++;
         }
-        if(slice[i].event_type==OUT)
-        {
-            cell_num++;
-        }
         if(slice[i].event_type==FLOOR)
         {
             cell_num++;
@@ -438,9 +437,9 @@ int CountCells(const std::deque<Event>& slice, int curr_idx)
 
 /***
  * in.y在哪个cell的ceil和floor中间，就选取哪个cell作为in operation的curr cell， in上面的点为c, in下面的点为f
- * 若out.y在cell A的上界A_c以下，在cell B的下界B_f以上，则cell A为out operation的top cell， cell B为out operation的bottom cell，A_c为c, B_f为f
+ * 若out.y在cell A的上界A_c以下，在cell B的下界B_f以上，则cell A为out operation的top cell， cell B为out operation的bottom cell，out上面的点为c, out下面的点为f
  * cell A和cell B在cell slice中必需是紧挨着的，中间不能插有别的cell
- * 对于每个slice，从上往下统计有几个in或out或floor（都可代表某个cell的下界），每有一个就代表该slice上有几个cell完成上下界的确定。ceil或floor属于该slice上的哪个cell，就看之前完成了对几个cell
+ * 对于每个slice，从上往下统计有几个in或floor（都可代表某个cell的下界），每有一个就代表该slice上有几个cell完成上下界的确定。ceil或floor属于该slice上的哪个cell，就看之前完成了对几个cell
  * 的上下界的确定，则ceil和floor是属于该slice上的下一个cell。应等执行完该slice中所有的in和out事件后再统计cell数。
  */
 
@@ -482,6 +481,10 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                     cell_index_slice.pop_back();
                     cell_index_slice.emplace_back(curr_cell_idx+1);
                     cell_index_slice.emplace_back(curr_cell_idx+2);
+
+                    slice_list[i][sorted_slice[j].original_index_in_slice].isUsed = true;
+                    slice_list[i][sorted_slice[j].original_index_in_slice-1].isUsed = true;
+                    slice_list[i][sorted_slice[j].original_index_in_slice+1].isUsed = true;
                 }
                 else
                 {
@@ -498,6 +501,11 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                             sub_cell_index_slices.clear();
                             sub_cell_index_slices = {int(cell_graph.size()-2), int(cell_graph.size()-1)};
                             cell_index_slice.insert(cell_index_slice.begin()+k, sub_cell_index_slices.begin(), sub_cell_index_slices.end());
+
+                            slice_list[i][sorted_slice[j].original_index_in_slice].isUsed = true;
+                            slice_list[i][sorted_slice[j].original_index_in_slice-1].isUsed = true;
+                            slice_list[i][sorted_slice[j].original_index_in_slice+1].isUsed = true;
+
                             break;
                         }
                     }
@@ -514,11 +522,16 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                         bottom_cell_idx = cell_index_slice[k];
                         ExecuteCloseOperation(top_cell_idx, bottom_cell_idx,
                                               Point2D(sorted_slice[j].x, sorted_slice[j].y),
-                                              cell_graph[top_cell_idx].ceiling.back(),
-                                              cell_graph[bottom_cell_idx].floor.back());
+                                              Point2D(slice_list[i][sorted_slice[j].original_index_in_slice-1].x, slice_list[i][sorted_slice[j].original_index_in_slice-1].y),
+                                              Point2D(slice_list[i][sorted_slice[j].original_index_in_slice+1].x, slice_list[i][sorted_slice[j].original_index_in_slice+1].y));
                         cell_index_slice.erase(cell_index_slice.begin()+k-1);
                         cell_index_slice.erase(cell_index_slice.begin()+k-1);
                         cell_index_slice.insert(cell_index_slice.begin()+k-1, int(cell_graph.size()-1));
+
+                        slice_list[i][sorted_slice[j].original_index_in_slice].isUsed = true;
+                        slice_list[i][sorted_slice[j].original_index_in_slice-1].isUsed = true;
+                        slice_list[i][sorted_slice[j].original_index_in_slice+1].isUsed = true;
+
                         break;
                     }
                 }
@@ -528,7 +541,7 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
             {
                 cell_counter = CountCells(slice_list[i],sorted_slice[j].original_index_in_slice);
                 curr_cell_idx = cell_index_slice[cell_counter];
-                if(cell_graph[curr_cell_idx].ceiling.back().x != sorted_slice[j].x)
+                if(!slice_list[i][sorted_slice[j].original_index_in_slice].isUsed)
                 {
                     ExecuteCeilOperation(curr_cell_idx, Point2D(sorted_slice[j].x, sorted_slice[j].y));
                 }
@@ -537,7 +550,7 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
             {
                 cell_counter = CountCells(slice_list[i],sorted_slice[j].original_index_in_slice);
                 curr_cell_idx = cell_index_slice[cell_counter];
-                if(cell_graph[curr_cell_idx].floor.back().x != sorted_slice[j].x)
+                if(!slice_list[i][sorted_slice[j].original_index_in_slice].isUsed)
                 {
                     ExecuteFloorOperation(curr_cell_idx, Point2D(sorted_slice[j].x, sorted_slice[j].y));
                 }
