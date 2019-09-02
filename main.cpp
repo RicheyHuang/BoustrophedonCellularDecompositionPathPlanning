@@ -198,8 +198,9 @@ bool operator<(const Event& e1, const Event& e2)
     return (e1.x < e2.x || (e1.x == e2.x && e1.y < e2.y));
 }
 
-
-std::vector<Event> EventListGenerator(PolygonList polygons) // 多边形按照左顶点x从小到大的顺序排列
+// 各个多边形按照其左顶点的x值从小到大的顺序进行排列
+// 且对于每个多边形，其最左边和最右边都只有唯一的一个点
+std::vector<Event> EventListGenerator(PolygonList polygons)
 {
     std::vector<Event> event_list;
 
@@ -443,6 +444,12 @@ int CountCells(const std::deque<Event>& slice, int curr_idx)
  * 的上下界的确定，则ceil和floor是属于该slice上的下一个cell。应等执行完该slice中所有的in和out事件后再统计cell数。
  */
 
+/**
+ * TODO: 1. in and out event in different obstacles in the same slice
+ *       2. concave obstacle case
+ *       3. several in/out event in the same obstacle
+ * **/
+
 void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
 {
     int curr_cell_idx = INT_MAX;
@@ -559,6 +566,114 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
     }
 }
 
+struct MapPoint
+{
+    double cost = 0.0;
+    double occupancy = 1.0;
+    Point2D prev_position = Point2D(INT_MAX, INT_MAX);
+    bool costComputed = false;
+};
+
+std::map<Point2D, MapPoint> cost_map;
+
+std::vector<Point2D> GetNeighbors(Point2D position)
+{
+    std::vector<Point2D> neighbors = {
+            Point2D(position.x-1, position.y-1),
+            Point2D(position.x, position.y-1),
+            Point2D(position.x+1, position.y-1),
+            Point2D(position.x-1, position.y),
+            Point2D(position.x+1, position.y),
+            Point2D(position.x-1, position.y+1),
+            Point2D(position.x, position.y+1),
+            Point2D(position.x+1, position.y+1)
+    };
+    return neighbors;
+}
+
+
+void BuildOccupancyMap() // CV_32FC3
+{
+    for(int i = 0; i < map.rows; i++)
+    {
+        for(int j = 0; j < map.cols; j++)
+        {
+            if(map.at<cv::Vec3f>(i,j) == cv::Vec3f(255,255,255))
+            {
+                cost_map[Point2D(j,i)].occupancy = INT_MAX;
+            }
+            else
+            {
+                cost_map[Point2D(j,i)].occupancy = 1.0;
+            }
+        }
+    }
+}
+
+void BuildCostMap(Point2D start)
+{
+    std::deque<Point2D> task_list = {start};
+    cost_map[start].costComputed = true;
+
+    std::vector<Point2D> neighbors;
+    std::vector<Point2D> candidates;
+
+    while(!task_list.empty())
+    {
+        candidates.clear();
+        neighbors = GetNeighbors(task_list.front());
+        for(auto neighbor:neighbors)
+        {
+            if(!cost_map[neighbor].costComputed)
+            {
+                candidates.emplace_back(neighbor);
+                cost_map[neighbor].cost = cost_map[task_list.front()].cost + 1.0;
+                cost_map[neighbor].prev_position = task_list.front();
+                cost_map[neighbor].costComputed = true;
+            }
+        }
+        task_list.pop_front();
+        task_list.insert(task_list.end(), candidates.begin(), candidates.end());
+    }
+
+}
+
+std::deque<Point2D> FindLinkingPath(Point2D start, Point2D end)
+{
+    std::deque<Point2D> path = {end};
+
+    Point2D curr_positon = Point2D(end.x, end.y);
+
+    int prev_x = cost_map[curr_positon].prev_position.x;
+    int prev_y = cost_map[curr_positon].prev_position.y;
+
+
+    while(prev_x != start.x && prev_y != start.y)
+    {
+        path.emplace_front(Point2D(prev_x,prev_y));
+        curr_positon = Point2D(prev_x, prev_y);
+        prev_x = cost_map[curr_positon].prev_position.x;
+        prev_y = cost_map[curr_positon].prev_position.y;
+    }
+
+    path.emplace_front(start);
+
+    return path;
+}
+
+void ResetCostMap()
+{
+    for(int i = 0; i < map.rows; i++)
+    {
+        for(int j = 0; j < map.cols; j++)
+        {
+            cost_map[Point2D(j,i)].cost = 0.0;
+            cost_map[Point2D(j,i)].prev_position = Point2D(INT_MAX, INT_MAX);
+            cost_map[Point2D(j,i)].costComputed = false;
+        }
+    }
+}
+
 
 int main() {
 
@@ -650,11 +765,14 @@ int main() {
     std::vector<std::vector<cv::Point>> contours = {contour1, contour2};
     cv::fillPoly(map, contours, cv::Scalar(255, 255, 255));
 
+    cv::imshow("trajectory", map);
+    cv::waitKey(1000);
+
     for(int i = 0; i < cell_graph.size(); i++)
     {
         drawing_test(cell_graph[i]);
-        cv::imshow("cells", map);
-        cv::waitKey(0);
+        cv::imshow("trajectory", map);
+        cv::waitKey(500);
     }
 
     std::vector<Point2D> sub_path;
@@ -662,7 +780,9 @@ int main() {
     for(int i = path.size()-1; i >= 0; i--)
     {
         if(path[i].isCleaned)
-        { continue;}
+        {
+            continue;
+        }
         sub_path = GetBoustrophedonPath(path[i].ceiling, path[i].floor, 5);
         for(int j = 0; j < sub_path.size(); j++)
         {
