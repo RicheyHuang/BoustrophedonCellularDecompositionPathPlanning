@@ -138,216 +138,244 @@ void WalkingThroughGraph(int cell_index)
     }
 }
 
-std::vector<Point2D> GetBoustrophedonPath(std::vector<Point2D> ceiling, std::vector<Point2D> floor, int corner_indicator, int robot_radius=0)
+std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, int robot_radius=0)
 {
+    std::vector<Point2D> ceiling = cell.ceiling;
+    std::vector<Point2D> floor = cell.floor;
+
     //TODO: cleaned cell case
 
     std::vector<Point2D> path;
 
-    if(corner_indicator == TOPLEFT)
+    if(cell.isCleaned)
     {
-        int x=0, y=0, y_start=0, y_end=0;
-        bool reverse = false;
+        int c_size = cell.ceiling.size();
+        int f_size = cell.floor.size();
 
-        for(int i = (robot_radius + 1); i < ceiling.size() - (robot_radius + 1); i=i+robot_radius)
+        if(corner_indicator == TOPLEFT)
         {
-            x = ceiling[i].x;
-
-            if(!reverse)
-            {
-                y_start = ceiling[i].y + (robot_radius + 1);
-                y_end   = floor[i].y - (robot_radius + 1);
-
-                for(y = y_start; y <= y_end; y++)
-                {
-                    path.emplace_back(Point2D(x, y));
-                }
-
-                if(robot_radius != 0)
-                {
-                    for(int j = 1; j <= robot_radius; j++)
-                    {
-                        path.emplace_back(Point2D(x+j, floor[i+j].y-(robot_radius + 1)));
-                    }
-                }
-
-                reverse = !reverse;
-            }
-            else
-            {
-                y_start = floor[i].y - (robot_radius + 1);
-                y_end   = ceiling[i].y + (robot_radius + 1);
-
-                for (y = y_start; y >= y_end; y--)
-                {
-                    path.emplace_back(Point2D(x, y));
-                }
-
-                if(robot_radius != 0)
-                {
-                    for(int j = 1; j <= robot_radius; j++)
-                    {
-                        path.emplace_back(Point2D(x+j, ceiling[i+j].y+(robot_radius + 1)));
-                    }
-                }
-
-                reverse = !reverse;
-            }
+            path.emplace_back(Point2D(ceiling[(robot_radius + 1)].x, ceiling[(robot_radius + 1)].y + (robot_radius + 1)));
+        }
+        if(corner_indicator == TOPRIGHT)
+        {
+            path.emplace_back(Point2D(cell.ceiling[c_size-1-(robot_radius + 1)].x, cell.ceiling[c_size-1-(robot_radius + 1)].y + (robot_radius + 1)));
+        }
+        if(corner_indicator == BOTTOMLEFT)
+        {
+            path.emplace_back(Point2D(cell.floor[robot_radius + 1].x, cell.floor[robot_radius + 1].y - (robot_radius + 1)));
+        }
+        if(corner_indicator == BOTTOMRIGHT)
+        {
+            path.emplace_back(Point2D(cell.floor[f_size-1-(robot_radius + 1)].x, cell.floor[f_size-1-(robot_radius + 1)].y - (robot_radius + 1)));
         }
     }
-
-    if(corner_indicator == TOPRIGHT)
+    else
     {
-        int x=0, y=0, y_start=0, y_end=0;
-        bool reverse = false;
-
-        for(int i = ceiling.size()-1-(robot_radius + 1); i >= (robot_radius + 1); i=i-robot_radius)
+        if(corner_indicator == TOPLEFT)
         {
-            x = ceiling[i].x;
+            int x=0, y=0, y_start=0, y_end=0;
+            bool reverse = false;
 
-            if(!reverse)
+            for(int i = (robot_radius + 1); i < ceiling.size() - (robot_radius + 1); i=i+robot_radius)
             {
-                y_start = ceiling[i].y + (robot_radius + 1);
-                y_end   = floor[i].y - (robot_radius + 1);
+                x = ceiling[i].x;
 
-                for(y = y_start; y <= y_end; y++)
+                if(!reverse)
                 {
-                    path.emplace_back(Point2D(x, y));
-                }
+                    y_start = ceiling[i].y + (robot_radius + 1);
+                    y_end   = floor[i].y - (robot_radius + 1);
 
-                if(robot_radius != 0)
-                {
-                    for(int j = 1; j <= robot_radius; j++)
+                    for(y = y_start; y <= y_end; y++)
                     {
-                        path.emplace_back(Point2D(x-j, floor[i-j].y-(robot_radius + 1)));
+                        path.emplace_back(Point2D(x, y));
                     }
-                }
 
-                reverse = !reverse;
-            }
-            else
-            {
-                y_start = floor[i].y - (robot_radius + 1);
-                y_end   = ceiling[i].y + (robot_radius + 1);
-
-                for (y = y_start; y >= y_end; y--)
-                {
-                    path.emplace_back(Point2D(x, y));
-                }
-
-                if(robot_radius != 0)
-                {
-                    for(int j = 1; j <= robot_radius; j++)
+                    if(robot_radius != 0)
                     {
-                        path.emplace_back(Point2D(x-j, ceiling[i-j].y+(robot_radius + 1)));
+                        for(int j = 1; j <= robot_radius; j++)
+                        {
+                            path.emplace_back(Point2D(x+j, floor[i+j].y-(robot_radius + 1)));
+                        }
                     }
-                }
 
-                reverse = !reverse;
+                    reverse = !reverse;
+                }
+                else
+                {
+                    y_start = floor[i].y - (robot_radius + 1);
+                    y_end   = ceiling[i].y + (robot_radius + 1);
+
+                    for (y = y_start; y >= y_end; y--)
+                    {
+                        path.emplace_back(Point2D(x, y));
+                    }
+
+                    if(robot_radius != 0)
+                    {
+                        for(int j = 1; j <= robot_radius; j++)
+                        {
+                            path.emplace_back(Point2D(x+j, ceiling[i+j].y+(robot_radius + 1)));
+                        }
+                    }
+
+                    reverse = !reverse;
+                }
             }
         }
-    }
 
-    if(corner_indicator == BOTTOMLEFT)
-    {
-        int x=0, y=0, y_start=0, y_end=0;
-        bool reverse = false;
-
-        for(int i = (robot_radius + 1); i < ceiling.size() - (robot_radius + 1); i=i+robot_radius)
+        if(corner_indicator == TOPRIGHT)
         {
-            x = ceiling[i].x;
+            int x=0, y=0, y_start=0, y_end=0;
+            bool reverse = false;
 
-            if(!reverse)
+            for(int i = ceiling.size()-1-(robot_radius + 1); i >= (robot_radius + 1); i=i-robot_radius)
             {
-                y_start = floor[i].y - (robot_radius + 1);
-                y_end   = ceiling[i].y + (robot_radius + 1);
+                x = ceiling[i].x;
 
-                for(y = y_start; y >= y_end; y--)
+                if(!reverse)
                 {
-                    path.emplace_back(Point2D(x, y));
-                }
+                    y_start = ceiling[i].y + (robot_radius + 1);
+                    y_end   = floor[i].y - (robot_radius + 1);
 
-                if(robot_radius != 0)
-                {
-                    for(int j = 1; j <= robot_radius; j++)
+                    for(y = y_start; y <= y_end; y++)
                     {
-                        path.emplace_back(Point2D(x+j, ceiling[i+j].y+(robot_radius + 1)));
+                        path.emplace_back(Point2D(x, y));
                     }
-                }
 
-                reverse = !reverse;
-            }
-            else
-            {
-                y_start = ceiling[i].y + (robot_radius + 1);
-                y_end   = floor[i].y - (robot_radius + 1);
-
-                for (y = y_start; y <= y_end; y++)
-                {
-                    path.emplace_back(Point2D(x, y));
-                }
-
-                if(robot_radius != 0)
-                {
-                    for(int j = 1; j <= robot_radius; j++)
+                    if(robot_radius != 0)
                     {
-                        path.emplace_back(Point2D(x+j, floor[i+j].y-(robot_radius + 1)));
+                        for(int j = 1; j <= robot_radius; j++)
+                        {
+                            path.emplace_back(Point2D(x-j, floor[i-j].y-(robot_radius + 1)));
+                        }
                     }
-                }
 
-                reverse = !reverse;
+                    reverse = !reverse;
+                }
+                else
+                {
+                    y_start = floor[i].y - (robot_radius + 1);
+                    y_end   = ceiling[i].y + (robot_radius + 1);
+
+                    for (y = y_start; y >= y_end; y--)
+                    {
+                        path.emplace_back(Point2D(x, y));
+                    }
+
+                    if(robot_radius != 0)
+                    {
+                        for(int j = 1; j <= robot_radius; j++)
+                        {
+                            path.emplace_back(Point2D(x-j, ceiling[i-j].y+(robot_radius + 1)));
+                        }
+                    }
+
+                    reverse = !reverse;
+                }
             }
         }
-    }
 
-    if(corner_indicator == BOTTOMRIGHT)
-    {
-        int x=0, y=0, y_start=0, y_end=0;
-        bool reverse = false;
-
-        for(int i = ceiling.size()-1-(robot_radius + 1); i >= (robot_radius + 1); i=i-robot_radius)
+        if(corner_indicator == BOTTOMLEFT)
         {
-            x = ceiling[i].x;
+            int x=0, y=0, y_start=0, y_end=0;
+            bool reverse = false;
 
-            if(!reverse)
+            for(int i = (robot_radius + 1); i < ceiling.size() - (robot_radius + 1); i=i+robot_radius)
             {
-                y_start = floor[i].y - (robot_radius + 1);
-                y_end   = ceiling[i].y + (robot_radius + 1);
+                x = ceiling[i].x;
 
-                for(y = y_start; y >= y_end; y--)
+                if(!reverse)
                 {
-                    path.emplace_back(Point2D(x, y));
-                }
+                    y_start = floor[i].y - (robot_radius + 1);
+                    y_end   = ceiling[i].y + (robot_radius + 1);
 
-                if(robot_radius != 0)
-                {
-                    for(int j = 1; j <= robot_radius; j++)
+                    for(y = y_start; y >= y_end; y--)
                     {
-                        path.emplace_back(Point2D(x-j, ceiling[i-j].y+(robot_radius + 1)));
+                        path.emplace_back(Point2D(x, y));
                     }
-                }
 
-                reverse = !reverse;
+                    if(robot_radius != 0)
+                    {
+                        for(int j = 1; j <= robot_radius; j++)
+                        {
+                            path.emplace_back(Point2D(x+j, ceiling[i+j].y+(robot_radius + 1)));
+                        }
+                    }
+
+                    reverse = !reverse;
+                }
+                else
+                {
+                    y_start = ceiling[i].y + (robot_radius + 1);
+                    y_end   = floor[i].y - (robot_radius + 1);
+
+                    for (y = y_start; y <= y_end; y++)
+                    {
+                        path.emplace_back(Point2D(x, y));
+                    }
+
+                    if(robot_radius != 0)
+                    {
+                        for(int j = 1; j <= robot_radius; j++)
+                        {
+                            path.emplace_back(Point2D(x+j, floor[i+j].y-(robot_radius + 1)));
+                        }
+                    }
+
+                    reverse = !reverse;
+                }
             }
-            else
+        }
+
+        if(corner_indicator == BOTTOMRIGHT)
+        {
+            int x=0, y=0, y_start=0, y_end=0;
+            bool reverse = false;
+
+            for(int i = ceiling.size()-1-(robot_radius + 1); i >= (robot_radius + 1); i=i-robot_radius)
             {
-                y_start = ceiling[i].y + (robot_radius + 1);
-                y_end   = floor[i].y - (robot_radius + 1);
+                x = ceiling[i].x;
 
-                for (y = y_start; y <= y_end; y++)
+                if(!reverse)
                 {
-                    path.emplace_back(Point2D(x, y));
-                }
+                    y_start = floor[i].y - (robot_radius + 1);
+                    y_end   = ceiling[i].y + (robot_radius + 1);
 
-                if(robot_radius != 0)
-                {
-                    for(int j = 1; j <= robot_radius; j++)
+                    for(y = y_start; y >= y_end; y--)
                     {
-                        path.emplace_back(Point2D(x-j, floor[i-j].y-(robot_radius + 1)));
+                        path.emplace_back(Point2D(x, y));
                     }
-                }
 
-                reverse = !reverse;
+                    if(robot_radius != 0)
+                    {
+                        for(int j = 1; j <= robot_radius; j++)
+                        {
+                            path.emplace_back(Point2D(x-j, ceiling[i-j].y+(robot_radius + 1)));
+                        }
+                    }
+
+                    reverse = !reverse;
+                }
+                else
+                {
+                    y_start = ceiling[i].y + (robot_radius + 1);
+                    y_end   = floor[i].y - (robot_radius + 1);
+
+                    for (y = y_start; y <= y_end; y++)
+                    {
+                        path.emplace_back(Point2D(x, y));
+                    }
+
+                    if(robot_radius != 0)
+                    {
+                        for(int j = 1; j <= robot_radius; j++)
+                        {
+                            path.emplace_back(Point2D(x-j, floor[i-j].y-(robot_radius + 1)));
+                        }
+                    }
+
+                    reverse = !reverse;
+                }
             }
         }
     }
@@ -1042,11 +1070,11 @@ int main() {
 
     for(int i = path.size()-1; i >= 0; i--)
     {
-        if(path[i].isCleaned)
-        {
-            continue;
-        }
-        sub_path = GetBoustrophedonPath(path[i].ceiling, path[i].floor, corner_indicator, 5);
+//        if(path[i].isCleaned)
+//        {
+//            continue;
+//        }
+        sub_path = GetBoustrophedonPath(path[i], corner_indicator, 5);
         for(int j = 0; j < sub_path.size(); j++)
         {
             map.at<cv::Vec3f>(sub_path[j].y, sub_path[j].x) = cv::Vec3f(0, 255, 0);
