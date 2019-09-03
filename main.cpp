@@ -147,7 +147,7 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
 
     std::vector<Point2D> path;
 
-    if(cell.isCleaned)
+    if(cell_graph[cell.cellIndex].isCleaned)
     {
         int c_size = cell.ceiling.size();
         int f_size = cell.floor.size();
@@ -1081,7 +1081,8 @@ int main() {
             cv::imshow("trajectory", map);
             cv::waitKey(1);
         }
-        path[i].isCleaned = true;
+//        path[i].isCleaned = true;
+        cell_graph[path[i].cellIndex].isCleaned = true;
 
         if((i-1)>=0)
         {
