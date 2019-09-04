@@ -879,7 +879,7 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D end, int end_corner_ind
     if(start_corner_indicator == TOPLEFT && end_corner_indicator == BOTTOMRIGHT)
     {
         path.insert(path.begin(),left.begin(), left.end());
-        path.insert(path.begin(), bottom.begin(), bottom.end());
+        path.insert(path.end(), bottom.begin(), bottom.end());
         return path;
     }
     if(start_corner_indicator == TOPRIGHT && end_corner_indicator == TOPLEFT)
@@ -890,7 +890,7 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D end, int end_corner_ind
     if(start_corner_indicator == TOPRIGHT && end_corner_indicator == BOTTOMLEFT)
     {
         path.insert(path.begin(), top.rbegin(), top.rend());
-        path.insert(path.begin(), left.begin(), left.end());
+        path.insert(path.end(), left.begin(), left.end());
         return path;
     }
     if(start_corner_indicator == TOPRIGHT && end_corner_indicator == BOTTOMRIGHT)
@@ -906,7 +906,7 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D end, int end_corner_ind
     if(start_corner_indicator == BOTTOMLEFT && end_corner_indicator == TOPRIGHT)
     {
         path.insert(path.begin(), bottom.begin(), bottom.end());
-        path.insert(path.begin(), right.rbegin(), right.rend());
+        path.insert(path.end(), right.rbegin(), right.rend());
         return path;
     }
     if(start_corner_indicator == BOTTOMLEFT && end_corner_indicator == BOTTOMRIGHT)
@@ -917,7 +917,7 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D end, int end_corner_ind
     if(start_corner_indicator == BOTTOMRIGHT && end_corner_indicator == TOPLEFT)
     {
         path.insert(path.begin(), right.rbegin(), right.rend());
-        path.insert(path.begin(), top.rbegin(), top.rend());
+        path.insert(path.end(), top.rbegin(), top.rend());
         return path;
     }
     if(start_corner_indicator == BOTTOMRIGHT && end_corner_indicator == TOPRIGHT)
