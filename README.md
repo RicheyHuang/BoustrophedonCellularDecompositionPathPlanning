@@ -5,5 +5,5 @@
 
 **What it looks like:**
 
-![](path planning.gif)
+![](https://github.com/RicheyHuang/BoustrophedonCellularDecompositionPathPlanning/blob/master/path%20planning.gif)
 
