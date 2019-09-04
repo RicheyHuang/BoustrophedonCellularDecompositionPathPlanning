@@ -143,8 +143,6 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
     std::vector<Point2D> ceiling = cell.ceiling;
     std::vector<Point2D> floor = cell.floor;
 
-    //TODO: cleaned cell case
-
     std::vector<Point2D> path;
 
     if(cell_graph[cell.cellIndex].isCleaned)
@@ -194,6 +192,10 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
+                            if( x+j > ceiling.back().x - (robot_radius + 1))
+                            {
+                                break;
+                            }
                             path.emplace_back(Point2D(x+j, floor[i+j].y-(robot_radius + 1)));
                         }
                     }
@@ -214,6 +216,10 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
+                            if( x+j > ceiling.back().x - (robot_radius + 1))
+                            {
+                                break;
+                            }
                             path.emplace_back(Point2D(x+j, ceiling[i+j].y+(robot_radius + 1)));
                         }
                     }
@@ -246,6 +252,10 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
+                            if( x-j < ceiling.front().x + (robot_radius + 1))
+                            {
+                                break;
+                            }
                             path.emplace_back(Point2D(x-j, floor[i-j].y-(robot_radius + 1)));
                         }
                     }
@@ -266,6 +276,10 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
+                            if( x-j < ceiling.front().x + (robot_radius + 1))
+                            {
+                                break;
+                            }
                             path.emplace_back(Point2D(x-j, ceiling[i-j].y+(robot_radius + 1)));
                         }
                     }
@@ -298,6 +312,10 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
+                            if( x+j > ceiling.back().x - (robot_radius + 1))
+                            {
+                                break;
+                            }
                             path.emplace_back(Point2D(x+j, ceiling[i+j].y+(robot_radius + 1)));
                         }
                     }
@@ -318,6 +336,10 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
+                            if( x+j > ceiling.back().x - (robot_radius + 1))
+                            {
+                                break;
+                            }
                             path.emplace_back(Point2D(x+j, floor[i+j].y-(robot_radius + 1)));
                         }
                     }
@@ -350,6 +372,10 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
+                            if( x-j < ceiling.front().x + (robot_radius + 1))
+                            {
+                                break;
+                            }
                             path.emplace_back(Point2D(x-j, ceiling[i-j].y+(robot_radius + 1)));
                         }
                     }
@@ -370,6 +396,10 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
+                            if( x-j < ceiling.front().x + (robot_radius + 1))
+                            {
+                                break;
+                            }
                             path.emplace_back(Point2D(x-j, floor[i-j].y-(robot_radius + 1)));
                         }
                     }
@@ -1055,6 +1085,7 @@ int main() {
     std::vector<std::vector<cv::Point>> contours = {contour1, contour2};
     cv::fillPoly(map, contours, cv::Scalar(255, 255, 255));
 
+    cv::namedWindow("trajectory", cv::WINDOW_NORMAL);
     cv::imshow("trajectory", map);
     cv::waitKey(1000);
 
@@ -1070,10 +1101,6 @@ int main() {
 
     for(int i = path.size()-1; i >= 0; i--)
     {
-//        if(path[i].isCleaned)
-//        {
-//            continue;
-//        }
         sub_path = GetBoustrophedonPath(path[i], corner_indicator, 5);
         for(int j = 0; j < sub_path.size(); j++)
         {
