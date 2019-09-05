@@ -595,16 +595,16 @@ void DrawCells(const CellNode& cell)
 {
     for(int i = 0; i < cell.ceiling.size(); i++)
     {
-        map.at<cv::Vec3b>(cell.ceiling[i].y, cell.ceiling[i].x) = cv::Vec3b(255, 0, 0);
+        map.at<cv::Vec3b>(cell.ceiling[i].y, cell.ceiling[i].x) = cv::Vec3b(96, 96, 96);
     }
 
     for(int i = 0; i < cell.floor.size(); i++)
     {
-        map.at<cv::Vec3b>(cell.floor[i].y, cell.floor[i].x) = cv::Vec3b(255, 0, 0);
+        map.at<cv::Vec3b>(cell.floor[i].y, cell.floor[i].x) = cv::Vec3b(96, 96, 96);
     }
 
-    cv::line(map, cv::Point(cell.ceiling.front().x,cell.ceiling.front().y), cv::Point(cell.floor.front().x,cell.floor.front().y), cv::Scalar(255, 0, 0));
-    cv::line(map, cv::Point(cell.ceiling.back().x,cell.ceiling.back().y), cv::Point(cell.floor.back().x,cell.floor.back().y), cv::Scalar(255, 0, 0));
+    cv::line(map, cv::Point(cell.ceiling.front().x,cell.ceiling.front().y), cv::Point(cell.floor.front().x,cell.floor.front().y), cv::Scalar(96, 96, 96));
+    cv::line(map, cv::Point(cell.ceiling.back().x,cell.ceiling.back().y), cv::Point(cell.floor.back().x,cell.floor.back().y), cv::Scalar(96, 96, 96));
 }
 
 
@@ -1011,36 +1011,54 @@ std::deque<Point2D> PathIninitialization(Point2D start, CellNode cell, int robot
 
 std::deque<cv::Scalar> JetColorMap;
 
-void InitializeColorMap()
+void InitializeColorMap(int repeat_times)
 {
     for(int i = 0; i <= 255; i++)
     {
-        JetColorMap.emplace_back(cv::Scalar(0, i, 255));
+        for(int j = 0; j < repeat_times; j++)
+        {
+            JetColorMap.emplace_back(cv::Scalar(0, i, 255));
+        }
     }
 
     for(int i = 254; i >= 0; i--)
     {
-        JetColorMap.emplace_back(cv::Scalar(0, 255, i));
+        for(int j = 0; j < repeat_times; j++)
+        {
+            JetColorMap.emplace_back(cv::Scalar(0, 255, i));
+        }
     }
 
     for(int i = 1; i <= 255; i++)
     {
-        JetColorMap.emplace_back(cv::Scalar(i, 255, 0));
+        for(int j = 0; j < repeat_times; j++)
+        {
+            JetColorMap.emplace_back(cv::Scalar(i, 255, 0));
+        }
     }
 
     for(int i = 254; i >= 0; i--)
     {
-        JetColorMap.emplace_back(cv::Scalar(255, i, 0));
+        for(int j = 0; j < repeat_times; j++)
+        {
+            JetColorMap.emplace_back(cv::Scalar(255, i, 0));
+        }
     }
 
     for(int i = 1; i <= 255; i++)
     {
-        JetColorMap.emplace_back(cv::Scalar(255, 0, i));
+        for(int j = 0; j < repeat_times; j++)
+        {
+            JetColorMap.emplace_back(cv::Scalar(255, 0, i));
+        }
     }
 
     for(int i = 254; i >= 1; i--)
     {
-        JetColorMap.emplace_back(cv::Scalar(i, 0, 255));
+        for(int j = 0; j < repeat_times; j++)
+        {
+            JetColorMap.emplace_back(cv::Scalar(i, 0, 255));
+        }
     }
 }
 
@@ -1250,7 +1268,8 @@ int main() {
         }
     }
 
-    InitializeColorMap();
+    int repeat_times = 20;
+    InitializeColorMap(repeat_times);
 
     std::vector<cv::Point> contour1 = {cv::Point(200,300), cv::Point(300,200), cv::Point(200,100), cv::Point(100,200)};
     std::vector<cv::Point> contour2 = {cv::Point(300,350), cv::Point(350,300), cv::Point(300,250), cv::Point(250,300)};
