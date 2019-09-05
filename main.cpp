@@ -595,12 +595,12 @@ void DrawCells(const CellNode& cell)
 {
     for(int i = 0; i < cell.ceiling.size(); i++)
     {
-        map.at<cv::Vec3f>(cell.ceiling[i].y, cell.ceiling[i].x) = cv::Vec3f(255, 0, 0);
+        map.at<cv::Vec3b>(cell.ceiling[i].y, cell.ceiling[i].x) = cv::Vec3b(255, 0, 0);
     }
 
     for(int i = 0; i < cell.floor.size(); i++)
     {
-        map.at<cv::Vec3f>(cell.floor[i].y, cell.floor[i].x) = cv::Vec3f(255, 0, 0);
+        map.at<cv::Vec3b>(cell.floor[i].y, cell.floor[i].x) = cv::Vec3b(255, 0, 0);
     }
 
     cv::line(map, cv::Point(cell.ceiling.front().x,cell.ceiling.front().y), cv::Point(cell.floor.front().x,cell.floor.front().y), cv::Scalar(255, 0, 0));
@@ -1009,6 +1009,47 @@ std::deque<Point2D> PathIninitialization(Point2D start, CellNode cell, int robot
     return path;
 }
 
+std::deque<cv::Scalar> JetColorMap;
+
+void InitializeColorMap()
+{
+    for(int i = 0; i <= 255; i++)
+    {
+        JetColorMap.emplace_back(cv::Scalar(0, i, 255));
+    }
+
+    for(int i = 254; i >= 0; i--)
+    {
+        JetColorMap.emplace_back(cv::Scalar(0, 255, i));
+    }
+
+    for(int i = 1; i <= 255; i++)
+    {
+        JetColorMap.emplace_back(cv::Scalar(i, 255, 0));
+    }
+
+    for(int i = 254; i >= 0; i--)
+    {
+        JetColorMap.emplace_back(cv::Scalar(255, i, 0));
+    }
+
+    for(int i = 1; i <= 255; i++)
+    {
+        JetColorMap.emplace_back(cv::Scalar(255, 0, i));
+    }
+
+    for(int i = 254; i >= 1; i--)
+    {
+        JetColorMap.emplace_back(cv::Scalar(i, 0, 255));
+    }
+}
+
+void UpdateColorMap()
+{
+    cv::Scalar color = JetColorMap.front();
+    JetColorMap.pop_front();
+    JetColorMap.emplace_back(color);
+}
 
 //struct MapPoint
 //{
@@ -1121,7 +1162,7 @@ std::deque<Point2D> PathIninitialization(Point2D start, CellNode cell, int robot
 
 int main() {
 
-    map = cv::Mat::zeros(400, 400, CV_32FC3);
+    map = cv::Mat::zeros(400, 400, CV_8UC3);
     Polygon polygon1, polygon2;
     cv::LineIterator line1(map, cv::Point(200,300), cv::Point(300,200));
     cv::LineIterator line2(map, cv::Point(300,200), cv::Point(200,100));
@@ -1209,6 +1250,8 @@ int main() {
         }
     }
 
+    InitializeColorMap();
+
     std::vector<cv::Point> contour1 = {cv::Point(200,300), cv::Point(300,200), cv::Point(200,100), cv::Point(100,200)};
     std::vector<cv::Point> contour2 = {cv::Point(300,350), cv::Point(350,300), cv::Point(300,250), cv::Point(250,300)};
     std::vector<std::vector<cv::Point>> contours = {contour1, contour2};
@@ -1228,7 +1271,9 @@ int main() {
 
     for(int i = 0; i < first_steps.size(); i++)
     {
-        map.at<cv::Vec3f>(first_steps[i].y, first_steps[i].x) = cv::Vec3f(0, 0, 255);
+        cv::circle(map, cv::Point(first_steps[i].x, first_steps[i].y), 1, JetColorMap.front(), -1);
+        UpdateColorMap();
+
         cv::imshow("trajectory", map);
         cv::waitKey(1);
     }
@@ -1241,7 +1286,9 @@ int main() {
         sub_path = GetBoustrophedonPath(path[i], corner_indicator, robot_radius);
         for(int j = 0; j < sub_path.size(); j++)
         {
-            map.at<cv::Vec3f>(sub_path[j].y, sub_path[j].x) = cv::Vec3f(0, 255, 255);
+            cv::circle(map, cv::Point(sub_path[j].x, sub_path[j].y), 1, JetColorMap.front(), -1);
+            UpdateColorMap();
+
             cv::imshow("trajectory", map);
             cv::waitKey(1);
         }
@@ -1255,7 +1302,9 @@ int main() {
             std::deque<Point2D> link_path = FindLinkingPath(curr_exit, next_entrance, path[i], path[i-1], robot_radius);
             for(int k = 0; k < link_path.size(); k++)
             {
-                map.at<cv::Vec3f>(link_path[k].y, link_path[k].x) = cv::Vec3f(0, 255, 0);
+                cv::circle(map, cv::Point(link_path[k].x, link_path[k].y), 1, JetColorMap.front(), -1);
+                UpdateColorMap();
+
                 cv::imshow("trajectory", map);
                 cv::waitKey(1);
             }
