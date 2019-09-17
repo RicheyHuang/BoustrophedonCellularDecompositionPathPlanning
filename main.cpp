@@ -507,12 +507,14 @@ std::vector<Event> EventTypeAllocator(std::vector<Event>& event_list)
     event_list_ex.insert(event_list_ex.end(), tail.begin(), tail.end());
 
     int index_offset;
+    std::deque<int> index_list;
 
     for(int i = half_size; i < half_size + event_list.size(); i++)
     {
         if(event_list_ex[i].x < event_list_ex[i-1].x && event_list_ex[i].x < event_list_ex[i+1].x)
         {
             event_list[i-half_size].event_type = IN;
+            index_list.emplace_back(i-half_size);
         }
         if(event_list_ex[i].x < event_list_ex[i-1].x && event_list_ex[i].x == event_list_ex[i+1].x)
         {
@@ -524,6 +526,7 @@ std::vector<Event> EventTypeAllocator(std::vector<Event>& event_list)
             if(event_list_ex[i].x < event_list_ex[i+index_offset].x)
             {
                 event_list[i-half_size].event_type = IN_TOP;
+                index_list.emplace_back(i-half_size);
             }
         }
 
@@ -541,6 +544,7 @@ std::vector<Event> EventTypeAllocator(std::vector<Event>& event_list)
             if(event_list_ex[i].x < event_list_ex[i-index_offset].x)
             {
                 event_list[i-half_size].event_type = OUT_TOP;
+                index_list.emplace_back(i-half_size);
             }
         }
         if(event_list_ex[i].x == event_list_ex[i-1].x && event_list_ex[i].x > event_list_ex[i+1].x)
@@ -553,12 +557,14 @@ std::vector<Event> EventTypeAllocator(std::vector<Event>& event_list)
             if(event_list_ex[i].x > event_list_ex[i-index_offset].x)
             {
                 event_list[i-half_size].event_type = IN_BOTTOM;
+                index_list.emplace_back(i-half_size);
             }
         }
 
         if(event_list_ex[i].x > event_list_ex[i-1].x && event_list_ex[i].x > event_list_ex[i+1].x)
         {
             event_list[i-half_size].event_type = OUT;
+            index_list.emplace_back(i-half_size);
         }
         if(event_list_ex[i].x > event_list_ex[i-1].x && event_list_ex[i].x == event_list_ex[i+1].x)
         {
@@ -570,28 +576,135 @@ std::vector<Event> EventTypeAllocator(std::vector<Event>& event_list)
             if(event_list_ex[i].x > event_list_ex[i+index_offset].x)
             {
                 event_list[i-half_size].event_type = OUT_BOTTOM;
+                index_list.emplace_back(i-half_size);
             }
         }
     }
 
-    header = std::vector<Event>(event_list.begin()+half_size, event_list.end());
-    tail = std::vector<Event>(event_list.begin(), event_list.begin()+half_size);
-    event_list_ex.clear();
-    event_list_ex.insert(event_list_ex.begin(), header.begin(), header.end());
-    event_list_ex.insert(event_list_ex.end(), event_list.begin(), event_list.end());
-    event_list_ex.insert(event_list_ex.end(), tail.begin(), tail.end());
+    int temp_index;
 
-    for(int i = half_size; i < half_size + event_list.size(); i++)
+    for(int i = 1; i <= index_list.size(); i++)
     {
+        if(event_list[index_list[1]].event_type == OUT)
+        {
+            if(event_list[index_list[0]].event_type == IN
+            && event_list[index_list[2]].event_type == IN
+            && event_list[index_list[0]].y < event_list[index_list[1]].y
+            && event_list[index_list[2]].y > event_list[index_list[1]].y
+            )
+            {
+                event_list[index_list[1]].event_type = INNER_OUT;
+            }
+            if(event_list[index_list[0]].event_type == IN_BOTTOM
+            && event_list[index_list[2]].event_type == IN_TOP)
+            {
+                event_list[index_list[1]].event_type = INNER_OUT;
+            }
+            temp_index = index_list.front();
+            index_list.pop_front();
+            index_list.emplace_back(temp_index);
+        }
 
+        if(event_list[index_list[1]].event_type == OUT_TOP)
+        {
+            if(event_list[index_list[0]].event_type == IN
+               && event_list[index_list[2]].event_type == IN
+               && event_list[index_list[0]].y < event_list[index_list[1]].y
+               && event_list[index_list[2]].y > event_list[index_list[1]].y
+                    )
+            {
+                event_list[index_list[1]].event_type = INNER_OUT_TOP;
+            }
+            if(event_list[index_list[0]].event_type == IN_BOTTOM
+               && event_list[index_list[2]].event_type == IN_TOP)
+            {
+                event_list[index_list[1]].event_type = INNER_OUT_TOP;
+            }
+            temp_index = index_list.front();
+            index_list.pop_front();
+            index_list.emplace_back(temp_index);
+        }
+
+        if(event_list[index_list[1]].event_type == OUT_BOTTOM)
+        {
+            if(event_list[index_list[0]].event_type == IN
+               && event_list[index_list[2]].event_type == IN
+               && event_list[index_list[0]].y < event_list[index_list[1]].y
+               && event_list[index_list[2]].y > event_list[index_list[1]].y
+                    )
+            {
+                event_list[index_list[1]].event_type = INNER_OUT_BOTTOM;
+            }
+            if(event_list[index_list[0]].event_type == IN_BOTTOM
+               && event_list[index_list[2]].event_type == IN_TOP)
+            {
+                event_list[index_list[1]].event_type = INNER_OUT_BOTTOM;
+            }
+            temp_index = index_list.front();
+            index_list.pop_front();
+            index_list.emplace_back(temp_index);
+        }
+
+        if(event_list[index_list[1]].event_type == IN)
+        {
+            if(event_list[index_list[0]].event_type == OUT
+               && event_list[index_list[2]].event_type == OUT
+               && event_list[index_list[0]].y > event_list[index_list[1]].y
+               && event_list[index_list[2]].y < event_list[index_list[1]].y
+                    )
+            {
+                event_list[index_list[1]].event_type = INNER_IN;
+            }
+            if(event_list[index_list[0]].event_type == OUT_TOP
+               && event_list[index_list[2]].event_type == OUT_BOTTOM)
+            {
+                event_list[index_list[1]].event_type = INNER_IN;
+            }
+            temp_index = index_list.front();
+            index_list.pop_front();
+            index_list.emplace_back(temp_index);
+        }
+
+        if(event_list[index_list[1]].event_type == IN_TOP)
+        {
+            if(event_list[index_list[0]].event_type == OUT
+               && event_list[index_list[2]].event_type == OUT
+               && event_list[index_list[0]].y > event_list[index_list[1]].y
+               && event_list[index_list[2]].y < event_list[index_list[1]].y
+                    )
+            {
+                event_list[index_list[1]].event_type = INNER_IN_TOP;
+            }
+            if(event_list[index_list[0]].event_type == OUT_TOP
+               && event_list[index_list[2]].event_type == OUT_BOTTOM)
+            {
+                event_list[index_list[1]].event_type = INNER_IN_TOP;
+            }
+            temp_index = index_list.front();
+            index_list.pop_front();
+            index_list.emplace_back(temp_index);
+        }
+
+        if(event_list[index_list[1]].event_type == IN_BOTTOM)
+        {
+            if(event_list[index_list[0]].event_type == OUT
+               && event_list[index_list[2]].event_type == OUT
+               && event_list[index_list[0]].y > event_list[index_list[1]].y
+               && event_list[index_list[2]].y < event_list[index_list[1]].y
+                    )
+            {
+                event_list[index_list[1]].event_type = INNER_IN_BOTTOM;
+            }
+            if(event_list[index_list[0]].event_type == OUT_TOP
+               && event_list[index_list[2]].event_type == OUT_BOTTOM)
+            {
+                event_list[index_list[1]].event_type = INNER_IN_BOTTOM;
+            }
+            temp_index = index_list.front();
+            index_list.pop_front();
+            index_list.emplace_back(temp_index);
+        }
     }
-
-    header = std::vector<Event>(event_list.begin()+half_size, event_list.end());
-    tail = std::vector<Event>(event_list.begin(), event_list.begin()+half_size);
-    event_list_ex.clear();
-    event_list_ex.insert(event_list_ex.begin(), header.begin(), header.end());
-    event_list_ex.insert(event_list_ex.end(), event_list.begin(), event_list.end());
-    event_list_ex.insert(event_list_ex.end(), tail.begin(), tail.end());
 
     for(int i = half_size; i < half_size + event_list.size(); i++)
     {
