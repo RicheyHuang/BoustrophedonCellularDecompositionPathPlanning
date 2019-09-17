@@ -13,9 +13,21 @@ cv::Mat map;
 enum EventType
 {
     IN,
+    IN_TOP,
+    IN_BOTTOM,
     OUT,
+    OUT_TOP,
+    OUT_BOTTOM,
+    INNER_IN,
+    INNER_IN_TOP,
+    INNER_IN_BOTTOM,
+    INNER_OUT,
+    INNER_OUT_TOP,
+    INNER_OUT_BOTTOM,
+    MIDDLE,
     CEILING,
-    FLOOR
+    FLOOR,
+    UNALLOCATED
 };
 
 const int TOPLEFT = 0;
@@ -43,7 +55,7 @@ typedef std::vector<Point2D> Edge;
 class Event
 {
 public:
-    Event(int obstacle_idx, int x_pos, int y_pos, EventType type)
+    Event(int obstacle_idx, int x_pos, int y_pos, EventType type=UNALLOCATED)
     {
         obstacle_index = obstacle_idx;
         x = x_pos;
@@ -417,7 +429,7 @@ bool operator<(const Point2D& p1, const Point2D& p2)
 
 bool operator<(const Event& e1, const Event& e2)
 {
-    return (e1.x < e2.x || (e1.x == e2.x && e1.y < e2.y));
+    return (e1.x < e2.x || (e1.x == e2.x && e1.y < e2.y) || (e1.x == e2.x && e1.y == e2.y && e1.obstacle_index < e2.obstacle_index));
 }
 
 // 各个多边形按照其左顶点的x值从小到大的顺序进行排列
@@ -471,6 +483,133 @@ std::vector<Event> EventListGenerator(PolygonList polygons)
     std::sort(event_list.begin(),event_list.end());
     return event_list;
 }
+
+
+std::vector<Event> InitializeEventList(Polygon polygon, int polygon_index)
+{
+    std::vector<Event> event_list;
+    for(int i = 0; i < polygon.size(); i++)
+    {
+        event_list.emplace_back(Event(polygon_index, polygon[i].x, polygon[i].y));
+    }
+    return event_list;
+}
+
+
+std::vector<Event> EventTypeAllocator(std::vector<Event>& event_list)
+{
+    int half_size = event_list.size()%2==0? event_list.size()/2 : (event_list.size()+1)/2;
+    std::vector<Event> header(event_list.begin()+half_size, event_list.end());
+    std::vector<Event> tail(event_list.begin(), event_list.begin()+half_size);
+    std::vector<Event> event_list_ex;
+    event_list_ex.insert(event_list_ex.begin(), header.begin(), header.end());
+    event_list_ex.insert(event_list_ex.end(), event_list.begin(), event_list.end());
+    event_list_ex.insert(event_list_ex.end(), tail.begin(), tail.end());
+
+    int index_offset;
+
+    for(int i = half_size; i < half_size + event_list.size(); i++)
+    {
+        if(event_list_ex[i].x < event_list_ex[i-1].x && event_list_ex[i].x < event_list_ex[i+1].x)
+        {
+            event_list[i-half_size].event_type = IN;
+        }
+        if(event_list_ex[i].x < event_list_ex[i-1].x && event_list_ex[i].x == event_list_ex[i+1].x)
+        {
+            index_offset = 2;
+            while(event_list_ex[i].x == event_list_ex[i+index_offset].x)
+            {
+                index_offset++;
+            }
+            if(event_list_ex[i].x < event_list_ex[i+index_offset].x)
+            {
+                event_list[i-half_size].event_type = IN_TOP;
+            }
+        }
+
+        if(event_list_ex[i].x == event_list_ex[i-1].x && event_list_ex[i].x == event_list_ex[i+1].x)
+        {
+            event_list[i-half_size].event_type = MIDDLE;
+        }
+        if(event_list_ex[i].x == event_list_ex[i-1].x && event_list_ex[i].x < event_list_ex[i+1].x)
+        {
+            index_offset = 2;
+            while(event_list_ex[i].x == event_list_ex[i-index_offset].x)
+            {
+                index_offset++;
+            }
+            if(event_list_ex[i].x < event_list_ex[i-index_offset].x)
+            {
+                event_list[i-half_size].event_type = OUT_TOP;
+            }
+        }
+        if(event_list_ex[i].x == event_list_ex[i-1].x && event_list_ex[i].x > event_list_ex[i+1].x)
+        {
+            index_offset = 2;
+            while(event_list_ex[i].x == event_list_ex[i-index_offset].x)
+            {
+                index_offset++;
+            }
+            if(event_list_ex[i].x > event_list_ex[i-index_offset].x)
+            {
+                event_list[i-half_size].event_type = IN_BOTTOM;
+            }
+        }
+
+        if(event_list_ex[i].x > event_list_ex[i-1].x && event_list_ex[i].x > event_list_ex[i+1].x)
+        {
+            event_list[i-half_size].event_type = OUT;
+        }
+        if(event_list_ex[i].x > event_list_ex[i-1].x && event_list_ex[i].x == event_list_ex[i+1].x)
+        {
+            index_offset = 2;
+            while(event_list_ex[i].x == event_list_ex[i+index_offset].x)
+            {
+                index_offset++;
+            }
+            if(event_list_ex[i].x > event_list_ex[i+index_offset].x)
+            {
+                event_list[i-half_size].event_type = OUT_BOTTOM;
+            }
+        }
+    }
+
+    header = std::vector<Event>(event_list.begin()+half_size, event_list.end());
+    tail = std::vector<Event>(event_list.begin(), event_list.begin()+half_size);
+    event_list_ex.clear();
+    event_list_ex.insert(event_list_ex.begin(), header.begin(), header.end());
+    event_list_ex.insert(event_list_ex.end(), event_list.begin(), event_list.end());
+    event_list_ex.insert(event_list_ex.end(), tail.begin(), tail.end());
+
+    for(int i = half_size; i < half_size + event_list.size(); i++)
+    {
+
+    }
+
+    header = std::vector<Event>(event_list.begin()+half_size, event_list.end());
+    tail = std::vector<Event>(event_list.begin(), event_list.begin()+half_size);
+    event_list_ex.clear();
+    event_list_ex.insert(event_list_ex.begin(), header.begin(), header.end());
+    event_list_ex.insert(event_list_ex.end(), event_list.begin(), event_list.end());
+    event_list_ex.insert(event_list_ex.end(), tail.begin(), tail.end());
+
+    for(int i = half_size; i < half_size + event_list.size(); i++)
+    {
+
+    }
+
+}
+
+
+
+std::vector<Event> NewEventListGenerator(PolygonList polygons)
+{
+
+}
+
+
+
+
 
 std::deque<std::deque<Event>> SliceListGenerator(std::vector<Event> event_list)
 {
@@ -1069,267 +1208,160 @@ void UpdateColorMap()
     JetColorMap.emplace_back(color);
 }
 
-//struct MapPoint
-//{
-//    double cost = 0.0;
-//    double occupancy = 1.0;
-//    Point2D prev_position = Point2D(INT_MAX, INT_MAX);
-//    bool costComputed = false;
-//};
-//
-//std::map<Point2D, MapPoint> cost_map;
-//
-//std::vector<Point2D> GetNeighbors(Point2D position)
-//{
-//    std::vector<Point2D> neighbors = {
-//            Point2D(position.x-1, position.y-1),
-//            Point2D(position.x, position.y-1),
-//            Point2D(position.x+1, position.y-1),
-//            Point2D(position.x-1, position.y),
-//            Point2D(position.x+1, position.y),
-//            Point2D(position.x-1, position.y+1),
-//            Point2D(position.x, position.y+1),
-//            Point2D(position.x+1, position.y+1)
-//    };
-//    return neighbors;
-//}
-//
-//
-//void BuildOccupancyMap() // CV_32FC3
-//{
-//    for(int i = 0; i < map.rows; i++)
-//    {
-//        for(int j = 0; j < map.cols; j++)
-//        {
-//            if(map.at<cv::Vec3f>(i,j) == cv::Vec3f(255,255,255))
-//            {
-//                cost_map[Point2D(j,i)].occupancy = INT_MAX;
-//            }
-//            else
-//            {
-//                cost_map[Point2D(j,i)].occupancy = 1.0;
-//            }
-//        }
-//    }
-//}
-//
-//void BuildCostMap(Point2D start)
-//{
-//    std::deque<Point2D> task_list = {start};
-//    cost_map[start].costComputed = true;
-//
-//    std::vector<Point2D> neighbors;
-//    std::vector<Point2D> candidates;
-//
-//    while(!task_list.empty())
-//    {
-//        candidates.clear();
-//        neighbors = GetNeighbors(task_list.front());
-//        for(auto neighbor:neighbors)
-//        {
-//            if(!cost_map[neighbor].costComputed)
-//            {
-//                candidates.emplace_back(neighbor);
-//                cost_map[neighbor].cost = cost_map[task_list.front()].cost + 1.0;
-//                cost_map[neighbor].prev_position = task_list.front();
-//                cost_map[neighbor].costComputed = true;
-//            }
-//        }
-//        task_list.pop_front();
-//        task_list.insert(task_list.end(), candidates.begin(), candidates.end());
-//    }
-//
-//}
-//
-//std::deque<Point2D> FindShortestPath(Point2D start, Point2D end)
-//{
-//    std::deque<Point2D> path = {end};
-//
-//    Point2D curr_positon = Point2D(end.x, end.y);
-//
-//    int prev_x = cost_map[curr_positon].prev_position.x;
-//    int prev_y = cost_map[curr_positon].prev_position.y;
-//
-//
-//    while(prev_x != start.x && prev_y != start.y)
-//    {
-//        path.emplace_front(Point2D(prev_x,prev_y));
-//        curr_positon = Point2D(prev_x, prev_y);
-//        prev_x = cost_map[curr_positon].prev_position.x;
-//        prev_y = cost_map[curr_positon].prev_position.y;
-//    }
-//
-//    path.emplace_front(start);
-//
-//    return path;
-//}
-//
-//void ResetCostMap()
-//{
-//    for(int i = 0; i < map.rows; i++)
-//    {
-//        for(int j = 0; j < map.cols; j++)
-//        {
-//            cost_map[Point2D(j,i)].cost = 0.0;
-//            cost_map[Point2D(j,i)].prev_position = Point2D(INT_MAX, INT_MAX);
-//            cost_map[Point2D(j,i)].costComputed = false;
-//        }
-//    }
-//}
 
 
 int main() {
 
-    map = cv::Mat::zeros(400, 400, CV_8UC3);
-    Polygon polygon1, polygon2;
-    cv::LineIterator line1(map, cv::Point(200,300), cv::Point(300,200));
-    cv::LineIterator line2(map, cv::Point(300,200), cv::Point(200,100));
-    cv::LineIterator line3(map, cv::Point(200,100), cv::Point(100,200));
-    cv::LineIterator line4(map, cv::Point(100,200), cv::Point(200,300));
-
-    for(int i = 0; i < line1.count-1; i++)
-    {
-        polygon1.emplace_back(Point2D(line1.pos().x, line1.pos().y));
-        line1++;
-    }
-    for(int i = 0; i < line2.count-1; i++)
-    {
-        polygon1.emplace_back(Point2D(line2.pos().x, line2.pos().y));
-        line2++;
-    }
-    for(int i = 0; i < line3.count-1; i++)
-    {
-        polygon1.emplace_back(Point2D(line3.pos().x, line3.pos().y));
-        line3++;
-    }
-    for(int i = 0; i < line4.count-1; i++)
-    {
-        polygon1.emplace_back(Point2D(line4.pos().x, line4.pos().y));
-        line4++;
-    }
-
-    cv::LineIterator line5(map, cv::Point(300,350), cv::Point(350,300));
-    cv::LineIterator line6(map, cv::Point(350,300), cv::Point(300,250));
-    cv::LineIterator line7(map, cv::Point(300,250), cv::Point(250,300));
-    cv::LineIterator line8(map, cv::Point(250,300), cv::Point(300,350));
-    for(int i = 0; i < line5.count-1; i++)
-    {
-        polygon2.emplace_back(Point2D(line5.pos().x, line5.pos().y));
-        line5++;
-    }
-    for(int i = 0; i < line6.count-1; i++)
-    {
-        polygon2.emplace_back(Point2D(line6.pos().x, line6.pos().y));
-        line6++;
-    }
-    for(int i = 0; i < line7.count-1; i++)
-    {
-        polygon2.emplace_back(Point2D(line7.pos().x, line7.pos().y));
-        line7++;
-    }
-    for(int i = 0; i < line8.count-1; i++)
-    {
-        polygon2.emplace_back(Point2D(line8.pos().x, line8.pos().y));
-        line8++;
-    }
-
-
-    PolygonList polygons = {polygon1, polygon2};
-    std::vector<Event> event_list = EventListGenerator(polygons);
-
-
-    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
-    InitializeCellDecomposition(Point2D(slice_list.front().front().x, slice_list.front().front().y));
-    ExecuteCellDecomposition(slice_list);
-    FinishCellDecomposition(Point2D(slice_list.back().back().x, slice_list.back().back().y));
-
-    Point2D start_point = Point2D(150, 100);
-    int start_cell_index = 1;
-    int robot_radius = 5;
-
-    std::deque<Point2D> first_steps = PathIninitialization(start_point, cell_graph[start_cell_index], robot_radius);
-    WalkingThroughGraph(start_cell_index);
-
-
-    for(int i = 0; i < cell_graph.size(); i++)
-    {
-        std::cout<<"cell "<<i<<" 's ceiling points number:" << cell_graph[i].ceiling.size()<<std::endl;
-        std::cout<<"cell "<<i<<" 's floor points number:" << cell_graph[i].floor.size()<<std::endl;
-    }
-
-    std::cout<<cell_graph.size()<<std::endl;
-
-
-    for(int i = 0; i < cell_graph.size(); i++)
-    {
-        for(int j = 0; j < cell_graph[i].neighbor_indices.size(); j++)
-        {
-            std::cout<<"cell "<< i << "'s neighbor: cell "<<cell_graph[cell_graph[i].neighbor_indices[j]].cellIndex<<std::endl;
-        }
-    }
-
-    int repeat_times = 20;
-    InitializeColorMap(repeat_times);
-
-    std::vector<cv::Point> contour1 = {cv::Point(200,300), cv::Point(300,200), cv::Point(200,100), cv::Point(100,200)};
-    std::vector<cv::Point> contour2 = {cv::Point(300,350), cv::Point(350,300), cv::Point(300,250), cv::Point(250,300)};
-    std::vector<std::vector<cv::Point>> contours = {contour1, contour2};
-    cv::fillPoly(map, contours, cv::Scalar(255, 255, 255));
-    cv::circle(map, cv::Point(start_point.x, start_point.y), 3, cv::Scalar(0, 0, 255), -1);
-
-    cv::namedWindow("trajectory", cv::WINDOW_NORMAL);
-    cv::imshow("trajectory", map);
-    cv::waitKey(0);
-
-    for(int i = 0; i < cell_graph.size(); i++)
-    {
-        DrawCells(cell_graph[i]);
-        cv::imshow("trajectory", map);
-        cv::waitKey(500);
-    }
-
-    for(int i = 0; i < first_steps.size(); i++)
-    {
-        cv::circle(map, cv::Point(first_steps[i].x, first_steps[i].y), 1, JetColorMap.front(), -1);
-        UpdateColorMap();
-
-        cv::imshow("trajectory", map);
-        cv::waitKey(1);
-    }
-
-    std::vector<Point2D> sub_path;
-    int corner_indicator = TOPLEFT;
-
-    for(int i = path.size()-1; i >= 0; i--)
-    {
-        sub_path = GetBoustrophedonPath(path[i], corner_indicator, robot_radius);
-        for(int j = 0; j < sub_path.size(); j++)
-        {
-            cv::circle(map, cv::Point(sub_path[j].x, sub_path[j].y), 1, JetColorMap.front(), -1);
-            UpdateColorMap();
-
-            cv::imshow("trajectory", map);
-            cv::waitKey(1);
-        }
-
-        cell_graph[path[i].cellIndex].isCleaned = true;
-
-        if((i-1)>=0)
-        {
-            Point2D curr_exit = sub_path.back();
-            Point2D next_entrance = FindNextEntrance(curr_exit, path[i - 1], corner_indicator, robot_radius);
-            std::deque<Point2D> link_path = FindLinkingPath(curr_exit, next_entrance, path[i], path[i-1], robot_radius);
-            for(int k = 0; k < link_path.size(); k++)
-            {
-                cv::circle(map, cv::Point(link_path[k].x, link_path[k].y), 1, JetColorMap.front(), -1);
-                UpdateColorMap();
-
-                cv::imshow("trajectory", map);
-                cv::waitKey(1);
-            }
-        }
-    }
-    cv::waitKey(0);
+//    map = cv::Mat::zeros(400, 400, CV_8UC3);
+//    Polygon polygon1, polygon2;
+//    cv::LineIterator line1(map, cv::Point(200,300), cv::Point(300,200));
+//    cv::LineIterator line2(map, cv::Point(300,200), cv::Point(200,100));
+//    cv::LineIterator line3(map, cv::Point(200,100), cv::Point(100,200));
+//    cv::LineIterator line4(map, cv::Point(100,200), cv::Point(200,300));
+//
+//    for(int i = 0; i < line1.count-1; i++)
+//    {
+//        polygon1.emplace_back(Point2D(line1.pos().x, line1.pos().y));
+//        line1++;
+//    }
+//    for(int i = 0; i < line2.count-1; i++)
+//    {
+//        polygon1.emplace_back(Point2D(line2.pos().x, line2.pos().y));
+//        line2++;
+//    }
+//    for(int i = 0; i < line3.count-1; i++)
+//    {
+//        polygon1.emplace_back(Point2D(line3.pos().x, line3.pos().y));
+//        line3++;
+//    }
+//    for(int i = 0; i < line4.count-1; i++)
+//    {
+//        polygon1.emplace_back(Point2D(line4.pos().x, line4.pos().y));
+//        line4++;
+//    }
+//
+//    cv::LineIterator line5(map, cv::Point(300,350), cv::Point(350,300));
+//    cv::LineIterator line6(map, cv::Point(350,300), cv::Point(300,250));
+//    cv::LineIterator line7(map, cv::Point(300,250), cv::Point(250,300));
+//    cv::LineIterator line8(map, cv::Point(250,300), cv::Point(300,350));
+//    for(int i = 0; i < line5.count-1; i++)
+//    {
+//        polygon2.emplace_back(Point2D(line5.pos().x, line5.pos().y));
+//        line5++;
+//    }
+//    for(int i = 0; i < line6.count-1; i++)
+//    {
+//        polygon2.emplace_back(Point2D(line6.pos().x, line6.pos().y));
+//        line6++;
+//    }
+//    for(int i = 0; i < line7.count-1; i++)
+//    {
+//        polygon2.emplace_back(Point2D(line7.pos().x, line7.pos().y));
+//        line7++;
+//    }
+//    for(int i = 0; i < line8.count-1; i++)
+//    {
+//        polygon2.emplace_back(Point2D(line8.pos().x, line8.pos().y));
+//        line8++;
+//    }
+//
+//
+//    PolygonList polygons = {polygon1, polygon2};
+//    std::vector<Event> event_list = EventListGenerator(polygons);
+//
+//
+//    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
+//    InitializeCellDecomposition(Point2D(slice_list.front().front().x, slice_list.front().front().y));
+//    ExecuteCellDecomposition(slice_list);
+//    FinishCellDecomposition(Point2D(slice_list.back().back().x, slice_list.back().back().y));
+//
+//    Point2D start_point = Point2D(150, 100);
+//    int start_cell_index = 1;
+//    int robot_radius = 5;
+//
+//    std::deque<Point2D> first_steps = PathIninitialization(start_point, cell_graph[start_cell_index], robot_radius);
+//    WalkingThroughGraph(start_cell_index);
+//
+//
+//    for(int i = 0; i < cell_graph.size(); i++)
+//    {
+//        std::cout<<"cell "<<i<<" 's ceiling points number:" << cell_graph[i].ceiling.size()<<std::endl;
+//        std::cout<<"cell "<<i<<" 's floor points number:" << cell_graph[i].floor.size()<<std::endl;
+//    }
+//
+//    std::cout<<cell_graph.size()<<std::endl;
+//
+//
+//    for(int i = 0; i < cell_graph.size(); i++)
+//    {
+//        for(int j = 0; j < cell_graph[i].neighbor_indices.size(); j++)
+//        {
+//            std::cout<<"cell "<< i << "'s neighbor: cell "<<cell_graph[cell_graph[i].neighbor_indices[j]].cellIndex<<std::endl;
+//        }
+//    }
+//
+//    int repeat_times = 20;
+//    InitializeColorMap(repeat_times);
+//
+//    std::vector<cv::Point> contour1 = {cv::Point(200,300), cv::Point(300,200), cv::Point(200,100), cv::Point(100,200)};
+//    std::vector<cv::Point> contour2 = {cv::Point(300,350), cv::Point(350,300), cv::Point(300,250), cv::Point(250,300)};
+//    std::vector<std::vector<cv::Point>> contours = {contour1, contour2};
+//    cv::fillPoly(map, contours, cv::Scalar(255, 255, 255));
+//    cv::circle(map, cv::Point(start_point.x, start_point.y), 3, cv::Scalar(0, 0, 255), -1);
+//
+//    cv::namedWindow("trajectory", cv::WINDOW_NORMAL);
+//    cv::imshow("trajectory", map);
+//    cv::waitKey(0);
+//
+//    for(int i = 0; i < cell_graph.size(); i++)
+//    {
+//        DrawCells(cell_graph[i]);
+//        cv::imshow("trajectory", map);
+//        cv::waitKey(500);
+//    }
+//
+//    for(int i = 0; i < first_steps.size(); i++)
+//    {
+//        cv::circle(map, cv::Point(first_steps[i].x, first_steps[i].y), 1, JetColorMap.front(), -1);
+//        UpdateColorMap();
+//
+//        cv::imshow("trajectory", map);
+//        cv::waitKey(1);
+//    }
+//
+//    std::vector<Point2D> sub_path;
+//    int corner_indicator = TOPLEFT;
+//
+//    for(int i = path.size()-1; i >= 0; i--)
+//    {
+//        sub_path = GetBoustrophedonPath(path[i], corner_indicator, robot_radius);
+//        for(int j = 0; j < sub_path.size(); j++)
+//        {
+//            cv::circle(map, cv::Point(sub_path[j].x, sub_path[j].y), 1, JetColorMap.front(), -1);
+//            UpdateColorMap();
+//
+//            cv::imshow("trajectory", map);
+//            cv::waitKey(1);
+//        }
+//
+//        cell_graph[path[i].cellIndex].isCleaned = true;
+//
+//        if((i-1)>=0)
+//        {
+//            Point2D curr_exit = sub_path.back();
+//            Point2D next_entrance = FindNextEntrance(curr_exit, path[i - 1], corner_indicator, robot_radius);
+//            std::deque<Point2D> link_path = FindLinkingPath(curr_exit, next_entrance, path[i], path[i-1], robot_radius);
+//            for(int k = 0; k < link_path.size(); k++)
+//            {
+//                cv::circle(map, cv::Point(link_path[k].x, link_path[k].y), 1, JetColorMap.front(), -1);
+//                UpdateColorMap();
+//
+//                cv::imshow("trajectory", map);
+//                cv::waitKey(1);
+//            }
+//        }
+//    }
+//    cv::waitKey(0);
 
     return 0;
 }
