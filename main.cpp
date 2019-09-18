@@ -678,7 +678,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
 
         if(event_list[index_list[1]].event_type == OUT_TOP)
         {
-            // index_list should have length greater than 4
+            // TODO: case: index_list length less than 4
 
             if(
                (  event_list[index_list[0]].event_type == IN
@@ -745,11 +745,6 @@ void EventTypeAllocator(std::vector<Event>& event_list)
             index_list.pop_front();
             index_list.emplace_back(temp_index);
         }
-
-
-
-
-
 
         if(event_list[index_list[1]].event_type == IN)
         {
@@ -966,7 +961,6 @@ void EventTypeAllocator(std::vector<Event>& event_list)
     }
 }
 
-
 std::vector<Event> EventListGenerator2(PolygonList polygons)
 {
     std::vector<Event> event_list;
@@ -984,10 +978,6 @@ std::vector<Event> EventListGenerator2(PolygonList polygons)
 
     return event_list;
 }
-
-
-
-
 
 std::deque<std::deque<Event>> SliceListGenerator(std::vector<Event> event_list)
 {
@@ -1073,6 +1063,81 @@ void ExecuteFloorOperation(int curr_cell_idx, const Point2D& floor_point) // fin
 {
     cell_graph[curr_cell_idx].floor.emplace_back(floor_point);
 }
+
+void ExecuteOpenOperation(int curr_cell_idx, Point2D in_top, Point2D in_bottom, Point2D c, Point2D f) // in event  add two new node
+{
+
+    CellNode top_cell, bottom_cell;
+
+    top_cell.ceiling.emplace_back(c);
+    top_cell.floor.emplace_back(in_top);
+
+    bottom_cell.ceiling.emplace_back(in_bottom);
+    bottom_cell.floor.emplace_back(f);
+
+    int top_cell_index = cell_graph.size();
+    int bottom_cell_index = cell_graph.size() + 1;
+
+    top_cell.cellIndex = top_cell_index;
+    bottom_cell.cellIndex = bottom_cell_index;
+    cell_graph.emplace_back(top_cell);
+    cell_graph.emplace_back(bottom_cell);
+
+
+    cell_graph[top_cell_index].neighbor_indices.emplace_back(curr_cell_idx);
+    cell_graph[bottom_cell_index].neighbor_indices.emplace_front(curr_cell_idx);
+
+    cell_graph[curr_cell_idx].neighbor_indices.emplace_front(top_cell_index);
+    cell_graph[curr_cell_idx].neighbor_indices.emplace_front(bottom_cell_index);
+}
+
+void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out_top, Point2D out_bottom, Point2D c, Point2D f) // out event  add one new node
+{
+    CellNode new_cell;
+
+    new_cell.ceiling.emplace_back(c);
+    new_cell.floor.emplace_back(f);
+
+    int new_cell_idx = cell_graph.size();
+    new_cell.cellIndex = new_cell_idx;
+
+    cell_graph.emplace_back(new_cell);
+
+
+    cell_graph[new_cell_idx].neighbor_indices.emplace_back(top_cell_idx);
+    cell_graph[new_cell_idx].neighbor_indices.emplace_back(bottom_cell_idx);
+
+    cell_graph[top_cell_idx].neighbor_indices.emplace_front(new_cell_idx);
+    cell_graph[bottom_cell_idx].neighbor_indices.emplace_back(new_cell_idx);
+
+}
+
+void ExecuteInnerOpenOperation(Point2D inner_in)
+{
+    CellNode new_cell;
+
+    new_cell.ceiling.emplace_back(inner_in);
+    new_cell.floor.emplace_back(inner_in);
+
+    int new_cell_index = cell_graph.size();
+
+    new_cell.cellIndex = new_cell_index;
+    cell_graph.emplace_back(new_cell);
+}
+
+void ExecuteInnerOpenOperation(Point2D inner_in_top, Point2D inner_in_bottom)
+{
+    CellNode new_cell;
+
+    new_cell.ceiling.emplace_back(inner_in_top);
+    new_cell.floor.emplace_back(inner_in_bottom);
+
+    int new_cell_index = cell_graph.size();
+
+    new_cell.cellIndex = new_cell_index;
+    cell_graph.emplace_back(new_cell);
+}
+
 
 
 void InitializeCellDecomposition(Point2D first_in_pos)
@@ -1322,8 +1387,6 @@ std::vector<Point2D> ComputeCellCornerPoints(CellNode cell, int robot_radius=0)
     return corner_points;
 }
 
-
-
 Point2D FindNextEntrance(Point2D curr_point, CellNode next_cell, int& corner_indicator, int robot_radius=0)
 {
 
@@ -1344,7 +1407,6 @@ Point2D FindNextEntrance(Point2D curr_point, CellNode next_cell, int& corner_ind
     }
     return next_entrance;
 }
-
 
 std::deque<Point2D> ExitAlongWall(Point2D start, Point2D end, int end_corner_indicator, CellNode cell, int robot_radius=0)
 {
@@ -1449,7 +1511,6 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D end, int end_corner_ind
     }
 
 }
-
 
 std::deque<Point2D> FindLinkingPath(Point2D curr_exit, Point2D next_entrance, CellNode curr_cell, CellNode next_cell, int robot_radius=0)
 {
@@ -1694,17 +1755,14 @@ int main() {
         }
         if(event_list[i].event_type == MIDDLE)
         {
-//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", MIDDLE"<<std::endl;
             map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(50, 50 ,50);
         }
         if(event_list[i].event_type == CEILING)
         {
-//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", CEILING"<<std::endl;
             map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(0, 255 ,255);
         }
         if(event_list[i].event_type == FLOOR)
         {
-//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", FLOOR"<<std::endl;
             map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(255, 0 ,0);
         }
     }
