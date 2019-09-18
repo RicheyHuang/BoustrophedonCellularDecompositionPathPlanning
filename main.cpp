@@ -849,8 +849,41 @@ void EventTypeAllocator(std::vector<Event>& event_list)
     // determine floor and ceiling
     for(int i = 1; i <= index_list.size(); i++)
     {
-        if(event_list[index_list[0]].event_type == OUT
+        if(
+           (event_list[index_list[0]].event_type == OUT
            && event_list[index_list[1]].event_type == IN)
+
+           ||(event_list[index_list[0]].event_type == OUT
+              && event_list[index_list[1]].event_type == INNER_IN)
+
+           ||(event_list[index_list[0]].event_type == OUT
+              && event_list[index_list[1]].event_type == INNER_IN_BOTTOM)
+
+           ||(event_list[index_list[0]].event_type == OUT_TOP
+              && event_list[index_list[1]].event_type == IN)
+
+           ||(event_list[index_list[0]].event_type == OUT_TOP
+              && event_list[index_list[1]].event_type == IN_TOP)
+
+           ||(event_list[index_list[0]].event_type == OUT_TOP
+              && event_list[index_list[1]].event_type == INNER_IN)
+
+           ||(event_list[index_list[0]].event_type == OUT_TOP
+              && event_list[index_list[1]].event_type == INNER_IN_BOTTOM)
+
+           ||(event_list[index_list[0]].event_type == INNER_OUT
+              && event_list[index_list[1]].event_type == IN)
+
+           ||(event_list[index_list[0]].event_type == INNER_OUT
+              && event_list[index_list[1]].event_type == IN_TOP)
+
+           ||(event_list[index_list[0]].event_type == INNER_OUT_BOTTOM
+              && event_list[index_list[1]].event_type == IN)
+
+           ||(event_list[index_list[0]].event_type == INNER_OUT_BOTTOM
+              && event_list[index_list[1]].event_type == IN_TOP)
+
+           )
         {
             if(index_list[0] < index_list[1])
             {
@@ -870,65 +903,42 @@ void EventTypeAllocator(std::vector<Event>& event_list)
                     event_list[k].event_type = FLOOR;
                 }
             }
-            temp_index = index_list.front();
-            index_list.pop_front();
-            index_list.emplace_back(temp_index);
         }
 
-        if(event_list[index_list[0]].event_type == INNER_OUT_BOTTOM
-           && event_list[index_list[1]].event_type == IN_TOP)
-        {
-            if(index_list[0] < index_list[1])
-            {
-                for(int j = index_list[0]+1; j < index_list[1]; j++)
-                {
-                    event_list[j].event_type = FLOOR;
-                }
-            }
-            else
-            {
-                for(int j = index_list[0]+1; j < event_list.size(); j++)
-                {
-                    event_list[j].event_type = FLOOR;
-                }
-                for(int k = 0; k < index_list[1]; k++)
-                {
-                    event_list[k].event_type = FLOOR;
-                }
-            }
-            temp_index = index_list.front();
-            index_list.pop_front();
-            index_list.emplace_back(temp_index);
-        }
-
-        if(event_list[index_list[0]].event_type == OUT_TOP
-           && event_list[index_list[1]].event_type == INNER_IN_BOTTOM)
-        {
-            if(index_list[0] < index_list[1])
-            {
-                for(int j = index_list[0]+1; j < index_list[1]; j++)
-                {
-                    event_list[j].event_type = FLOOR;
-                }
-            }
-            else
-            {
-                for(int j = index_list[0]+1; j < event_list.size(); j++)
-                {
-                    event_list[j].event_type = FLOOR;
-                }
-                for(int k = 0; k < index_list[1]; k++)
-                {
-                    event_list[k].event_type = FLOOR;
-                }
-            }
-            temp_index = index_list.front();
-            index_list.pop_front();
-            index_list.emplace_back(temp_index);
-        }
-
-        if(event_list[index_list[0]].event_type == IN
+        if(
+           (event_list[index_list[0]].event_type == IN
            && event_list[index_list[1]].event_type == OUT)
+
+           ||(event_list[index_list[0]].event_type == IN
+              && event_list[index_list[1]].event_type == INNER_OUT)
+
+           ||(event_list[index_list[0]].event_type == IN
+              && event_list[index_list[1]].event_type == INNER_OUT_TOP)
+
+           ||(event_list[index_list[0]].event_type == IN_BOTTOM
+              && event_list[index_list[1]].event_type == OUT)
+
+           ||(event_list[index_list[0]].event_type == IN_BOTTOM
+              && event_list[index_list[1]].event_type == OUT_BOTTOM)
+
+           ||(event_list[index_list[0]].event_type == IN_BOTTOM
+              && event_list[index_list[1]].event_type == INNER_OUT)
+
+           ||(event_list[index_list[0]].event_type == IN_BOTTOM
+              && event_list[index_list[1]].event_type == INNER_OUT_TOP)
+
+           ||(event_list[index_list[0]].event_type == INNER_IN
+              && event_list[index_list[1]].event_type == OUT)
+
+           ||(event_list[index_list[0]].event_type == INNER_IN
+              && event_list[index_list[1]].event_type == OUT_BOTTOM)
+
+           ||(event_list[index_list[0]].event_type == INNER_IN_TOP
+              && event_list[index_list[1]].event_type == OUT)
+
+           ||(event_list[index_list[0]].event_type == INNER_IN_TOP
+              && event_list[index_list[1]].event_type == OUT_BOTTOM)
+           )
         {
             if(index_list[0] < index_list[1])
             {
@@ -948,62 +958,11 @@ void EventTypeAllocator(std::vector<Event>& event_list)
                     event_list[k].event_type = CEILING;
                 }
             }
-            temp_index = index_list.front();
-            index_list.pop_front();
-            index_list.emplace_back(temp_index);
         }
 
-        if(event_list[index_list[0]].event_type == IN_BOTTOM
-           && event_list[index_list[1]].event_type == INNER_OUT_TOP)
-        {
-            if(index_list[0] < index_list[1])
-            {
-                for(int j = index_list[0]+1; j < index_list[1]; j++)
-                {
-                    event_list[j].event_type = CEILING;
-                }
-            }
-            else
-            {
-                for(int j = index_list[0]+1; j < event_list.size(); j++)
-                {
-                    event_list[j].event_type = CEILING;
-                }
-                for(int k = 0; k < index_list[1]; k++)
-                {
-                    event_list[k].event_type = CEILING;
-                }
-            }
-            temp_index = index_list.front();
-            index_list.pop_front();
-            index_list.emplace_back(temp_index);
-        }
-
-        if(event_list[index_list[0]].event_type == INNER_IN_TOP
-           && event_list[index_list[1]].event_type == OUT_BOTTOM)
-        {
-            if(index_list[0] < index_list[1])
-            {
-                for(int j = index_list[0]+1; j < index_list[1]; j++)
-                {
-                    event_list[j].event_type = CEILING;
-                }
-            }
-            else
-            {
-                for(int j = index_list[0]+1; j < event_list.size(); j++)
-                {
-                    event_list[j].event_type = CEILING;
-                }
-                for(int k = 0; k < index_list[1]; k++)
-                {
-                    event_list[k].event_type = CEILING;
-                }
-            }
-            temp_index = index_list.front();
-            index_list.pop_front();
-            index_list.emplace_back(temp_index);
-        }
+        temp_index = index_list.front();
+        index_list.pop_front();
+        index_list.emplace_back(temp_index);
     }
 }
 
@@ -1746,7 +1705,7 @@ int main() {
         if(event_list[i].event_type == FLOOR)
         {
 //            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", FLOOR"<<std::endl;
-//            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(255, 0 ,0);
+            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(255, 0 ,0);
         }
     }
 
