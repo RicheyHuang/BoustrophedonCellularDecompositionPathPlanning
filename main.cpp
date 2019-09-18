@@ -516,16 +516,30 @@ void EventTypeAllocator(std::vector<Event>& event_list)
             event_list[i-half_size].event_type = IN;
             index_list.emplace_back(i-half_size);
         }
-        if(event_list_ex[i].x < event_list_ex[i-1].x && event_list_ex[i].x == event_list_ex[i+1].x)
+        if(event_list_ex[i].x < event_list_ex[i-1].x && event_list_ex[i].x == event_list_ex[i+1].x && event_list_ex[i].y < event_list_ex[i+1].y)
         {
             index_offset = 2;
             while(event_list_ex[i].x == event_list_ex[i+index_offset].x)
             {
                 index_offset++;
             }
-            if(event_list_ex[i].x < event_list_ex[i+index_offset].x)
+            if(event_list_ex[i].x < event_list_ex[i+index_offset].x && event_list_ex[i].y < event_list_ex[i+index_offset].y)
             {
                 event_list[i-half_size].event_type = IN_TOP;
+                index_list.emplace_back(i-half_size);
+            }
+        }
+
+        if(event_list_ex[i].x < event_list_ex[i-1].x && event_list_ex[i].x == event_list_ex[i+1].x && event_list_ex[i].y > event_list_ex[i+1].y)
+        {
+            index_offset = 2;
+            while(event_list_ex[i].x == event_list_ex[i+index_offset].x)
+            {
+                index_offset++;
+            }
+            if(event_list_ex[i].x < event_list_ex[i+index_offset].x && event_list_ex[i].y > event_list_ex[i+index_offset].y)
+            {
+                event_list[i-half_size].event_type = IN_BOTTOM;
                 index_list.emplace_back(i-half_size);
             }
         }
@@ -534,51 +548,98 @@ void EventTypeAllocator(std::vector<Event>& event_list)
         {
             event_list[i-half_size].event_type = MIDDLE;
         }
-        if(event_list_ex[i].x == event_list_ex[i-1].x && event_list_ex[i].x < event_list_ex[i+1].x)
+
+        if(event_list_ex[i].x == event_list_ex[i-1].x && event_list_ex[i].x < event_list_ex[i+1].x && event_list_ex[i].y > event_list_ex[i-1].y)
         {
             index_offset = 2;
             while(event_list_ex[i].x == event_list_ex[i-index_offset].x)
             {
                 index_offset++;
             }
-            if(event_list_ex[i].x < event_list_ex[i-index_offset].x)
+            if(event_list_ex[i].x < event_list_ex[i-index_offset].x && event_list_ex[i].y > event_list_ex[i-index_offset].y)
             {
                 event_list[i-half_size].event_type = IN_BOTTOM;
                 index_list.emplace_back(i-half_size);
             }
         }
-        if(event_list_ex[i].x == event_list_ex[i-1].x && event_list_ex[i].x > event_list_ex[i+1].x)
+
+        if(event_list_ex[i].x == event_list_ex[i-1].x && event_list_ex[i].x < event_list_ex[i+1].x && event_list_ex[i].y < event_list_ex[i-1].y)
         {
             index_offset = 2;
             while(event_list_ex[i].x == event_list_ex[i-index_offset].x)
             {
                 index_offset++;
             }
-            if(event_list_ex[i].x > event_list_ex[i-index_offset].x)
+            if(event_list_ex[i].x < event_list_ex[i-index_offset].x && event_list_ex[i].y < event_list_ex[i-index_offset].y)
+            {
+                event_list[i-half_size].event_type = IN_TOP;
+                index_list.emplace_back(i-half_size);
+            }
+        }
+
+        if(event_list_ex[i].x == event_list_ex[i-1].x && event_list_ex[i].x > event_list_ex[i+1].x && event_list_ex[i].y < event_list_ex[i-1].y)
+        {
+            index_offset = 2;
+            while(event_list_ex[i].x == event_list_ex[i-index_offset].x)
+            {
+                index_offset++;
+            }
+            if(event_list_ex[i].x > event_list_ex[i-index_offset].x && event_list_ex[i].y < event_list_ex[i-index_offset].y)
             {
                 event_list[i-half_size].event_type = OUT_TOP;
                 index_list.emplace_back(i-half_size);
             }
         }
 
+        if(event_list_ex[i].x == event_list_ex[i-1].x && event_list_ex[i].x > event_list_ex[i+1].x && event_list_ex[i].y > event_list_ex[i-1].y)
+        {
+            index_offset = 2;
+            while(event_list_ex[i].x == event_list_ex[i-index_offset].x)
+            {
+                index_offset++;
+            }
+            if(event_list_ex[i].x > event_list_ex[i-index_offset].x && event_list_ex[i].y > event_list_ex[i-index_offset].y)
+            {
+                event_list[i-half_size].event_type = OUT_BOTTOM;
+                index_list.emplace_back(i-half_size);
+            }
+        }
+
+
         if(event_list_ex[i].x > event_list_ex[i-1].x && event_list_ex[i].x > event_list_ex[i+1].x)
         {
             event_list[i-half_size].event_type = OUT;
             index_list.emplace_back(i-half_size);
         }
-        if(event_list_ex[i].x > event_list_ex[i-1].x && event_list_ex[i].x == event_list_ex[i+1].x)
+        if(event_list_ex[i].x > event_list_ex[i-1].x && event_list_ex[i].x == event_list_ex[i+1].x && event_list_ex[i].y > event_list_ex[i+1].y)
         {
             index_offset = 2;
             while(event_list_ex[i].x == event_list_ex[i+index_offset].x)
             {
                 index_offset++;
             }
-            if(event_list_ex[i].x > event_list_ex[i+index_offset].x)
+            if(event_list_ex[i].x > event_list_ex[i+index_offset].x && event_list_ex[i].y > event_list_ex[i+index_offset].y)
             {
                 event_list[i-half_size].event_type = OUT_BOTTOM;
                 index_list.emplace_back(i-half_size);
             }
         }
+
+        if(event_list_ex[i].x > event_list_ex[i-1].x && event_list_ex[i].x == event_list_ex[i+1].x && event_list_ex[i].y < event_list_ex[i+1].y)
+        {
+            index_offset = 2;
+            while(event_list_ex[i].x == event_list_ex[i+index_offset].x)
+            {
+                index_offset++;
+            }
+            if(event_list_ex[i].x > event_list_ex[i+index_offset].x && event_list_ex[i].y < event_list_ex[i+index_offset].y)
+            {
+                event_list[i-half_size].event_type = OUT_TOP;
+                index_list.emplace_back(i-half_size);
+            }
+        }
+
+
     }
 
     int temp_index;
@@ -1676,13 +1737,13 @@ int main() {
         }
         if(event_list[i].event_type == CEILING)
         {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", CEILING"<<std::endl;
-            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(0, 255 ,255);
+//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", CEILING"<<std::endl;
+//            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(0, 255 ,255);
         }
         if(event_list[i].event_type == FLOOR)
         {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", FLOOR"<<std::endl;
-            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(255, 0 ,0);
+//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", FLOOR"<<std::endl;
+//            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(255, 0 ,0);
         }
     }
 
