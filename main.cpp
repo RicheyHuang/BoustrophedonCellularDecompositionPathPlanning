@@ -509,6 +509,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
     int index_offset;
     std::deque<int> index_list;
 
+    // determine in and out
     for(int i = half_size; i < half_size + event_list.size(); i++)
     {
         if(event_list_ex[i].x < event_list_ex[i-1].x && event_list_ex[i].x < event_list_ex[i+1].x)
@@ -642,6 +643,8 @@ void EventTypeAllocator(std::vector<Event>& event_list)
 
     }
 
+
+    // determine inner
     int temp_index;
 
     for(int i = 1; i <= index_list.size(); i++)
@@ -679,23 +682,23 @@ void EventTypeAllocator(std::vector<Event>& event_list)
 
             if(
                (  event_list[index_list[0]].event_type == IN
-               && event_list[index_list[2]].event_type == OUT_BOTTOM
+               && (event_list[index_list[2]].event_type == OUT_BOTTOM || event_list[index_list[2]].event_type == INNER_OUT_BOTTOM)
                && event_list[index_list[3]].event_type == IN
                && event_list[index_list[0]].y < event_list[index_list[1]].y
                && event_list[index_list[3]].y > event_list[index_list[1]].y)
 
                ||(event_list[index_list[0]].event_type == IN_BOTTOM
-                  && event_list[index_list[2]].event_type == OUT_BOTTOM
+                  && (event_list[index_list[2]].event_type == OUT_BOTTOM || event_list[index_list[2]].event_type == INNER_OUT_BOTTOM)
                   && event_list[index_list[3]].event_type == IN_TOP)
 
                ||(event_list[index_list[0]].event_type == IN
-                  && event_list[index_list[2]].event_type == OUT_BOTTOM
+                  && (event_list[index_list[2]].event_type == OUT_BOTTOM || event_list[index_list[2]].event_type == INNER_OUT_BOTTOM)
                   && event_list[index_list[3]].event_type == IN_TOP
                   && event_list[index_list[0]].y < event_list[index_list[1]].y
                   )
 
                ||(event_list[index_list[0]].event_type == IN_BOTTOM
-                  && event_list[index_list[2]].event_type == OUT_BOTTOM
+                  && (event_list[index_list[2]].event_type == OUT_BOTTOM || event_list[index_list[2]].event_type == INNER_OUT_BOTTOM)
                   && event_list[index_list[3]].event_type == IN
                   && event_list[index_list[3]].y > event_list[index_list[1]].y)
               )
@@ -714,22 +717,22 @@ void EventTypeAllocator(std::vector<Event>& event_list)
         {
             if(
                (event_list[index_list[index_list.size()-1]].event_type == IN
-               && event_list[index_list[0]].event_type == OUT_TOP
+               && (event_list[index_list[0]].event_type == OUT_TOP || event_list[index_list[0]].event_type == INNER_OUT_TOP)
                && event_list[index_list[2]].event_type == IN
                && event_list[index_list[index_list.size()-1]].y < event_list[index_list[1]].y
                && event_list[index_list[2]].y > event_list[index_list[1]].y)
 
                ||(event_list[index_list[index_list.size()-1]].event_type == IN_BOTTOM
-                  && event_list[index_list[0]].event_type == OUT_TOP
+                  && (event_list[index_list[0]].event_type == OUT_TOP || event_list[index_list[0]].event_type == INNER_OUT_TOP)
                   && event_list[index_list[2]].event_type == IN_TOP)
 
                ||(event_list[index_list[index_list.size()-1]].event_type == IN
-                  && event_list[index_list[0]].event_type == OUT_TOP
+                  && (event_list[index_list[0]].event_type == OUT_TOP || event_list[index_list[0]].event_type == INNER_OUT_TOP)
                   && event_list[index_list[2]].event_type == IN_TOP
                   && event_list[index_list[index_list.size()-1]].y < event_list[index_list[1]].y)
 
                ||(event_list[index_list[index_list.size()-1]].event_type == IN_BOTTOM
-                  && event_list[index_list[0]].event_type == OUT_TOP
+                  && (event_list[index_list[0]].event_type == OUT_TOP || event_list[index_list[0]].event_type == INNER_OUT_TOP)
                   && event_list[index_list[2]].event_type == IN
                   && event_list[index_list[2]].y > event_list[index_list[1]].y)
                )
@@ -781,22 +784,22 @@ void EventTypeAllocator(std::vector<Event>& event_list)
         {
             if(
                (event_list[index_list[index_list.size()-1]].event_type == OUT
-               && event_list[index_list[0]].event_type == IN_BOTTOM
+               && (event_list[index_list[0]].event_type == IN_BOTTOM || event_list[index_list[0]].event_type == INNER_IN_BOTTOM)
                && event_list[index_list[2]].event_type == OUT
                && event_list[index_list[index_list.size()-1]].y > event_list[index_list[1]].y
                && event_list[index_list[2]].y < event_list[index_list[1]].y)
 
                ||(event_list[index_list[index_list.size()-1]].event_type == OUT_TOP
-                  && event_list[index_list[0]].event_type == IN_BOTTOM
+                  && (event_list[index_list[0]].event_type == IN_BOTTOM || event_list[index_list[0]].event_type == INNER_IN_BOTTOM)
                   && event_list[index_list[2]].event_type == OUT_BOTTOM)
 
                ||(event_list[index_list[index_list.size()-1]].event_type == OUT
-                  && event_list[index_list[0]].event_type == IN_BOTTOM
+                  && (event_list[index_list[0]].event_type == IN_BOTTOM || event_list[index_list[0]].event_type == INNER_IN_BOTTOM)
                   && event_list[index_list[2]].event_type == OUT_BOTTOM
                   && event_list[index_list[index_list.size()-1]].y > event_list[index_list[1]].y)
 
                ||(event_list[index_list[index_list.size()-1]].event_type == OUT_TOP
-                  && event_list[index_list[0]].event_type == IN_BOTTOM
+                  && (event_list[index_list[0]].event_type == IN_BOTTOM || event_list[index_list[0]].event_type == INNER_IN_BOTTOM)
                   && event_list[index_list[2]].event_type == OUT
                   && event_list[index_list[2]].y < event_list[index_list[1]].y)
                )
@@ -813,22 +816,22 @@ void EventTypeAllocator(std::vector<Event>& event_list)
         {
             if(
                (event_list[index_list[0]].event_type == OUT
-               && event_list[index_list[2]].event_type == IN_TOP
+               && (event_list[index_list[2]].event_type == IN_TOP || event_list[index_list[2]].event_type == INNER_IN_TOP)
                && event_list[index_list[3]].event_type == OUT
                && event_list[index_list[0]].y > event_list[index_list[1]].y
                && event_list[index_list[3]].y < event_list[index_list[1]].y)
 
                ||(event_list[index_list[0]].event_type == OUT_TOP
-                  && event_list[index_list[2]].event_type == IN_TOP
+                  && (event_list[index_list[2]].event_type == IN_TOP || event_list[index_list[2]].event_type == INNER_IN_TOP)
                   && event_list[index_list[3]].event_type == OUT_BOTTOM)
 
                ||(event_list[index_list[0]].event_type == OUT
-                  && event_list[index_list[2]].event_type == IN_TOP
+                  && (event_list[index_list[2]].event_type == IN_TOP || event_list[index_list[2]].event_type == INNER_IN_TOP)
                   && event_list[index_list[3]].event_type == OUT_BOTTOM
                   && event_list[index_list[0]].y > event_list[index_list[1]].y)
 
                ||(event_list[index_list[0]].event_type == OUT_TOP
-                  && event_list[index_list[2]].event_type == IN_TOP
+                  && (event_list[index_list[2]].event_type == IN_TOP || event_list[index_list[2]].event_type == INNER_IN_TOP)
                   && event_list[index_list[3]].event_type == OUT
                   && event_list[index_list[3]].y < event_list[index_list[1]].y)
                )
@@ -843,7 +846,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
     }
 
 
-
+    // determine floor and ceiling
     for(int i = 1; i <= index_list.size(); i++)
     {
         if(event_list[index_list[0]].event_type == OUT
@@ -1738,7 +1741,7 @@ int main() {
         if(event_list[i].event_type == CEILING)
         {
 //            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", CEILING"<<std::endl;
-//            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(0, 255 ,255);
+            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(0, 255 ,255);
         }
         if(event_list[i].event_type == FLOOR)
         {
