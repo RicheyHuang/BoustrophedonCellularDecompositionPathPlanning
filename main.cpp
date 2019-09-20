@@ -1005,7 +1005,9 @@ std::deque<std::deque<Event>> SliceListGenerator(std::vector<Event> event_list)
     return slice_list;
 }
 
-void ExecuteOpenOperation(int curr_cell_idx, Point2D in, Point2D c, Point2D f) // in event  add two new node
+
+
+void ExecuteOpenOperation(int curr_cell_idx, Point2D in, Point2D c, Point2D f, bool rewrite = false) // in event  add two new node
 {
 
     CellNode top_cell, bottom_cell;
@@ -1016,43 +1018,72 @@ void ExecuteOpenOperation(int curr_cell_idx, Point2D in, Point2D c, Point2D f) /
     bottom_cell.ceiling.emplace_back(in);
     bottom_cell.floor.emplace_back(f);
 
-    int top_cell_index = cell_graph.size();
-    int bottom_cell_index = cell_graph.size() + 1;
+    if(!rewrite)
+    {
+        int top_cell_index = cell_graph.size();
+        int bottom_cell_index = cell_graph.size() + 1;
 
-    top_cell.cellIndex = top_cell_index;
-    bottom_cell.cellIndex = bottom_cell_index;
-    cell_graph.emplace_back(top_cell);
-    cell_graph.emplace_back(bottom_cell);
+        top_cell.cellIndex = top_cell_index;
+        bottom_cell.cellIndex = bottom_cell_index;
+        cell_graph.emplace_back(top_cell);
+        cell_graph.emplace_back(bottom_cell);
 
 
-    cell_graph[top_cell_index].neighbor_indices.emplace_back(curr_cell_idx);
-    cell_graph[bottom_cell_index].neighbor_indices.emplace_front(curr_cell_idx);
+        cell_graph[top_cell_index].neighbor_indices.emplace_back(curr_cell_idx);
+        cell_graph[bottom_cell_index].neighbor_indices.emplace_front(curr_cell_idx);
 
-    cell_graph[curr_cell_idx].neighbor_indices.emplace_front(top_cell_index);
-    cell_graph[curr_cell_idx].neighbor_indices.emplace_front(bottom_cell_index);
+        cell_graph[curr_cell_idx].neighbor_indices.emplace_front(top_cell_index);
+        cell_graph[curr_cell_idx].neighbor_indices.emplace_front(bottom_cell_index);
+    }
+    else
+    {
+        cell_graph[curr_cell_idx].ceiling.assign(top_cell.ceiling.begin(), top_cell.ceiling.end());
+        cell_graph[curr_cell_idx].floor.assign(top_cell.floor.begin(), top_cell.floor.end());
+
+        int bottom_cell_index = cell_graph.size();
+        bottom_cell.cellIndex = bottom_cell_index;
+        cell_graph.emplace_back(bottom_cell);
+
+        cell_graph[cell_graph[curr_cell_idx].neighbor_indices.back()].neighbor_indices.emplace_back(bottom_cell_index);
+        cell_graph[bottom_cell_index].neighbor_indices.emplace_back(cell_graph[curr_cell_idx].neighbor_indices.back());
+
+    }
 }
 
-// top cell和bottom cell按前后排列
-void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out, Point2D c, Point2D f) // out event  add one new node
+void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out, Point2D c, Point2D f, bool rewrite = false) // out event  add one new node
 {
     CellNode new_cell;
 
     new_cell.ceiling.emplace_back(c);
     new_cell.floor.emplace_back(f);
 
-    int new_cell_idx = cell_graph.size();
-    new_cell.cellIndex = new_cell_idx;
+    if(!rewrite)
+    {
+        int new_cell_idx = cell_graph.size();
+        new_cell.cellIndex = new_cell_idx;
 
-    cell_graph.emplace_back(new_cell);
+        cell_graph.emplace_back(new_cell);
 
 
-    cell_graph[new_cell_idx].neighbor_indices.emplace_back(top_cell_idx);
-    cell_graph[new_cell_idx].neighbor_indices.emplace_back(bottom_cell_idx);
+        cell_graph[new_cell_idx].neighbor_indices.emplace_back(top_cell_idx);
+        cell_graph[new_cell_idx].neighbor_indices.emplace_back(bottom_cell_idx);
 
-    cell_graph[top_cell_idx].neighbor_indices.emplace_front(new_cell_idx);
-    cell_graph[bottom_cell_idx].neighbor_indices.emplace_back(new_cell_idx);
+        cell_graph[top_cell_idx].neighbor_indices.emplace_front(new_cell_idx);
+        cell_graph[bottom_cell_idx].neighbor_indices.emplace_back(new_cell_idx);
+    }
+    else
+    {
+        cell_graph[top_cell_idx].ceiling.assign(new_cell.ceiling.begin(), new_cell.ceiling.end());
+        cell_graph[top_cell_idx].floor.assign(new_cell.floor.begin(), new_cell.floor.end());
+
+        cell_graph[top_cell_idx].neighbor_indices.emplace_back(bottom_cell_idx);
+        cell_graph[bottom_cell_idx].neighbor_indices.emplace_back(top_cell_idx);
+    }
+
 
 }
+
+
 
 void ExecuteCeilOperation(int curr_cell_idx, const Point2D& ceil_point) // finish constructing last ceiling edge
 {
@@ -1064,7 +1095,9 @@ void ExecuteFloorOperation(int curr_cell_idx, const Point2D& floor_point) // fin
     cell_graph[curr_cell_idx].floor.emplace_back(floor_point);
 }
 
-void ExecuteOpenOperation(int curr_cell_idx, Point2D in_top, Point2D in_bottom, Point2D c, Point2D f) // in event  add two new node
+
+
+void ExecuteOpenOperation(int curr_cell_idx, Point2D in_top, Point2D in_bottom, Point2D c, Point2D f, bool rewrite = false) // in event  add two new node
 {
 
     CellNode top_cell, bottom_cell;
@@ -1091,7 +1124,7 @@ void ExecuteOpenOperation(int curr_cell_idx, Point2D in_top, Point2D in_bottom, 
     cell_graph[curr_cell_idx].neighbor_indices.emplace_front(bottom_cell_index);
 }
 
-void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out_top, Point2D out_bottom, Point2D c, Point2D f) // out event  add one new node
+void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out_top, Point2D out_bottom, Point2D c, Point2D f, bool rewrite = false) // out event  add one new node
 {
     CellNode new_cell;
 
@@ -1111,6 +1144,9 @@ void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out_to
     cell_graph[bottom_cell_idx].neighbor_indices.emplace_back(new_cell_idx);
 
 }
+
+
+
 
 void ExecuteInnerOpenOperation(Point2D inner_in)
 {
@@ -1138,7 +1174,6 @@ void ExecuteInnerOpenOperation(Point2D inner_in_top, Point2D inner_in_bottom)
     cell_graph.emplace_back(new_cell);
 }
 
-
 void ExecuteInnerCloseOperation(int curr_cell_idx, Point2D inner_out)
 {
     cell_graph[curr_cell_idx].ceiling.emplace_back(inner_out);
@@ -1157,6 +1192,7 @@ void ExecuteInnerCloseOperation(int curr_cell_idx, Point2D inner_out_top, Point2
 
 
 std::vector<int> cell_index_slice; // 按y从小到大排列
+std::vector<int> original_cell_index_slice;
 
 void InitializeCellDecomposition(Point2D first_in_pos)
 {
@@ -1428,6 +1464,8 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list)
     int slice_x = INT_MAX;
     int event_y = INT_MAX;
 
+    bool rewrite = false;
+
     std::vector<int> sub_cell_index_slices;
 
     int cell_counter = 0;
@@ -1443,6 +1481,8 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list)
 
         for(int j = 0; j < slice_list[i].size(); j++)
         {
+            original_cell_index_slice.assign(slice_list[i].begin(), slice_list[i].end());
+
             if(slice_list[i][j].event_type == IN)
             {
                 event_y = slice_list[i][j].y;
@@ -1450,18 +1490,50 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list)
                 {
                     if(event_y > cell_graph[cell_index_slice[k]].ceiling.back().y && event_y < cell_graph[cell_index_slice[k]].floor.back().y)
                     {
+                        if(std::find(original_cell_index_slice.begin(), original_cell_index_slice.end(), cell_index_slice[k])==original_cell_index_slice.end())
+                        {
+                            rewrite = true;
+                        } else
+                        {
+                            rewrite = false;
+                        }
+
+                        for(int m = 0; m < slice_list[i].size(); m++)
+                        {
+                            if(slice_list[i][m].y == cell_graph[cell_index_slice[k]].ceiling.back().y)
+                            {
+                                slice_list[i][m].isUsed = true;
+                            }
+                        }
+                        for(int n = 0; n < slice_list[i].size(); n++)
+                        {
+                            if(slice_list[i][n].y == cell_graph[cell_index_slice[k]].floor.back().y)
+                            {
+                                slice_list[i][n].isUsed = true;
+                            }
+                        }
+
+
                         curr_cell_idx = cell_index_slice[k];
-                        ExecuteOpenOperation(curr_cell_idx, Point2D(slice_list[i][j].x, slice_list[i][j].y),
-                                             Point2D(slice_list[i][j-1].x, slice_list[i][j-1].y),
-                                             Point2D(slice_list[i][j+1].x, slice_list[i][j+1].y));
-                        cell_index_slice.erase(cell_index_slice.begin()+k);
-                        sub_cell_index_slices.clear();
-                        sub_cell_index_slices = {int(cell_graph.size()-2), int(cell_graph.size()-1)};
-                        cell_index_slice.insert(cell_index_slice.begin()+k, sub_cell_index_slices.begin(), sub_cell_index_slices.end());
+                        ExecuteOpenOperation(curr_cell_idx,
+                                             Point2D(slice_list[i][j].x, slice_list[i][j].y),
+                                             cell_graph[cell_index_slice[k]].ceiling.back(),
+                                             cell_graph[cell_index_slice[k]].floor.back(),
+                                             rewrite);
+
+                        if(!rewrite)
+                        {
+                            cell_index_slice.erase(cell_index_slice.begin()+k);
+                            sub_cell_index_slices.clear();
+                            sub_cell_index_slices = {int(cell_graph.size()-2), int(cell_graph.size()-1)};
+                            cell_index_slice.insert(cell_index_slice.begin()+k, sub_cell_index_slices.begin(), sub_cell_index_slices.end());
+                        }
+                        else
+                        {
+                            cell_index_slice.insert(cell_index_slice.begin()+k+1, int(cell_graph.size()-1));
+                        }
 
                         slice_list[i][j].isUsed = true;
-                        slice_list[i][j-1].isUsed = true;
-                        slice_list[i][j+1].isUsed = true;
 
                         break;
                     }
@@ -1474,19 +1546,54 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list)
                 {
                     if(event_y > cell_graph[cell_index_slice[k-1]].ceiling.back().y && event_y < cell_graph[cell_index_slice[k]].floor.back().y)
                     {
+                        if(std::find(original_cell_index_slice.begin(), original_cell_index_slice.end(), cell_index_slice[k-1]) == original_cell_index_slice.end())
+                        {
+                            rewrite = true;
+                        }
+                        else
+                        {
+                            rewrite = false;
+                        }
+
+                        for(int m = 0; m < slice_list[i].size(); m++)
+                        {
+                            if(slice_list[i][m].y == cell_graph[cell_index_slice[k-1]].ceiling.back().y)
+                            {
+                                slice_list[i][m].isUsed = true;
+                            }
+                        }
+                        for(int n = 0; n < slice_list[i].size(); n++)
+                        {
+                            if(slice_list[i][n].y == cell_graph[cell_index_slice[k]].floor.back().y)
+                            {
+                                slice_list[i][n].isUsed = true;
+                            }
+                        }
+
+
                         top_cell_idx = cell_index_slice[k-1];
                         bottom_cell_idx = cell_index_slice[k];
+
                         ExecuteCloseOperation(top_cell_idx, bottom_cell_idx,
+
                                               Point2D(slice_list[i][j].x, slice_list[i][j].y),
-                                              Point2D(slice_list[i][j-1].x, slice_list[i][j-1].y),
-                                              Point2D(slice_list[i][j+1].x, slice_list[i][j+1].y));
-                        cell_index_slice.erase(cell_index_slice.begin()+k-1);
-                        cell_index_slice.erase(cell_index_slice.begin()+k-1);
-                        cell_index_slice.insert(cell_index_slice.begin()+k-1, int(cell_graph.size()-1));
+                                              cell_graph[cell_index_slice[k-1]].ceiling.back(),
+                                              cell_graph[cell_index_slice[k]].floor.back(),
+                                              rewrite);
+
+                        if(!rewrite)
+                        {
+                            cell_index_slice.erase(cell_index_slice.begin() + k - 1);
+                            cell_index_slice.erase(cell_index_slice.begin() + k - 1);
+                            cell_index_slice.insert(cell_index_slice.begin() + k - 1, int(cell_graph.size() - 1));
+                        }
+                        else
+                        {
+                            cell_index_slice.erase(cell_index_slice.begin() + k);
+                        }
+
 
                         slice_list[i][j].isUsed = true;
-                        slice_list[i][j-1].isUsed = true;
-                        slice_list[i][j+1].isUsed = true;
 
                         break;
                     }
