@@ -845,39 +845,19 @@ void EventTypeAllocator(std::vector<Event>& event_list)
     for(int i = 1; i <= index_list.size(); i++)
     {
         if(
-           (event_list[index_list[0]].event_type == OUT
-           && event_list[index_list[1]].event_type == IN)
-
-           ||(event_list[index_list[0]].event_type == OUT
-              && event_list[index_list[1]].event_type == INNER_IN)
-
-           ||(event_list[index_list[0]].event_type == OUT
-              && event_list[index_list[1]].event_type == INNER_IN_BOTTOM)
-
-           ||(event_list[index_list[0]].event_type == OUT_TOP
-              && event_list[index_list[1]].event_type == IN)
-
-           ||(event_list[index_list[0]].event_type == OUT_TOP
-              && event_list[index_list[1]].event_type == IN_TOP)
-
-           ||(event_list[index_list[0]].event_type == OUT_TOP
-              && event_list[index_list[1]].event_type == INNER_IN)
-
-           ||(event_list[index_list[0]].event_type == OUT_TOP
-              && event_list[index_list[1]].event_type == INNER_IN_BOTTOM)
-
-           ||(event_list[index_list[0]].event_type == INNER_OUT
-              && event_list[index_list[1]].event_type == IN)
-
-           ||(event_list[index_list[0]].event_type == INNER_OUT
-              && event_list[index_list[1]].event_type == IN_TOP)
-
-           ||(event_list[index_list[0]].event_type == INNER_OUT_BOTTOM
-              && event_list[index_list[1]].event_type == IN)
-
-           ||(event_list[index_list[0]].event_type == INNER_OUT_BOTTOM
-              && event_list[index_list[1]].event_type == IN_TOP)
-
+            (event_list[index_list[0]].event_type==OUT
+            ||event_list[index_list[0]].event_type==OUT_TOP
+            ||event_list[index_list[0]].event_type==OUT_BOTTOM
+            ||event_list[index_list[0]].event_type==INNER_OUT
+            ||event_list[index_list[0]].event_type==INNER_OUT_TOP
+            ||event_list[index_list[0]].event_type==INNER_OUT_BOTTOM)
+            &&
+            (event_list[index_list[1]].event_type==IN
+             ||event_list[index_list[1]].event_type==IN_TOP
+             ||event_list[index_list[1]].event_type==IN_BOTTOM
+             ||event_list[index_list[1]].event_type==INNER_IN
+             ||event_list[index_list[1]].event_type==INNER_IN_TOP
+             ||event_list[index_list[1]].event_type==INNER_IN_BOTTOM)
            )
         {
             if(index_list[0] < index_list[1])
@@ -901,38 +881,19 @@ void EventTypeAllocator(std::vector<Event>& event_list)
         }
 
         if(
-           (event_list[index_list[0]].event_type == IN
-           && event_list[index_list[1]].event_type == OUT)
-
-           ||(event_list[index_list[0]].event_type == IN
-              && event_list[index_list[1]].event_type == INNER_OUT)
-
-           ||(event_list[index_list[0]].event_type == IN
-              && event_list[index_list[1]].event_type == INNER_OUT_TOP)
-
-           ||(event_list[index_list[0]].event_type == IN_BOTTOM
-              && event_list[index_list[1]].event_type == OUT)
-
-           ||(event_list[index_list[0]].event_type == IN_BOTTOM
-              && event_list[index_list[1]].event_type == OUT_BOTTOM)
-
-           ||(event_list[index_list[0]].event_type == IN_BOTTOM
-              && event_list[index_list[1]].event_type == INNER_OUT)
-
-           ||(event_list[index_list[0]].event_type == IN_BOTTOM
-              && event_list[index_list[1]].event_type == INNER_OUT_TOP)
-
-           ||(event_list[index_list[0]].event_type == INNER_IN
-              && event_list[index_list[1]].event_type == OUT)
-
-           ||(event_list[index_list[0]].event_type == INNER_IN
-              && event_list[index_list[1]].event_type == OUT_BOTTOM)
-
-           ||(event_list[index_list[0]].event_type == INNER_IN_TOP
-              && event_list[index_list[1]].event_type == OUT)
-
-           ||(event_list[index_list[0]].event_type == INNER_IN_TOP
-              && event_list[index_list[1]].event_type == OUT_BOTTOM)
+             (event_list[index_list[0]].event_type==IN
+             ||event_list[index_list[0]].event_type==IN_TOP
+             ||event_list[index_list[0]].event_type==IN_BOTTOM
+             ||event_list[index_list[0]].event_type==INNER_IN
+             ||event_list[index_list[0]].event_type==INNER_IN_TOP
+             ||event_list[index_list[0]].event_type==INNER_IN_BOTTOM)
+             &&
+             (event_list[index_list[1]].event_type==OUT
+             ||event_list[index_list[1]].event_type==OUT_TOP
+             ||event_list[index_list[1]].event_type==OUT_BOTTOM
+             ||event_list[index_list[1]].event_type==INNER_OUT
+             ||event_list[index_list[1]].event_type==INNER_OUT_TOP
+             ||event_list[index_list[1]].event_type==INNER_OUT_BOTTOM)
            )
         {
             if(index_list[0] < index_list[1])
@@ -2142,7 +2103,8 @@ void UpdateColorMap()
 
 int main() {
 
-    map = cv::Mat::zeros(500, 500, CV_8UC3);
+//    map = cv::Mat::zeros(500, 500, CV_8UC3);
+    map = cv::Mat::zeros(600, 600, CV_8UC3);
 
 // old data
 //    Polygon polygon1, polygon2;
@@ -2207,24 +2169,42 @@ int main() {
 
 // new data
     Polygon polygon;
-    cv::Point p1(125,125),
-              p2(125,175),
-              p3(225,175),
-              p4(225,225),
-              p5(175,250),
-              p6(225,300),
-              p7(125,325),
-              p8(125,375),
-              p9(375,375),
-              p10(375,325),
-              p11(275,325),
-              p12(275,275),
-              p13(325,250),
-              p14(275,200),
-              p15(375,175),
-              p16(375,125);
+//    cv::Point p1(125,125),
+//              p2(125,175),
+//              p3(225,175),
+//              p4(225,225),
+//              p5(175,250),
+//              p6(225,300),
+//              p7(125,325),
+//              p8(125,375),
+//              p9(375,375),
+//              p10(375,325),
+//              p11(275,325),
+//              p12(275,275),
+//              p13(325,250),
+//              p14(275,200),
+//              p15(375,175),
+//              p16(375,125);
 
-    std::vector<cv::Point> contour = {p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16};
+    cv::Point p1(100,100),
+            p2(100,500),
+            p3(150,500),
+            p4(150,150),
+            p5(450,150),
+            p6(450,300),
+            p7(300,300),
+            p8(300,250),
+            p9(350,250),
+            p10(350,200),
+            p11(250,200),
+            p12(250,350),
+            p13(500,350),
+            p14(500,100);
+
+
+//    std::vector<cv::Point> contour = {p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16};
+    std::vector<cv::Point> contour = {p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14};
+
     std::vector<std::vector<cv::Point>> contours = {contour};
 
     for(int i = 0; i < contour.size()-1; i++)
