@@ -1510,10 +1510,10 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list)
         curr_slice.emplace_front(Event(INT_MAX, slice_x, 0, CEILING));       // add map upper boundary
         curr_slice.emplace_back(Event(INT_MAX, slice_x, map.rows-1, FLOOR)); // add map lower boundary
 
+        original_cell_index_slice.assign(cell_index_slice.begin(), cell_index_slice.end());
+
         for(int j = 0; j < curr_slice.size(); j++)
         {
-            original_cell_index_slice.assign(cell_index_slice.begin(), cell_index_slice.end());
-
             if(curr_slice[j].event_type == IN)
             {
                 event_y = curr_slice[j].y;
