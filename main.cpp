@@ -507,7 +507,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
     event_list_ex.insert(event_list_ex.end(), tail.begin(), tail.end());
 
     int index_offset;
-    std::deque<int> index_list;
+    std::deque<int> index_list; // 只存放各种in和out的index
 
     // determine in and out
     for(int i = half_size; i < half_size + event_list.size(); i++)
@@ -651,23 +651,36 @@ void EventTypeAllocator(std::vector<Event>& event_list)
     {
         if(event_list[index_list[1]].event_type == OUT)
         {
-            if(
-              (event_list[index_list[0]].event_type == IN
-               && event_list[index_list[2]].event_type == IN
-               && event_list[index_list[0]].y < event_list[index_list[1]].y
-               && event_list[index_list[2]].y > event_list[index_list[1]].y)
+//            if(
+//              (event_list[index_list[0]].event_type == IN
+//               && event_list[index_list[2]].event_type == IN
+//               && event_list[index_list[0]].y < event_list[index_list[1]].y
+//               && event_list[index_list[2]].y > event_list[index_list[1]].y)
+//
+//            ||(event_list[index_list[0]].event_type == IN_BOTTOM
+//               && event_list[index_list[2]].event_type == IN_TOP)
+//
+//            ||(event_list[index_list[0]].event_type == IN_BOTTOM
+//               && event_list[index_list[2]].event_type == IN
+//               && event_list[index_list[2]].y > event_list[index_list[1]].y)
+//
+//            ||(event_list[index_list[0]].event_type == IN
+//               && event_list[index_list[0]].y < event_list[index_list[1]].y
+//               && event_list[index_list[2]].event_type == IN_TOP)
+//
+//            ||(event_list[index_list[0]].event_type == IN_TOP
+//               && event_list[index_list[2]].event_type == IN_BOTTOM)
+//
+//            ||(event_list[index_list[0]].event_type == IN_TOP
+//               && event_list[index_list[2]].event_type == IN
+//               && event_list[index_list[2]].y > event_list[index_list[1]].y)
+//
+//            ||(event_list[index_list[0]].event_type == IN
+//               && event_list[index_list[0]].y < event_list[index_list[1]].y
+//               && event_list[index_list[2]].event_type == IN_BOTTOM)
+//            )
 
-            ||(event_list[index_list[0]].event_type == IN_BOTTOM
-               && event_list[index_list[2]].event_type == IN_TOP)
-
-            ||(event_list[index_list[0]].event_type == IN_BOTTOM
-               && event_list[index_list[2]].event_type == IN
-               && event_list[index_list[2]].y > event_list[index_list[1]].y)
-
-            ||(event_list[index_list[0]].event_type == IN
-               && event_list[index_list[0]].y < event_list[index_list[1]].y
-               && event_list[index_list[2]].event_type == IN_TOP)
-            )
+            if()
             {
                 event_list[index_list[1]].event_type = INNER_OUT;
             }
@@ -680,28 +693,29 @@ void EventTypeAllocator(std::vector<Event>& event_list)
         {
             // TODO: case: index_list length less than 4
 
-            if(
-               (  event_list[index_list[0]].event_type == IN
-               && (event_list[index_list[2]].event_type == OUT_BOTTOM || event_list[index_list[2]].event_type == INNER_OUT_BOTTOM)
-               && event_list[index_list[3]].event_type == IN
-               && event_list[index_list[0]].y < event_list[index_list[1]].y
-               && event_list[index_list[3]].y > event_list[index_list[1]].y)
-
-               ||(event_list[index_list[0]].event_type == IN_BOTTOM
-                  && (event_list[index_list[2]].event_type == OUT_BOTTOM || event_list[index_list[2]].event_type == INNER_OUT_BOTTOM)
-                  && event_list[index_list[3]].event_type == IN_TOP)
-
-               ||(event_list[index_list[0]].event_type == IN
-                  && (event_list[index_list[2]].event_type == OUT_BOTTOM || event_list[index_list[2]].event_type == INNER_OUT_BOTTOM)
-                  && event_list[index_list[3]].event_type == IN_TOP
-                  && event_list[index_list[0]].y < event_list[index_list[1]].y
-                  )
-
-               ||(event_list[index_list[0]].event_type == IN_BOTTOM
-                  && (event_list[index_list[2]].event_type == OUT_BOTTOM || event_list[index_list[2]].event_type == INNER_OUT_BOTTOM)
-                  && event_list[index_list[3]].event_type == IN
-                  && event_list[index_list[3]].y > event_list[index_list[1]].y)
-              )
+//            if(
+//               (  event_list[index_list[0]].event_type == IN
+//               && (event_list[index_list[2]].event_type == OUT_BOTTOM || event_list[index_list[2]].event_type == INNER_OUT_BOTTOM)
+//               && event_list[index_list[3]].event_type == IN
+//               && event_list[index_list[0]].y < event_list[index_list[1]].y
+//               && event_list[index_list[3]].y > event_list[index_list[1]].y)
+//
+//               ||(event_list[index_list[0]].event_type == IN_BOTTOM
+//                  && (event_list[index_list[2]].event_type == OUT_BOTTOM || event_list[index_list[2]].event_type == INNER_OUT_BOTTOM)
+//                  && event_list[index_list[3]].event_type == IN_TOP)
+//
+//               ||(event_list[index_list[0]].event_type == IN
+//                  && (event_list[index_list[2]].event_type == OUT_BOTTOM || event_list[index_list[2]].event_type == INNER_OUT_BOTTOM)
+//                  && event_list[index_list[3]].event_type == IN_TOP
+//                  && event_list[index_list[0]].y < event_list[index_list[1]].y
+//                  )
+//
+//               ||(event_list[index_list[0]].event_type == IN_BOTTOM
+//                  && (event_list[index_list[2]].event_type == OUT_BOTTOM || event_list[index_list[2]].event_type == INNER_OUT_BOTTOM)
+//                  && event_list[index_list[3]].event_type == IN
+//                  && event_list[index_list[3]].y > event_list[index_list[1]].y)
+//              )
+            if()
             {
                 event_list[index_list[1]].event_type = INNER_OUT_TOP;
             }
@@ -715,27 +729,28 @@ void EventTypeAllocator(std::vector<Event>& event_list)
 
         if(event_list[index_list[1]].event_type == OUT_BOTTOM)
         {
-            if(
-               (event_list[index_list[index_list.size()-1]].event_type == IN
-               && (event_list[index_list[0]].event_type == OUT_TOP || event_list[index_list[0]].event_type == INNER_OUT_TOP)
-               && event_list[index_list[2]].event_type == IN
-               && event_list[index_list[index_list.size()-1]].y < event_list[index_list[1]].y
-               && event_list[index_list[2]].y > event_list[index_list[1]].y)
-
-               ||(event_list[index_list[index_list.size()-1]].event_type == IN_BOTTOM
-                  && (event_list[index_list[0]].event_type == OUT_TOP || event_list[index_list[0]].event_type == INNER_OUT_TOP)
-                  && event_list[index_list[2]].event_type == IN_TOP)
-
-               ||(event_list[index_list[index_list.size()-1]].event_type == IN
-                  && (event_list[index_list[0]].event_type == OUT_TOP || event_list[index_list[0]].event_type == INNER_OUT_TOP)
-                  && event_list[index_list[2]].event_type == IN_TOP
-                  && event_list[index_list[index_list.size()-1]].y < event_list[index_list[1]].y)
-
-               ||(event_list[index_list[index_list.size()-1]].event_type == IN_BOTTOM
-                  && (event_list[index_list[0]].event_type == OUT_TOP || event_list[index_list[0]].event_type == INNER_OUT_TOP)
-                  && event_list[index_list[2]].event_type == IN
-                  && event_list[index_list[2]].y > event_list[index_list[1]].y)
-               )
+//            if(
+//               (event_list[index_list[index_list.size()-1]].event_type == IN
+//               && (event_list[index_list[0]].event_type == OUT_TOP || event_list[index_list[0]].event_type == INNER_OUT_TOP)
+//               && event_list[index_list[2]].event_type == IN
+//               && event_list[index_list[index_list.size()-1]].y < event_list[index_list[1]].y
+//               && event_list[index_list[2]].y > event_list[index_list[1]].y)
+//
+//               ||(event_list[index_list[index_list.size()-1]].event_type == IN_BOTTOM
+//                  && (event_list[index_list[0]].event_type == OUT_TOP || event_list[index_list[0]].event_type == INNER_OUT_TOP)
+//                  && event_list[index_list[2]].event_type == IN_TOP)
+//
+//               ||(event_list[index_list[index_list.size()-1]].event_type == IN
+//                  && (event_list[index_list[0]].event_type == OUT_TOP || event_list[index_list[0]].event_type == INNER_OUT_TOP)
+//                  && event_list[index_list[2]].event_type == IN_TOP
+//                  && event_list[index_list[index_list.size()-1]].y < event_list[index_list[1]].y)
+//
+//               ||(event_list[index_list[index_list.size()-1]].event_type == IN_BOTTOM
+//                  && (event_list[index_list[0]].event_type == OUT_TOP || event_list[index_list[0]].event_type == INNER_OUT_TOP)
+//                  && event_list[index_list[2]].event_type == IN
+//                  && event_list[index_list[2]].y > event_list[index_list[1]].y)
+//               )
+            if()
             {
                 event_list[index_list[1]].event_type = INNER_OUT_BOTTOM;
             }
@@ -748,23 +763,36 @@ void EventTypeAllocator(std::vector<Event>& event_list)
 
         if(event_list[index_list[1]].event_type == IN)
         {
-            if(
-               (event_list[index_list[0]].event_type == OUT
-               && event_list[index_list[2]].event_type == OUT
-               && event_list[index_list[0]].y > event_list[index_list[1]].y
-               && event_list[index_list[2]].y < event_list[index_list[1]].y)
-
-               ||(event_list[index_list[0]].event_type == OUT_TOP
-                  && event_list[index_list[2]].event_type == OUT_BOTTOM)
-
-               ||(event_list[index_list[0]].event_type == OUT
-                  && event_list[index_list[2]].event_type == OUT_BOTTOM
-                  && event_list[index_list[0]].y > event_list[index_list[1]].y)
-
-               ||(event_list[index_list[0]].event_type == OUT_TOP
-                  && event_list[index_list[2]].event_type == OUT
-                  && event_list[index_list[2]].y < event_list[index_list[1]].y)
-               )
+//            if(
+//               (event_list[index_list[0]].event_type == OUT
+//               && event_list[index_list[2]].event_type == OUT
+//               && event_list[index_list[0]].y > event_list[index_list[1]].y
+//               && event_list[index_list[2]].y < event_list[index_list[1]].y)
+//
+//               ||(event_list[index_list[0]].event_type == OUT_TOP
+//                  && event_list[index_list[2]].event_type == OUT_BOTTOM)
+//
+//               ||(event_list[index_list[0]].event_type == OUT
+//                  && event_list[index_list[2]].event_type == OUT_BOTTOM
+//                  && event_list[index_list[0]].y > event_list[index_list[1]].y)
+//
+//               ||(event_list[index_list[0]].event_type == OUT_TOP
+//                  && event_list[index_list[2]].event_type == OUT
+//                  && event_list[index_list[2]].y < event_list[index_list[1]].y)
+//
+//
+//               ||(event_list[index_list[0]].event_type == OUT_BOTTOM
+//                  && event_list[index_list[2]].event_type == OUT_TOP)
+//
+//               ||(event_list[index_list[0]].event_type == OUT
+//                  && event_list[index_list[2]].event_type == OUT_TOP
+//                  && event_list[index_list[0]].y > event_list[index_list[1]].y)
+//
+//               ||(event_list[index_list[0]].event_type == OUT_BOTTOM
+//                  && event_list[index_list[2]].event_type == OUT
+//                  && event_list[index_list[2]].y < event_list[index_list[1]].y)
+//               )
+            if()
             {
                 event_list[index_list[1]].event_type = INNER_IN;
             }
@@ -777,27 +805,28 @@ void EventTypeAllocator(std::vector<Event>& event_list)
 
         if(event_list[index_list[1]].event_type == IN_TOP)
         {
-            if(
-               (event_list[index_list[index_list.size()-1]].event_type == OUT
-               && (event_list[index_list[0]].event_type == IN_BOTTOM || event_list[index_list[0]].event_type == INNER_IN_BOTTOM)
-               && event_list[index_list[2]].event_type == OUT
-               && event_list[index_list[index_list.size()-1]].y > event_list[index_list[1]].y
-               && event_list[index_list[2]].y < event_list[index_list[1]].y)
-
-               ||(event_list[index_list[index_list.size()-1]].event_type == OUT_TOP
-                  && (event_list[index_list[0]].event_type == IN_BOTTOM || event_list[index_list[0]].event_type == INNER_IN_BOTTOM)
-                  && event_list[index_list[2]].event_type == OUT_BOTTOM)
-
-               ||(event_list[index_list[index_list.size()-1]].event_type == OUT
-                  && (event_list[index_list[0]].event_type == IN_BOTTOM || event_list[index_list[0]].event_type == INNER_IN_BOTTOM)
-                  && event_list[index_list[2]].event_type == OUT_BOTTOM
-                  && event_list[index_list[index_list.size()-1]].y > event_list[index_list[1]].y)
-
-               ||(event_list[index_list[index_list.size()-1]].event_type == OUT_TOP
-                  && (event_list[index_list[0]].event_type == IN_BOTTOM || event_list[index_list[0]].event_type == INNER_IN_BOTTOM)
-                  && event_list[index_list[2]].event_type == OUT
-                  && event_list[index_list[2]].y < event_list[index_list[1]].y)
-               )
+//            if(
+//               (event_list[index_list[index_list.size()-1]].event_type == OUT
+//               && (event_list[index_list[0]].event_type == IN_BOTTOM || event_list[index_list[0]].event_type == INNER_IN_BOTTOM)
+//               && event_list[index_list[2]].event_type == OUT
+//               && event_list[index_list[index_list.size()-1]].y > event_list[index_list[1]].y
+//               && event_list[index_list[2]].y < event_list[index_list[1]].y)
+//
+//               ||(event_list[index_list[index_list.size()-1]].event_type == OUT_TOP
+//                  && (event_list[index_list[0]].event_type == IN_BOTTOM || event_list[index_list[0]].event_type == INNER_IN_BOTTOM)
+//                  && event_list[index_list[2]].event_type == OUT_BOTTOM)
+//
+//               ||(event_list[index_list[index_list.size()-1]].event_type == OUT
+//                  && (event_list[index_list[0]].event_type == IN_BOTTOM || event_list[index_list[0]].event_type == INNER_IN_BOTTOM)
+//                  && event_list[index_list[2]].event_type == OUT_BOTTOM
+//                  && event_list[index_list[index_list.size()-1]].y > event_list[index_list[1]].y)
+//
+//               ||(event_list[index_list[index_list.size()-1]].event_type == OUT_TOP
+//                  && (event_list[index_list[0]].event_type == IN_BOTTOM || event_list[index_list[0]].event_type == INNER_IN_BOTTOM)
+//                  && event_list[index_list[2]].event_type == OUT
+//                  && event_list[index_list[2]].y < event_list[index_list[1]].y)
+//               )
+            if()
             {
                 event_list[index_list[1]].event_type = INNER_IN_TOP;
             }
@@ -809,27 +838,28 @@ void EventTypeAllocator(std::vector<Event>& event_list)
 
         if(event_list[index_list[1]].event_type == IN_BOTTOM)
         {
-            if(
-               (event_list[index_list[0]].event_type == OUT
-               && (event_list[index_list[2]].event_type == IN_TOP || event_list[index_list[2]].event_type == INNER_IN_TOP)
-               && event_list[index_list[3]].event_type == OUT
-               && event_list[index_list[0]].y > event_list[index_list[1]].y
-               && event_list[index_list[3]].y < event_list[index_list[1]].y)
-
-               ||(event_list[index_list[0]].event_type == OUT_TOP
-                  && (event_list[index_list[2]].event_type == IN_TOP || event_list[index_list[2]].event_type == INNER_IN_TOP)
-                  && event_list[index_list[3]].event_type == OUT_BOTTOM)
-
-               ||(event_list[index_list[0]].event_type == OUT
-                  && (event_list[index_list[2]].event_type == IN_TOP || event_list[index_list[2]].event_type == INNER_IN_TOP)
-                  && event_list[index_list[3]].event_type == OUT_BOTTOM
-                  && event_list[index_list[0]].y > event_list[index_list[1]].y)
-
-               ||(event_list[index_list[0]].event_type == OUT_TOP
-                  && (event_list[index_list[2]].event_type == IN_TOP || event_list[index_list[2]].event_type == INNER_IN_TOP)
-                  && event_list[index_list[3]].event_type == OUT
-                  && event_list[index_list[3]].y < event_list[index_list[1]].y)
-               )
+//            if(
+//               (event_list[index_list[0]].event_type == OUT
+//               && (event_list[index_list[2]].event_type == IN_TOP || event_list[index_list[2]].event_type == INNER_IN_TOP)
+//               && event_list[index_list[3]].event_type == OUT
+//               && event_list[index_list[0]].y > event_list[index_list[1]].y
+//               && event_list[index_list[3]].y < event_list[index_list[1]].y)
+//
+//               ||(event_list[index_list[0]].event_type == OUT_TOP
+//                  && (event_list[index_list[2]].event_type == IN_TOP || event_list[index_list[2]].event_type == INNER_IN_TOP)
+//                  && event_list[index_list[3]].event_type == OUT_BOTTOM)
+//
+//               ||(event_list[index_list[0]].event_type == OUT
+//                  && (event_list[index_list[2]].event_type == IN_TOP || event_list[index_list[2]].event_type == INNER_IN_TOP)
+//                  && event_list[index_list[3]].event_type == OUT_BOTTOM
+//                  && event_list[index_list[0]].y > event_list[index_list[1]].y)
+//
+//               ||(event_list[index_list[0]].event_type == OUT_TOP
+//                  && (event_list[index_list[2]].event_type == IN_TOP || event_list[index_list[2]].event_type == INNER_IN_TOP)
+//                  && event_list[index_list[3]].event_type == OUT
+//                  && event_list[index_list[3]].y < event_list[index_list[1]].y)
+//               )
+            if()
             {
                 event_list[index_list[1]].event_type = INNER_IN_BOTTOM;
             }
@@ -2206,6 +2236,16 @@ int main() {
     std::vector<cv::Point> contour = {p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14};
 
     std::vector<std::vector<cv::Point>> contours = {contour};
+    cv::fillPoly(map, contours, cv::Scalar(255, 255, 255));
+
+
+
+
+    std::cout<<(map.at<cv::Vec3b>(105,105)==cv::Vec3b(255,255,255))<<std::endl; //用于判断是否inner
+
+
+
+
 
     for(int i = 0; i < contour.size()-1; i++)
     {
@@ -2230,95 +2270,95 @@ int main() {
 
     std::vector<Event> event_list = EventListGenerator2(polygons);
 
-    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
-    InitializeCellDecomposition(Point2D(slice_list.front().front().x, slice_list.front().front().y));
-    ExecuteCellDecomposition2(slice_list);
-    FinishCellDecomposition(Point2D(slice_list.back().back().x, slice_list.back().back().y));
+//    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
+//    InitializeCellDecomposition(Point2D(slice_list.front().front().x, slice_list.front().front().y));
+//    ExecuteCellDecomposition2(slice_list);
+//    FinishCellDecomposition(Point2D(slice_list.back().back().x, slice_list.back().back().y));
+//
+//    Point2D start_point = Point2D(10, 10);
+//    int start_cell_index = 0;
+//    int robot_radius = 5;
+//
+//    std::deque<Point2D> first_steps = PathIninitialization(start_point, cell_graph[start_cell_index], robot_radius);
+//    WalkingThroughGraph(start_cell_index);
+//
+//
+//    for(int i = 0; i < cell_graph.size(); i++)
+//    {
+//        std::cout<<"cell "<<i<<" 's ceiling points number:" << cell_graph[i].ceiling.size()<<std::endl;
+//        std::cout<<"cell "<<i<<" 's floor points number:" << cell_graph[i].floor.size()<<std::endl;
+//    }
+//
+//    std::cout<<cell_graph.size()<<std::endl;
+//
+//
+//    for(int i = 0; i < cell_graph.size(); i++)
+//    {
+//        for(int j = 0; j < cell_graph[i].neighbor_indices.size(); j++)
+//        {
+//            std::cout<<"cell "<< i << "'s neighbor: cell "<<cell_graph[cell_graph[i].neighbor_indices[j]].cellIndex<<std::endl;
+//        }
+//    }
+//
+//    int repeat_times = 30;
+//    InitializeColorMap(repeat_times);
 
-    Point2D start_point = Point2D(10, 10);
-    int start_cell_index = 0;
-    int robot_radius = 5;
-
-    std::deque<Point2D> first_steps = PathIninitialization(start_point, cell_graph[start_cell_index], robot_radius);
-    WalkingThroughGraph(start_cell_index);
-
-
-    for(int i = 0; i < cell_graph.size(); i++)
-    {
-        std::cout<<"cell "<<i<<" 's ceiling points number:" << cell_graph[i].ceiling.size()<<std::endl;
-        std::cout<<"cell "<<i<<" 's floor points number:" << cell_graph[i].floor.size()<<std::endl;
-    }
-
-    std::cout<<cell_graph.size()<<std::endl;
-
-
-    for(int i = 0; i < cell_graph.size(); i++)
-    {
-        for(int j = 0; j < cell_graph[i].neighbor_indices.size(); j++)
-        {
-            std::cout<<"cell "<< i << "'s neighbor: cell "<<cell_graph[cell_graph[i].neighbor_indices[j]].cellIndex<<std::endl;
-        }
-    }
-
-    int repeat_times = 30;
-    InitializeColorMap(repeat_times);
-    cv::fillPoly(map, contours, cv::Scalar(255, 255, 255));
-    cv::circle(map, cv::Point(start_point.x, start_point.y), 3, cv::Scalar(0, 0, 255), -1);
-
+//    cv::circle(map, cv::Point(start_point.x, start_point.y), 3, cv::Scalar(0, 0, 255), -1);
+//
     cv::namedWindow("trajectory", cv::WINDOW_NORMAL);
     cv::imshow("trajectory", map);
     cv::waitKey(0);
-
-    for(int i = 0; i < cell_graph.size(); i++)
-    {
-        DrawCells(cell_graph[i]);
-        cv::imshow("trajectory", map);
-        cv::waitKey(500);
-    }
-
-
-    for(int i = 0; i < first_steps.size(); i++)
-    {
-        cv::circle(map, cv::Point(first_steps[i].x, first_steps[i].y), 1, JetColorMap.front(), -1);
-        UpdateColorMap();
-
-        cv::imshow("trajectory", map);
-        cv::waitKey(1);
-    }
-
-    std::vector<Point2D> sub_path;
-    int corner_indicator = TOPLEFT;
-
-    for(int i = path.size()-1; i >= 0; i--)
-    {
-        sub_path = GetBoustrophedonPath(path[i], corner_indicator, robot_radius);
-        for(int j = 0; j < sub_path.size(); j++)
-        {
-            cv::circle(map, cv::Point(sub_path[j].x, sub_path[j].y), 1, JetColorMap.front(), -1);
-            UpdateColorMap();
-
-            cv::imshow("trajectory", map);
-            cv::waitKey(1);
-        }
-
-        cell_graph[path[i].cellIndex].isCleaned = true;
-
-        if((i-1)>=0)
-        {
-            Point2D curr_exit = sub_path.back();
-            Point2D next_entrance = FindNextEntrance(curr_exit, path[i - 1], corner_indicator, robot_radius);
-            std::deque<Point2D> link_path = FindLinkingPath(curr_exit, next_entrance, path[i], path[i-1], robot_radius);
-            for(int k = 0; k < link_path.size(); k++)
-            {
-                cv::circle(map, cv::Point(link_path[k].x, link_path[k].y), 1, JetColorMap.front(), -1);
-                UpdateColorMap();
-
-                cv::imshow("trajectory", map);
-                cv::waitKey(1);
-            }
-        }
-    }
-    cv::waitKey(0);
+//
+//    for(int i = 0; i < cell_graph.size(); i++)
+//    {
+//        DrawCells(cell_graph[i]);
+//        cv::imshow("trajectory", map);
+//        cv::waitKey(500);
+//    }
+//
+//
+//    for(int i = 0; i < first_steps.size(); i++)
+//    {
+//        cv::circle(map, cv::Point(first_steps[i].x, first_steps[i].y), 1, JetColorMap.front(), -1);
+//        UpdateColorMap();
+//
+//        cv::imshow("trajectory", map);
+//        cv::waitKey(1);
+//    }
+//
+//    std::vector<Point2D> sub_path;
+//    int corner_indicator = TOPLEFT;
+//
+//    for(int i = path.size()-1; i >= 0; i--)
+//    {
+//        sub_path = GetBoustrophedonPath(path[i], corner_indicator, robot_radius);
+//        for(int j = 0; j < sub_path.size(); j++)
+//        {
+//            cv::circle(map, cv::Point(sub_path[j].x, sub_path[j].y), 1, JetColorMap.front(), -1);
+//            UpdateColorMap();
+//
+//            cv::imshow("trajectory", map);
+//            cv::waitKey(1);
+//        }
+//
+//        cell_graph[path[i].cellIndex].isCleaned = true;
+//
+//        if((i-1)>=0)
+//        {
+//            Point2D curr_exit = sub_path.back();
+//            Point2D next_entrance = FindNextEntrance(curr_exit, path[i - 1], corner_indicator, robot_radius);
+//            std::deque<Point2D> link_path = FindLinkingPath(curr_exit, next_entrance, path[i], path[i-1], robot_radius);
+//            for(int k = 0; k < link_path.size(); k++)
+//            {
+//                cv::circle(map, cv::Point(link_path[k].x, link_path[k].y), 1, JetColorMap.front(), -1);
+//                UpdateColorMap();
+//
+//                cv::imshow("trajectory", map);
+//                cv::waitKey(1);
+//            }
+//        }
+//    }
+//    cv::waitKey(0);
 
 
 
