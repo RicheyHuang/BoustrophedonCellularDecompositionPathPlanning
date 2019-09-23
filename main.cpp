@@ -1746,6 +1746,47 @@ Point2D FindNextEntrance(Point2D curr_point, CellNode next_cell, int& corner_ind
     return next_entrance;
 }
 
+Point2D FindNextEntrance2(Point2D curr_point, CellNode next_cell, int& corner_indicator, int robot_radius=0)
+{
+    Point2D next_entrance = Point2D(INT_MAX, INT_MAX);
+
+    int front_x = next_cell.ceiling.front().x;
+    int back_x = next_cell.ceiling.back().x;
+
+    if(abs(curr_point.x - front_x) < abs(curr_point.x - back_x))
+    {
+        if(abs(curr_point.y - next_cell.ceiling.front().y)<abs(curr_point.y - next_cell.floor.front().y))
+        {
+            next_entrance.x = next_cell.ceiling[robot_radius + 1].x;
+            next_entrance.y = next_cell.ceiling[robot_radius + 1].y + (robot_radius + 1);
+            corner_indicator = TOPLEFT;
+        }
+        else
+        {
+            next_entrance.x = next_cell.floor[robot_radius + 1].x;
+            next_entrance.y = next_cell.floor[robot_radius + 1].y - (robot_radius + 1);
+            corner_indicator = BOTTOMLEFT;
+        }
+    }
+    else
+    {
+        if(abs(curr_point.y - next_cell.ceiling.back().y)<abs(curr_point.y - next_cell.floor.back().y))
+        {
+            next_entrance.x = next_cell.ceiling[next_cell.ceiling.size()-1-(robot_radius + 1)].x;
+            next_entrance.y = next_cell.ceiling[next_cell.ceiling.size()-1-(robot_radius + 1)].y + (robot_radius + 1);
+            corner_indicator = TOPRIGHT;
+        }
+        else
+        {
+            next_entrance.x = next_cell.floor[next_cell.floor.size()-1-(robot_radius + 1)].x;
+            next_entrance.y = next_cell.floor[next_cell.floor.size()-1-(robot_radius + 1)].y - (robot_radius + 1);
+            corner_indicator = BOTTOMRIGHT;
+        }
+    }
+
+    return next_entrance;
+}
+
 std::deque<Point2D> ExitAlongWall(Point2D start, Point2D end, int end_corner_indicator, CellNode cell, int robot_radius=0)
 {
     int start_corner_indicator = INT_MAX;
@@ -1850,6 +1891,115 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D end, int end_corner_ind
 
 }
 
+std::deque<Point2D> ExitAlongWall2(Point2D start, Point2D& end, CellNode cell, int robot_radius=0)
+{
+    int start_corner_indicator = INT_MAX;
+    int end_corner_indicator = INT_MAX;
+
+    std::vector<Point2D> corner_points = ComputeCellCornerPoints(cell, robot_radius);
+    for(int i = 0; i < corner_points.size(); i++)
+    {
+        if(corner_points[i].x==start.x && corner_points[i].y == start.y)
+        {
+            start_corner_indicator = i;
+        }
+        if(corner_points[i].x==end.x && corner_points[i].y == end.y)
+        {
+            end_corner_indicator = i;
+        }
+    }
+
+    std::vector<Point2D> top, bottom;  // 从左往右
+
+    for(int i = robot_radius+1; i < cell.ceiling.size()-(robot_radius+1); i++)
+    {
+        top.emplace_back(Point2D(cell.ceiling[i].x,cell.ceiling[i].y+(robot_radius+1)));
+        bottom.emplace_back(Point2D(cell.floor[i].x,cell.floor[i].y-(robot_radius+1)));
+    }
+
+
+    std::deque<Point2D> path;
+
+    if (start_corner_indicator == end_corner_indicator)
+    {
+        return path;
+    }
+
+    if(start_corner_indicator == TOPLEFT && end_corner_indicator == TOPRIGHT)
+    {
+        path.insert(path.end(), top.begin(), top.end());
+        return path;
+    }
+    if(start_corner_indicator == TOPLEFT && end_corner_indicator == BOTTOMLEFT)
+    {
+        end.x = corner_points[TOPLEFT].x;
+        end.y = corner_points[TOPLEFT].y;
+        return path;
+    }
+    if(start_corner_indicator == TOPLEFT && end_corner_indicator == BOTTOMRIGHT)
+    {
+        path.insert(path.end(), top.begin(), top.end());
+        end.x = corner_points[TOPRIGHT].x;
+        end.y = corner_points[TOPRIGHT].y;
+        return path;
+    }
+    if(start_corner_indicator == TOPRIGHT && end_corner_indicator == TOPLEFT)
+    {
+        path.insert(path.end(), top.rbegin(), top.rend());
+        return path;
+    }
+    if(start_corner_indicator == TOPRIGHT && end_corner_indicator == BOTTOMLEFT)
+    {
+        path.insert(path.end(), top.rbegin(), top.rend());
+        end.x = corner_points[TOPLEFT].x;
+        end.y = corner_points[TOPLEFT].y;
+        return path;
+    }
+    if(start_corner_indicator == TOPRIGHT && end_corner_indicator == BOTTOMRIGHT)
+    {
+        end.x = corner_points[TOPRIGHT].x;
+        end.y = corner_points[TOPRIGHT].y;
+        return path;
+    }
+    if(start_corner_indicator == BOTTOMLEFT && end_corner_indicator == TOPLEFT)
+    {
+        end.x = corner_points[BOTTOMLEFT].x;
+        end.y = corner_points[BOTTOMLEFT].y;
+        return path;
+    }
+    if(start_corner_indicator == BOTTOMLEFT && end_corner_indicator == TOPRIGHT)
+    {
+        path.insert(path.end(), bottom.begin(), bottom.end());
+        end.x = corner_points[BOTTOMRIGHT].x;
+        end.y = corner_points[BOTTOMRIGHT].y;
+        return path;
+    }
+    if(start_corner_indicator == BOTTOMLEFT && end_corner_indicator == BOTTOMRIGHT)
+    {
+        path.insert(path.end(), bottom.begin(), bottom.end());
+        return path;
+    }
+    if(start_corner_indicator == BOTTOMRIGHT && end_corner_indicator == TOPLEFT)
+    {
+        path.insert(path.end(), bottom.rbegin(), bottom.rend());
+        end.x = corner_points[BOTTOMLEFT].x;
+        end.y = corner_points[BOTTOMLEFT].y;
+        return path;
+    }
+    if(start_corner_indicator == BOTTOMRIGHT && end_corner_indicator == TOPRIGHT)
+    {
+        end.x = corner_points[BOTTOMRIGHT].x;
+        end.y = corner_points[BOTTOMRIGHT].y;
+        return path;
+    }
+    if(start_corner_indicator == BOTTOMRIGHT && end_corner_indicator == BOTTOMLEFT)
+    {
+        path.insert(path.end(), bottom.rbegin(), bottom.rend());
+        return path;
+    }
+
+}
+
 std::deque<Point2D> FindLinkingPath(Point2D curr_exit, Point2D next_entrance, CellNode curr_cell, CellNode next_cell, int robot_radius=0)
 {
     std::deque<Point2D> path;
@@ -1858,6 +2008,62 @@ std::deque<Point2D> FindLinkingPath(Point2D curr_exit, Point2D next_entrance, Ce
     int exit_corner_indicator = INT_MAX;
     Point2D exit = FindNextEntrance(next_entrance, curr_cell, exit_corner_indicator, robot_radius);
     sub_path = ExitAlongWall(curr_exit, exit, exit_corner_indicator, curr_cell, robot_radius);
+    path.insert(path.begin(), sub_path.begin(), sub_path.end());
+
+    int delta_x = next_entrance.x - exit.x;
+    int delta_y = next_entrance.y - exit.y;
+
+    int increment_x = 0;
+    int increment_y = 0;
+
+    if (delta_x != 0) {
+        increment_x = delta_x / std::abs(delta_x);
+    }
+    if (delta_y != 0) {
+        increment_y = delta_y / std::abs(delta_y);
+    }
+
+    int upper_bound = INT_MIN;
+    int lower_bound = INT_MAX;
+
+    if (exit.x >= curr_cell.ceiling.back().x - (robot_radius + 1))
+    {
+        upper_bound = (curr_cell.ceiling.end() - 1 - (robot_radius + 1))->y;
+        lower_bound = (curr_cell.floor.end() - 1 - (robot_radius + 1))->y;
+    }
+    if (exit.x <= curr_cell.ceiling.front().x + (robot_radius + 1))
+    {
+        upper_bound = (curr_cell.ceiling.begin() + (robot_radius + 1))->y;
+        lower_bound = (curr_cell.floor.begin() + (robot_radius + 1))->y;
+    }
+
+    if ((next_entrance.y >= upper_bound) && (next_entrance.y <= lower_bound)) {
+        for (int y = exit.y; y != next_entrance.y; y += increment_y) {
+            path.emplace_back(Point2D(exit.x, y));
+        }
+        for (int x = exit.x; x != next_entrance.x; x += increment_x) {
+            path.emplace_back(Point2D(x, next_entrance.y));
+        }
+    } else {
+        for (int x = exit.x; x != next_entrance.x; x += increment_x) {
+            path.emplace_back(Point2D(x, exit.y));
+        }
+        for (int y = exit.y; y != next_entrance.y; y += increment_y) {
+            path.emplace_back(Point2D(next_entrance.x, y));
+        }
+    }
+
+    return path;
+}
+
+std::deque<Point2D> FindLinkingPath2(Point2D curr_exit, Point2D next_entrance, CellNode curr_cell, CellNode next_cell, int robot_radius=0)
+{
+    std::deque<Point2D> path;
+    std::deque<Point2D> sub_path;
+
+    int exit_corner_indicator = INT_MAX;
+    Point2D exit = FindNextEntrance2(next_entrance, curr_cell, exit_corner_indicator, robot_radius);
+    sub_path = ExitAlongWall2(curr_exit, exit, curr_cell, robot_radius);
     path.insert(path.begin(), sub_path.begin(), sub_path.end());
 
     int delta_x = next_entrance.x - exit.x;
@@ -2191,8 +2397,8 @@ int main() {
         if((i-1)>=0)
         {
             Point2D curr_exit = sub_path.back();
-            Point2D next_entrance = FindNextEntrance(curr_exit, path[i - 1], corner_indicator, robot_radius);
-            std::deque<Point2D> link_path = FindLinkingPath(curr_exit, next_entrance, path[i], path[i-1], robot_radius);
+            Point2D next_entrance = FindNextEntrance2(curr_exit, path[i - 1], corner_indicator, robot_radius);
+            std::deque<Point2D> link_path = FindLinkingPath2(curr_exit, next_entrance, path[i], path[i-1], robot_radius);
             for(int k = 0; k < link_path.size(); k++)
             {
                 cv::circle(map, cv::Point(link_path[k].x, link_path[k].y), 1, JetColorMap.front(), -1);
