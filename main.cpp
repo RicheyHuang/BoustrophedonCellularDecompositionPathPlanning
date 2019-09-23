@@ -183,7 +183,7 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
             int x=0, y=0, y_start=0, y_end=0;
             bool reverse = false;
 
-            for(int i = (robot_radius + 1); i < ceiling.size() - (robot_radius + 1); i=i+robot_radius)
+            for(int i = (robot_radius + 1); i < ceiling.size() - (robot_radius + 1); i = i + (robot_radius+1))
             {
                 x = ceiling[i].x;
 
@@ -201,8 +201,9 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if( x+j > ceiling.back().x - (robot_radius + 1))
+                            if(( x+j > ceiling.back().x - (robot_radius + 1)) || (floor[i+j+(robot_radius + 1)].x == floor[i+j+(robot_radius + 1)+1].x))
                             {
+                                i = i - (robot_radius - (j - 1));
                                 break;
                             }
                             path.emplace_back(Point2D(x+j, floor[i+j].y-(robot_radius + 1)));
@@ -225,8 +226,9 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if( x+j > ceiling.back().x - (robot_radius + 1))
+                            if(( x+j > ceiling.back().x - (robot_radius + 1)) || (ceiling[i+j+(robot_radius + 1)].x == ceiling[i+j+(robot_radius + 1)+1].x))
                             {
+                                i = i - (robot_radius - (j - 1));
                                 break;
                             }
                             path.emplace_back(Point2D(x+j, ceiling[i+j].y+(robot_radius + 1)));
@@ -243,7 +245,7 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
             int x=0, y=0, y_start=0, y_end=0;
             bool reverse = false;
 
-            for(int i = ceiling.size()-1-(robot_radius + 1); i >= (robot_radius + 1); i=i-robot_radius)
+            for(int i = ceiling.size()-1-(robot_radius + 1); i >= (robot_radius + 1); i=i-(robot_radius+1))
             {
                 x = ceiling[i].x;
 
@@ -261,8 +263,9 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if( x-j < ceiling.front().x + (robot_radius + 1))
+                            if(( x-j < ceiling.front().x + (robot_radius + 1)) || (floor[i-j-(robot_radius + 1)].x == floor[i-j-(robot_radius + 1)-1].x))
                             {
+                                i = i + (robot_radius - (j - 1));
                                 break;
                             }
                             path.emplace_back(Point2D(x-j, floor[i-j].y-(robot_radius + 1)));
@@ -285,8 +288,9 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if( x-j < ceiling.front().x + (robot_radius + 1))
+                            if(( x-j < ceiling.front().x + (robot_radius + 1))|| (ceiling[i-j-(robot_radius + 1)].x == ceiling[i-j-(robot_radius + 1)-1].x))
                             {
+                                i = i + (robot_radius - (j - 1));
                                 break;
                             }
                             path.emplace_back(Point2D(x-j, ceiling[i-j].y+(robot_radius + 1)));
@@ -303,7 +307,7 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
             int x=0, y=0, y_start=0, y_end=0;
             bool reverse = false;
 
-            for(int i = (robot_radius + 1); i < ceiling.size() - (robot_radius + 1); i=i+robot_radius)
+            for(int i = (robot_radius + 1); i < ceiling.size() - (robot_radius + 1); i=i+(robot_radius+1))
             {
                 x = ceiling[i].x;
 
@@ -321,8 +325,9 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if( x+j > ceiling.back().x - (robot_radius + 1))
+                            if(( x+j > ceiling.back().x - (robot_radius + 1))|| (ceiling[i+j+(robot_radius + 1)].x == ceiling[i+j+(robot_radius + 1)+1].x))
                             {
+                                i = i - (robot_radius - (j - 1));
                                 break;
                             }
                             path.emplace_back(Point2D(x+j, ceiling[i+j].y+(robot_radius + 1)));
@@ -345,8 +350,9 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if( x+j > ceiling.back().x - (robot_radius + 1))
+                            if(( x+j > ceiling.back().x - (robot_radius + 1))|| (floor[i+j+(robot_radius + 1)].x == floor[i+j+(robot_radius + 1)+1].x))
                             {
+                                i = i - (robot_radius - (j - 1));
                                 break;
                             }
                             path.emplace_back(Point2D(x+j, floor[i+j].y-(robot_radius + 1)));
@@ -363,7 +369,7 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
             int x=0, y=0, y_start=0, y_end=0;
             bool reverse = false;
 
-            for(int i = ceiling.size()-1-(robot_radius + 1); i >= (robot_radius + 1); i=i-robot_radius)
+            for(int i = ceiling.size()-1-(robot_radius + 1); i >= (robot_radius + 1); i=i-(robot_radius+1))
             {
                 x = ceiling[i].x;
 
@@ -381,8 +387,9 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if( x-j < ceiling.front().x + (robot_radius + 1))
+                            if(( x-j < ceiling.front().x + (robot_radius + 1))|| (ceiling[i-j-(robot_radius + 1)].x == ceiling[i-j-(robot_radius + 1)-1].x))
                             {
+                                i = i + (robot_radius - (j - 1));
                                 break;
                             }
                             path.emplace_back(Point2D(x-j, ceiling[i-j].y+(robot_radius + 1)));
@@ -405,8 +412,9 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if( x-j < ceiling.front().x + (robot_radius + 1))
+                            if(( x-j < ceiling.front().x + (robot_radius + 1))|| (floor[i-j-(robot_radius + 1)].x == floor[i-j-(robot_radius + 1)-1].x))
                             {
+                                i = i + (robot_radius - (j - 1));
                                 break;
                             }
                             path.emplace_back(Point2D(x-j, floor[i-j].y-(robot_radius + 1)));
@@ -433,7 +441,6 @@ bool operator<(const Event& e1, const Event& e2)
 }
 
 // 各个多边形按照其左顶点的x值从小到大的顺序进行排列
-// 且对于每个多边形，其最左边和最右边都只有唯一的一个点
 std::vector<Event> EventListGenerator(PolygonList polygons)
 {
     std::vector<Event> event_list;
@@ -2401,7 +2408,8 @@ int main() {
             std::deque<Point2D> link_path = FindLinkingPath2(curr_exit, next_entrance, path[i], path[i-1], robot_radius);
             for(int k = 0; k < link_path.size(); k++)
             {
-                cv::circle(map, cv::Point(link_path[k].x, link_path[k].y), 1, JetColorMap.front(), -1);
+//                cv::circle(map, cv::Point(link_path[k].x, link_path[k].y), 1, JetColorMap.front(), -1);
+                cv::circle(map, cv::Point(link_path[k].x, link_path[k].y), 1, cv::Scalar(255,0,0), -1);
                 UpdateColorMap();
 
                 cv::imshow("trajectory", map);
