@@ -44,6 +44,11 @@ public:
         x = x_pos;
         y = y_pos;
     }
+    Point2D()
+    {
+        x = INT_MAX;
+        y = INT_MAX;
+    }
     int x;
     int y;
 };
@@ -147,12 +152,12 @@ void WalkingThroughGraph(int cell_index)  // Depth First Search Method
     }
 }
 
-std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, int robot_radius=0)
+std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, int robot_radius=0)
 {
     std::vector<Point2D> ceiling = cell.ceiling;
     std::vector<Point2D> floor = cell.floor;
 
-    std::vector<Point2D> path;
+    std::deque<Point2D> path;
 
     if(cell_graph[cell.cellIndex].isCleaned)
     {
@@ -2176,7 +2181,7 @@ std::deque<Point2D> FindLinkingPath(Point2D curr_exit, Point2D next_entrance, Ce
     return path;
 }
 
-std::deque<Point2D> FindLinkingPath2(Point2D curr_exit, Point2D next_entrance, CellNode curr_cell, CellNode next_cell, int robot_radius=0)
+std::deque<Point2D> FindLinkingPath2(Point2D curr_exit, Point2D& next_entrance, int& corner_indicator, CellNode curr_cell, CellNode next_cell, int robot_radius=0)
 {
     std::deque<Point2D> path;
     std::deque<Point2D> sub_path;
@@ -2185,6 +2190,8 @@ std::deque<Point2D> FindLinkingPath2(Point2D curr_exit, Point2D next_entrance, C
     Point2D exit = FindNextEntrance2(next_entrance, curr_cell, exit_corner_indicator, robot_radius);
     sub_path = ExitAlongWall2(curr_exit, exit, curr_cell, robot_radius);
     path.insert(path.begin(), sub_path.begin(), sub_path.end());
+
+    next_entrance = FindNextEntrance2(exit, next_cell, corner_indicator, robot_radius);
 
     int delta_x = next_entrance.x - exit.x;
     int delta_y = next_entrance.y - exit.y;
@@ -2330,8 +2337,200 @@ int DetermineCellIndex(Point2D point)
     }
 }
 
+std::deque<int> FindShortestPath(Point2D start, Point2D end)
+{
+    int start_cell_index = DetermineCellIndex(start);
+    int end_cell_index = DetermineCellIndex(end);
+
+    std::deque<int> cell_path = {end_cell_index};
+    std::vector<CellNode> cells;
+    cells.assign(cell_graph.begin(), cell_graph.end());
+
+    for(int i = 0; i < cells.size(); i++)
+    {
+        cells[i].isVisited = false;
+        cells[i].isCleaned = false;
+        cells[i].parentIndex = INT_MAX;
+    }
+
+    std::deque<int> search_queue = {start_cell_index};
+
+    CellNode curr_cell;
+
+    while(!search_queue.empty())
+    {
+        curr_cell = cells[search_queue.front()];
+
+        cells[search_queue.front()].isVisited = true;
+        search_queue.pop_front();
+
+        for(int i = 0; i < curr_cell.neighbor_indices.size(); i++)
+        {
+            if(curr_cell.neighbor_indices[i] == end_cell_index)
+            {
+                cells[curr_cell.neighbor_indices[i]].parentIndex = curr_cell.cellIndex;
+                search_queue.clear();
+                break;
+            }
+            else if(!cells[curr_cell.neighbor_indices[i]].isVisited)
+            {
+                cells[curr_cell.neighbor_indices[i]].isVisited = true;
+                cells[curr_cell.neighbor_indices[i]].parentIndex = curr_cell.cellIndex;
+                search_queue.emplace_back(curr_cell.neighbor_indices[i]);
+            }
+        }
+
+    }
+
+    curr_cell = cells[end_cell_index];
+    int prev_cell_index;
+
+    while(curr_cell.parentIndex != INT_MAX)
+    {
+        prev_cell_index = curr_cell.parentIndex;
+        cell_path.emplace_front(prev_cell_index);
+        curr_cell = cells[prev_cell_index];
+    }
+
+    return cell_path;
+} // BFS
 
 
+std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end, int robot_radius=0)
+{
+    std::deque<Point2D> inner_path = {start};
+
+    int start_ceiling_index_offset = start.x - cell.ceiling.front().x;
+    int first_ceiling_delta_y = cell.ceiling[start_ceiling_index_offset].y + (robot_radius + 1) - start.y;
+    int end_ceiling_index_offset = end.x - cell.ceiling.front().x;
+    int second_ceiling_delta_y = end.y - (cell.ceiling[end_ceiling_index_offset].y + (robot_radius + 1));
+
+    int start_floor_index_offset = start.x - cell.floor.front().x;
+    int first_floor_delta_y = cell.floor[start_floor_index_offset].y - (robot_radius + 1) - start.y;
+    int end_floor_index_offset = end.x - cell.floor.front().x;
+    int second_floor_delta_y = end.y - (cell.floor[end_floor_index_offset].y - (robot_radius + 1));
+
+    if((abs(first_ceiling_delta_y)+abs(second_ceiling_delta_y)) < (abs(first_floor_delta_y)+abs(second_floor_delta_y))) //to ceiling
+    {
+        int first_increment_y = 0;
+        if(first_ceiling_delta_y != 0)
+        {
+            first_increment_y = first_ceiling_delta_y / abs(first_ceiling_delta_y);
+        }
+        for(int i = 1; i <= abs(first_ceiling_delta_y); i++)
+        {
+            inner_path.emplace_back(Point2D(start.x, start.y+(first_increment_y*i)));
+        }
+
+        int delta_x = cell.ceiling[end_ceiling_index_offset].x - cell.ceiling[start_ceiling_index_offset].x;
+        int increment_x = 0;
+        if(delta_x != 0)
+        {
+            increment_x = delta_x / abs(delta_x);
+        }
+        for(int i = 1; i <= abs(delta_x); i++)
+        {
+            inner_path.emplace_back(Point2D(cell.ceiling[start_ceiling_index_offset+(increment_x*i)].x,cell.ceiling[start_ceiling_index_offset+(increment_x*i)].y+(robot_radius + 1)));
+        }
+
+        int second_increment_y = 0;
+        if(second_ceiling_delta_y!=0)
+        {
+            second_increment_y = second_ceiling_delta_y/abs(second_ceiling_delta_y);
+        }
+        for(int i = 1; i < abs(second_ceiling_delta_y); i++)
+        {
+            inner_path.emplace_back(Point2D(cell.ceiling[end_ceiling_index_offset].x, cell.ceiling[end_ceiling_index_offset].y+(robot_radius + 1)+(second_increment_y*i)));
+        }
+    }
+    else // to floor
+    {
+        int first_increment_y = 0;
+        if(first_floor_delta_y != 0)
+        {
+            first_increment_y = first_floor_delta_y / abs(first_floor_delta_y);
+        }
+        for(int i = 1; i <= abs(first_floor_delta_y); i++)
+        {
+            inner_path.emplace_back(Point2D(start.x, start.y+(first_increment_y*i)));
+        }
+
+        int delta_x = cell.floor[end_floor_index_offset].x - cell.floor[start_floor_index_offset].x;
+        int increment_x = 0;
+        if(delta_x != 0)
+        {
+            increment_x = delta_x / abs(delta_x);
+        }
+        for(int i = 1; i <= abs(delta_x); i++)
+        {
+            inner_path.emplace_back(Point2D(cell.floor[start_floor_index_offset+(increment_x*i)].x,cell.floor[start_floor_index_offset+(increment_x*i)].y-(robot_radius + 1)));
+        }
+
+        int second_increment_y = 0;
+        if(second_floor_delta_y!=0)
+        {
+            second_increment_y = second_floor_delta_y/abs(second_floor_delta_y);
+        }
+        for(int i = 1; i < abs(second_floor_delta_y); i++)
+        {
+            inner_path.emplace_back(Point2D(cell.floor[end_floor_index_offset].x, cell.floor[end_floor_index_offset].y-(robot_radius + 1)+(second_increment_y*i)));
+        }
+    }
+    return inner_path;
+}
+
+
+std::deque<Point2D> WalkingCrossCells(std::deque<int> cell_path, Point2D start, Point2D end, int robot_radius=0)
+{
+    std::deque<Point2D> overall_path;
+    std::deque<Point2D> sub_path;
+
+    std::vector<CellNode> cells;
+    cells.assign(cell_graph.begin(), cell_graph.end());
+    for(int i = 0; i < cells.size(); i++)
+    {
+        cells[i].isCleaned = true;
+    }
+
+    Point2D curr_exit, next_entrance;
+    int curr_corner_indicator, next_corner_indicator;
+
+    next_entrance = FindNextEntrance2(start, cells[cell_path[1]], next_corner_indicator, robot_radius);
+    curr_exit = FindNextEntrance2(next_entrance, cells[cell_path[0]], curr_corner_indicator, robot_radius);
+    sub_path = WalkingInsideCell(cells[cell_path[0]], start, curr_exit, robot_radius);
+    overall_path.insert(overall_path.end(), sub_path.begin(), sub_path.end());
+    sub_path.clear();
+
+    sub_path = FindLinkingPath2(curr_exit, next_entrance, next_corner_indicator, cells[cell_path[0]], cells[cell_path[1]], robot_radius);
+    overall_path.insert(overall_path.end(), sub_path.begin(), sub_path.end());
+    sub_path.clear();
+
+    curr_corner_indicator = next_corner_indicator;
+
+
+    for(int i = 1; i < cell_path.size()-1; i++)
+    {
+        sub_path = GetBoustrophedonPath(cells[cell_path[i]], curr_corner_indicator, robot_radius);
+        overall_path.insert(overall_path.end(), sub_path.begin(), sub_path.end());
+        sub_path.clear();
+
+        curr_exit = overall_path.back();
+        next_entrance = FindNextEntrance2(curr_exit, cells[cell_path[i+1]], next_corner_indicator, robot_radius);
+
+        sub_path = FindLinkingPath2(curr_exit, next_entrance, next_corner_indicator, cells[cell_path[i]], cells[cell_path[i+1]], robot_radius);
+        overall_path.insert(overall_path.end(), sub_path.begin(), sub_path.end());
+        sub_path.clear();
+
+        curr_corner_indicator = next_corner_indicator;
+    }
+
+    next_entrance = overall_path.back();
+    sub_path = WalkingInsideCell(cells[cell_path.back()], next_entrance, end, robot_radius);
+    overall_path.insert(overall_path.end(), sub_path.begin(), sub_path.end());
+    sub_path.clear();
+
+    return overall_path;
+}
 
 
 int main() {
@@ -2468,9 +2667,9 @@ int main() {
     FinishCellDecomposition(Point2D(slice_list.back().back().x, slice_list.back().back().y));
 
     Point2D start_point = Point2D(10, 10);
+    Point2D end_point;
     int start_cell_index = 0;
     int robot_radius = 5;
-
     std::deque<Point2D> first_steps = PathIninitialization(start_point, cell_graph[start_cell_index], robot_radius);
     WalkingThroughGraph(start_cell_index);
 
@@ -2505,22 +2704,19 @@ int main() {
     {
         DrawCells(cell_graph[i]);
         cv::imshow("trajectory", map);
-        cv::waitKey(500);
+//        cv::waitKey(500);
     }
 
 
     for(int i = 0; i < first_steps.size(); i++)
     {
-//        cv::circle(map, cv::Point(first_steps[i].x, first_steps[i].y), 1, JetColorMap.front(), -1);
-        map.at<cv::Vec3b>(first_steps[i].y, first_steps[i].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
-
-        UpdateColorMap();
-
-        cv::imshow("trajectory", map);
-        cv::waitKey(1);
+//        map.at<cv::Vec3b>(first_steps[i].y, first_steps[i].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+//        UpdateColorMap();
+//        cv::imshow("trajectory", map);
+//        cv::waitKey(1);
     }
 
-    std::vector<Point2D> sub_path;
+    std::deque<Point2D> sub_path;
     int corner_indicator = TOPLEFT;
 
     for(int i = path.size()-1; i >= 0; i--)
@@ -2528,13 +2724,10 @@ int main() {
         sub_path = GetBoustrophedonPath(path[i], corner_indicator, robot_radius);
         for(int j = 0; j < sub_path.size(); j++)
         {
-//            cv::circle(map, cv::Point(sub_path[j].x, sub_path[j].y), 1, JetColorMap.front(), -1);
-            map.at<cv::Vec3b>(sub_path[j].y, sub_path[j].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
-
-            UpdateColorMap();
-
-            cv::imshow("trajectory", map);
-            cv::waitKey(1);
+//            map.at<cv::Vec3b>(sub_path[j].y, sub_path[j].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+//            UpdateColorMap();
+//            cv::imshow("trajectory", map);
+//            cv::waitKey(1);
         }
 
         cell_graph[path[i].cellIndex].isCleaned = true;
@@ -2543,19 +2736,28 @@ int main() {
         {
             Point2D curr_exit = sub_path.back();
             Point2D next_entrance = FindNextEntrance2(curr_exit, path[i - 1], corner_indicator, robot_radius);
-            std::deque<Point2D> link_path = FindLinkingPath2(curr_exit, next_entrance, path[i], path[i-1], robot_radius);
+            std::deque<Point2D> link_path = FindLinkingPath2(curr_exit, next_entrance, corner_indicator, path[i], path[i-1], robot_radius);
             for(int k = 0; k < link_path.size(); k++)
             {
-//                cv::circle(map, cv::Point(link_path[k].x, link_path[k].y), 1, JetColorMap.front(), -1);
-                map.at<cv::Vec3b>(link_path[k].y, link_path[k].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
-
-                UpdateColorMap();
-
-                cv::imshow("trajectory", map);
-                cv::waitKey(1);
+//                map.at<cv::Vec3b>(link_path[k].y, link_path[k].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+//                UpdateColorMap();
+//                cv::imshow("trajectory", map);
+//                cv::waitKey(1);
             }
         }
     }
+
+    end_point = sub_path.back();
+    std::deque<int> return_cell_path = FindShortestPath(end_point, start_point);
+    std::deque<Point2D> return_path = WalkingCrossCells(return_cell_path, end_point, start_point, robot_radius);
+    for(int i = 0; i < return_path.size(); i++)
+    {
+        map.at<cv::Vec3b>(return_path[i].y, return_path[i].x)=cv::Vec3b(128, 128, 128);
+//        UpdateColorMap();
+        cv::imshow("trajectory", map);
+        cv::waitKey(1);
+    }
+
     cv::waitKey(0);
 
 
