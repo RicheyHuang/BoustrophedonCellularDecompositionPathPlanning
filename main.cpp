@@ -101,7 +101,7 @@ std::vector<CellNode> cell_graph;
 
 int unvisited_counter = INT_MAX;
 
-void WalkingThroughGraph(int cell_index)
+void WalkingThroughGraph(int cell_index)  // Depth First Search Method
 {
     if(!cell_graph[cell_index].isVisited)
     {
@@ -201,11 +201,24 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(( x+j > ceiling.back().x - (robot_radius + 1)) || (floor[i+j+(robot_radius + 1)].x == floor[i+j+(robot_radius + 1)+1].x))
+                            if( x+j > ceiling.back().x - (robot_radius + 1))
                             {
                                 i = i - (robot_radius - (j - 1));
                                 break;
                             }
+//                            if(floor[i+j+(robot_radius + 1)].x == floor[i+j+(robot_radius + 1)+1].x)
+//                            {
+//                                if (floor[i + j + (robot_radius + 1)].y > floor[i + j + (robot_radius + 1) + 1].y)
+//                                {
+//                                    i = i - (robot_radius - (j - 1));
+//                                    break;
+//                                }
+//                            }
+//                            if(floor[i+j].x == floor[i+j+1].x)
+//                            {
+//                                i = i - (robot_radius - (j - 1));
+//                                break;
+//                            }
                             path.emplace_back(Point2D(x+j, floor[i+j].y-(robot_radius + 1)));
                         }
                     }
@@ -226,11 +239,25 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(( x+j > ceiling.back().x - (robot_radius + 1)) || (ceiling[i+j+(robot_radius + 1)].x == ceiling[i+j+(robot_radius + 1)+1].x))
+                            if(x+j > ceiling.back().x - (robot_radius + 1))
                             {
                                 i = i - (robot_radius - (j - 1));
                                 break;
                             }
+//                            if(ceiling[i+j+(robot_radius + 1)].x == ceiling[i+j+(robot_radius + 1)+1].x)
+//                            {
+//                               if(ceiling[i+j+(robot_radius + 1)].y < ceiling[i+j+(robot_radius + 1)+1].y)
+//                               {
+//                                   i = i - (robot_radius - (j - 1));
+//                                   break;
+//                               }
+//                            }
+//                            if(ceiling[i+j].x == ceiling[i+j+1].x)
+//                            {
+//                                i = i - (robot_radius - (j - 1));
+//                                break;
+//                            }
+
                             path.emplace_back(Point2D(x+j, ceiling[i+j].y+(robot_radius + 1)));
                         }
                     }
@@ -263,11 +290,24 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(( x-j < ceiling.front().x + (robot_radius + 1)) || (floor[i-j-(robot_radius + 1)].x == floor[i-j-(robot_radius + 1)-1].x))
+                            if(x-j < ceiling.front().x + (robot_radius + 1))
                             {
                                 i = i + (robot_radius - (j - 1));
                                 break;
                             }
+//                            if(floor[i-j-(robot_radius + 1)].x == floor[i-j-(robot_radius + 1)-1].x)
+//                            {
+//                                if(floor[i-j-(robot_radius + 1)].y > floor[i-j-(robot_radius + 1)-1].y)
+//                                {
+//                                    i = i + (robot_radius - (j - 1));
+//                                    break;
+//                                }
+//                            }
+//                            if(floor[i-j].x == floor[i-j-1].x)
+//                            {
+//                                i = i + (robot_radius - (j - 1));
+//                                break;
+//                            }
                             path.emplace_back(Point2D(x-j, floor[i-j].y-(robot_radius + 1)));
                         }
                     }
@@ -288,11 +328,24 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(( x-j < ceiling.front().x + (robot_radius + 1))|| (ceiling[i-j-(robot_radius + 1)].x == ceiling[i-j-(robot_radius + 1)-1].x))
+                            if( x-j < ceiling.front().x + (robot_radius + 1))
                             {
                                 i = i + (robot_radius - (j - 1));
                                 break;
                             }
+//                            if(ceiling[i-j-(robot_radius + 1)].x == ceiling[i-j-(robot_radius + 1)-1].x)
+//                            {
+//                                if(ceiling[i-j-(robot_radius + 1)].y < ceiling[i-j-(robot_radius + 1)-1].y)
+//                                {
+//                                    i = i + (robot_radius - (j - 1));
+//                                    break;
+//                                }
+//                            }
+//                            if(ceiling[i-j].x == ceiling[i-j-1].x)
+//                            {
+//                                i = i + (robot_radius - (j - 1));
+//                                break;
+//                            }
                             path.emplace_back(Point2D(x-j, ceiling[i-j].y+(robot_radius + 1)));
                         }
                     }
@@ -325,11 +378,24 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(( x+j > ceiling.back().x - (robot_radius + 1))|| (ceiling[i+j+(robot_radius + 1)].x == ceiling[i+j+(robot_radius + 1)+1].x))
+                            if(x+j > ceiling.back().x - (robot_radius + 1))
                             {
                                 i = i - (robot_radius - (j - 1));
                                 break;
                             }
+//                            if(ceiling[i+j+(robot_radius + 1)].x == ceiling[i+j+(robot_radius + 1)+1].x)
+//                            {
+//                                if(ceiling[i+j+(robot_radius + 1)].y > ceiling[i+j+(robot_radius + 1)+1].y)
+//                                {
+//                                    i = i - (robot_radius - (j - 1));
+//                                    break;
+//                                }
+//                            }
+//                            if(ceiling[i+j].x == ceiling[i+j+1].x)
+//                            {
+//                                i = i - (robot_radius - (j - 1));
+//                                break;
+//                            }
                             path.emplace_back(Point2D(x+j, ceiling[i+j].y+(robot_radius + 1)));
                         }
                     }
@@ -350,11 +416,24 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(( x+j > ceiling.back().x - (robot_radius + 1))|| (floor[i+j+(robot_radius + 1)].x == floor[i+j+(robot_radius + 1)+1].x))
+                            if(x+j > ceiling.back().x - (robot_radius + 1))
                             {
                                 i = i - (robot_radius - (j - 1));
                                 break;
                             }
+//                            if(floor[i+j+(robot_radius + 1)].x == floor[i+j+(robot_radius + 1)+1].x)
+//                            {
+//                                if(floor[i+j+(robot_radius + 1)].y < floor[i+j+(robot_radius + 1)+1].y)
+//                                {
+//                                    i = i - (robot_radius - (j - 1));
+//                                    break;
+//                                }
+//                            }
+//                            if(floor[i+j].x == floor[i+j+1].x)
+//                            {
+//                                i = i - (robot_radius - (j - 1));
+//                                break;
+//                            }
                             path.emplace_back(Point2D(x+j, floor[i+j].y-(robot_radius + 1)));
                         }
                     }
@@ -387,11 +466,24 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(( x-j < ceiling.front().x + (robot_radius + 1))|| (ceiling[i-j-(robot_radius + 1)].x == ceiling[i-j-(robot_radius + 1)-1].x))
+                            if(x-j < ceiling.front().x + (robot_radius + 1))
                             {
                                 i = i + (robot_radius - (j - 1));
                                 break;
                             }
+//                            if(ceiling[i-j-(robot_radius + 1)].x == ceiling[i-j-(robot_radius + 1)-1].x)
+//                            {
+//                                if(ceiling[i-j-(robot_radius + 1)].y < ceiling[i-j-(robot_radius + 1)-1].y)
+//                                {
+//                                    i = i + (robot_radius - (j - 1));
+//                                    break;
+//                                }
+//                            }
+//                            if(ceiling[i-j].x == ceiling[i-j-1].x)
+//                            {
+//                                i = i + (robot_radius - (j - 1));
+//                                break;
+//                            }
                             path.emplace_back(Point2D(x-j, ceiling[i-j].y+(robot_radius + 1)));
                         }
                     }
@@ -412,11 +504,24 @@ std::vector<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, i
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(( x-j < ceiling.front().x + (robot_radius + 1))|| (floor[i-j-(robot_radius + 1)].x == floor[i-j-(robot_radius + 1)-1].x))
+                            if(x-j < ceiling.front().x + (robot_radius + 1))
                             {
                                 i = i + (robot_radius - (j - 1));
                                 break;
                             }
+//                            if(floor[i-j-(robot_radius + 1)].x == floor[i-j-(robot_radius + 1)-1].x)
+//                            {
+//                                if(floor[i-j-(robot_radius + 1)].y > floor[i-j-(robot_radius + 1)-1].y)
+//                                {
+//                                    i = i + (robot_radius - (j - 1));
+//                                    break;
+//                                }
+//                            }
+//                            if(floor[i-j].x == floor[i-j-1].x)
+//                            {
+//                                i = i + (robot_radius - (j - 1));
+//                                break;
+//                            }
                             path.emplace_back(Point2D(x-j, floor[i-j].y-(robot_radius + 1)));
                         }
                     }
@@ -739,7 +844,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
             {
                 for(int j = index_list[0]+1; j < index_list[1]; j++)
                 {
-                    if(event_list[j].event_type!=MIDDLE)
+                    if(event_list[j].x != event_list[j-1].x)
                     {
                         event_list[j].event_type = FLOOR;
                     }
@@ -749,14 +854,18 @@ void EventTypeAllocator(std::vector<Event>& event_list)
             {
                 for(int j = index_list[0]+1; j < event_list.size(); j++)
                 {
-                    if(event_list[j].event_type!=MIDDLE)
+                    if(event_list[j].x != event_list[j-1].x)
                     {
                         event_list[j].event_type = FLOOR;
                     }
                 }
-                for(int k = 0; k < index_list[1]; k++)
+                if(event_list[0].x != event_list[event_list.size()-1].x)
                 {
-                    if(event_list[k].event_type!=MIDDLE)
+                    event_list[0].event_type = CEILING;
+                }
+                for(int k = 1; k < index_list[1]; k++)
+                {
+                    if(event_list[k].x != event_list[k-1].x)
                     {
                         event_list[k].event_type = FLOOR;
                     }
@@ -784,7 +893,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
             {
                 for(int j = index_list[0]+1; j < index_list[1]; j++)
                 {
-                    if(event_list[j].event_type!=MIDDLE)
+                    if(event_list[j].x != event_list[j-1].x)
                     {
                         event_list[j].event_type = CEILING;
                     }
@@ -794,14 +903,18 @@ void EventTypeAllocator(std::vector<Event>& event_list)
             {
                 for(int j = index_list[0]+1; j < event_list.size(); j++)
                 {
-                    if(event_list[j].event_type!=MIDDLE)
+                    if(event_list[j].x != event_list[j-1].x)
                     {
                         event_list[j].event_type = CEILING;
                     }
                 }
-                for(int k = 0; k < index_list[1]; k++)
+                if(event_list[0].x != event_list[event_list.size()-1].x)
                 {
-                    if(event_list[k].event_type!=MIDDLE)
+                    event_list[0].event_type = CEILING;
+                }
+                for(int k = 1; k < index_list[1]; k++)
+                {
+                    if(event_list[k].x != event_list[k-1].x)
                     {
                         event_list[k].event_type = CEILING;
                     }
@@ -2199,6 +2312,27 @@ void UpdateColorMap()
 }
 
 
+int DetermineCellIndex(Point2D point)
+{
+    int cell_index;
+
+    for(int i = 0; i < cell_graph.size(); i++)
+    {
+        for(int j = 0; j < cell_graph[i].ceiling.size(); j++)
+        {
+            if(point.x ==  cell_graph[i].ceiling[j].x && point.y > cell_graph[i].ceiling[j].y && point.y < cell_graph[i].floor[j].y)
+            {
+                cell_index = i;
+                return cell_index;
+            }
+        }
+
+    }
+}
+
+
+
+
 
 int main() {
 
@@ -2377,7 +2511,9 @@ int main() {
 
     for(int i = 0; i < first_steps.size(); i++)
     {
-        cv::circle(map, cv::Point(first_steps[i].x, first_steps[i].y), 1, JetColorMap.front(), -1);
+//        cv::circle(map, cv::Point(first_steps[i].x, first_steps[i].y), 1, JetColorMap.front(), -1);
+        map.at<cv::Vec3b>(first_steps[i].y, first_steps[i].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+
         UpdateColorMap();
 
         cv::imshow("trajectory", map);
@@ -2392,7 +2528,9 @@ int main() {
         sub_path = GetBoustrophedonPath(path[i], corner_indicator, robot_radius);
         for(int j = 0; j < sub_path.size(); j++)
         {
-            cv::circle(map, cv::Point(sub_path[j].x, sub_path[j].y), 1, JetColorMap.front(), -1);
+//            cv::circle(map, cv::Point(sub_path[j].x, sub_path[j].y), 1, JetColorMap.front(), -1);
+            map.at<cv::Vec3b>(sub_path[j].y, sub_path[j].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+
             UpdateColorMap();
 
             cv::imshow("trajectory", map);
@@ -2409,7 +2547,8 @@ int main() {
             for(int k = 0; k < link_path.size(); k++)
             {
 //                cv::circle(map, cv::Point(link_path[k].x, link_path[k].y), 1, JetColorMap.front(), -1);
-                cv::circle(map, cv::Point(link_path[k].x, link_path[k].y), 1, cv::Scalar(255,0,0), -1);
+                map.at<cv::Vec3b>(link_path[k].y, link_path[k].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+
                 UpdateColorMap();
 
                 cv::imshow("trajectory", map);
