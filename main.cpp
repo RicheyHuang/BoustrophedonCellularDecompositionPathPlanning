@@ -550,57 +550,6 @@ bool operator<(const Event& e1, const Event& e2)
     return (e1.x < e2.x || (e1.x == e2.x && e1.y < e2.y) || (e1.x == e2.x && e1.y == e2.y && e1.obstacle_index < e2.obstacle_index));
 }
 
-// 各个多边形按照其左顶点的x值从小到大的顺序进行排列
-std::vector<Event> EventListGenerator(PolygonList polygons)
-{
-    std::vector<Event> event_list;
-
-    Polygon polygon;
-    int leftmost_idx, rightmost_idx;
-
-    for(int i = 0; i < polygons.size(); i++)
-    {
-        polygon = polygons[i];
-        leftmost_idx = std::distance(polygon.begin(),std::min_element(polygon.begin(),polygon.end()));
-        rightmost_idx = std::distance(polygon.begin(), std::max_element(polygon.begin(),polygon.end()));
-
-        event_list.emplace_back(Event(i, polygon[leftmost_idx].x, polygon[leftmost_idx].y, IN));
-        event_list.emplace_back(Event(i, polygon[rightmost_idx].x, polygon[rightmost_idx].y, OUT));
-
-        // 假设多边形为凸壳 且各个顶点按照逆时针的顺序排列
-        if (leftmost_idx < rightmost_idx)
-        {
-            for(int m = 0; m < polygon.size(); m++)
-            {
-                if(leftmost_idx < m && m < rightmost_idx)
-                {
-                    event_list.emplace_back(Event(i, polygon[m].x, polygon[m].y, CEILING));
-                }
-                if(m < leftmost_idx || m >rightmost_idx)
-                {
-                    event_list.emplace_back(Event(i, polygon[m].x, polygon[m].y, FLOOR));
-                }
-            }
-        }
-        else if(leftmost_idx > rightmost_idx)
-        {
-            for(int n = 0; n < polygon.size(); n++)
-            {
-                if(rightmost_idx < n && n < leftmost_idx)
-                {
-                    event_list.emplace_back(Event(i, polygon[n].x, polygon[n].y, FLOOR));
-                }
-                if(n < rightmost_idx || n > leftmost_idx)
-                {
-                    event_list.emplace_back(Event(i, polygon[n].x, polygon[n].y, CEILING));
-                }
-            }
-        }
-    }
-    std::sort(event_list.begin(),event_list.end());
-    return event_list;
-}
-
 
 std::vector<Event> InitializeEventList(Polygon polygon, int polygon_index)
 {
@@ -611,7 +560,6 @@ std::vector<Event> InitializeEventList(Polygon polygon, int polygon_index)
     }
     return event_list;
 }
-
 
 void EventTypeAllocator(std::vector<Event>& event_list)
 {
@@ -762,9 +710,9 @@ void EventTypeAllocator(std::vector<Event>& event_list)
 
 
     // determine inner
-    Point2D neighbor_point = Point2D(INT_MAX, INT_MAX);
+    Point2D neighbor_point;
 
-    for(int i = 1; i <= index_list.size(); i++)
+    for(int i = 0; i < index_list.size(); i++)
     {
         if(event_list[index_list[i]].event_type == OUT)
         {
@@ -777,7 +725,6 @@ void EventTypeAllocator(std::vector<Event>& event_list)
 
         if(event_list[index_list[i]].event_type == OUT_TOP)
         {
-            // TODO: case: index_list length less than 4
             neighbor_point = Point2D(event_list[index_list[i]].x+1, event_list[index_list[i]].y);
             if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255))
             {
@@ -827,7 +774,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
     // determine floor and ceiling
     int temp_index;
 
-    for(int i = 1; i <= index_list.size(); i++)
+    for(int i = 0; i < index_list.size(); i++)
     {
         if(
             (event_list[index_list[0]].event_type==OUT
@@ -933,7 +880,8 @@ void EventTypeAllocator(std::vector<Event>& event_list)
     }
 }
 
-std::vector<Event> EventListGenerator2(PolygonList polygons)
+// 各个多边形按照其左顶点的x值从小到大的顺序进行排列
+std::vector<Event> EventListGenerator(PolygonList polygons)
 {
     std::vector<Event> event_list;
     std::vector<Event> event_sublist;
@@ -1054,8 +1002,6 @@ void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out, P
 
 }
 
-
-
 void ExecuteCeilOperation(int curr_cell_idx, const Point2D& ceil_point) // finish constructing last ceiling edge
 {
     cell_graph[curr_cell_idx].ceiling.emplace_back(ceil_point);
@@ -1065,8 +1011,6 @@ void ExecuteFloorOperation(int curr_cell_idx, const Point2D& floor_point) // fin
 {
     cell_graph[curr_cell_idx].floor.emplace_back(floor_point);
 }
-
-
 
 void ExecuteOpenOperation(int curr_cell_idx, Point2D in_top, Point2D in_bottom, Point2D c, Point2D f, bool rewrite = false) // in event  add two new node
 {
@@ -1144,9 +1088,6 @@ void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out_to
 
 }
 
-
-
-
 void ExecuteInnerOpenOperation(Point2D inner_in)
 {
     CellNode new_cell;
@@ -1187,9 +1128,6 @@ void ExecuteInnerCloseOperation(int curr_cell_idx, Point2D inner_out_top, Point2
 
 
 
-
-
-
 std::vector<int> cell_index_slice; // 按y从小到大排列
 std::vector<int> original_cell_index_slice;
 
@@ -1224,7 +1162,6 @@ void FinishCellDecomposition(Point2D last_out_pos)
     unvisited_counter = cell_graph.size();
 }
 
-
 void DrawCells(const CellNode& cell)
 {
     for(int i = 0; i < cell.ceiling.size(); i++)
@@ -1240,7 +1177,6 @@ void DrawCells(const CellNode& cell)
     cv::line(map, cv::Point(cell.ceiling.front().x,cell.ceiling.front().y), cv::Point(cell.floor.front().x,cell.floor.front().y), cv::Scalar(96, 96, 96));
     cv::line(map, cv::Point(cell.ceiling.back().x,cell.ceiling.back().y), cv::Point(cell.floor.back().x,cell.floor.back().y), cv::Scalar(96, 96, 96));
 }
-
 
 std::deque<Event> SortSliceEvent(const std::deque<Event>& slice)
 {
@@ -1276,24 +1212,6 @@ int CountCells(const std::deque<Event>& slice, int curr_idx)
     int cell_num = 0;
     for(int i = 0; i < curr_idx; i++)
     {
-        if(slice[i].event_type==IN)
-        {
-            cell_num++;
-        }
-        if(slice[i].event_type==FLOOR)
-        {
-            cell_num++;
-        }
-    }
-    return cell_num;
-}
-
-
-int CountCells2(const std::deque<Event>& slice, int curr_idx)
-{
-    int cell_num = 0;
-    for(int i = 0; i < curr_idx; i++)
-    {
         if(
               (slice[i].event_type==IN)
            || (slice[i].event_type==IN_TOP)
@@ -1308,8 +1226,19 @@ int CountCells2(const std::deque<Event>& slice, int curr_idx)
     return cell_num;
 }
 
+std::deque<Event> FilterSlice(std::deque<Event> slice)
+{
+    std::deque<Event> filtered_slice;
 
-
+    for(int i = 0; i < slice.size(); i++)
+    {
+        if(slice[i].event_type!=MIDDLE && slice[i].event_type!=UNALLOCATED)
+        {
+            filtered_slice.emplace_back(slice[i]);
+        }
+    }
+    return filtered_slice;
+}
 
 /***
  * in.y在哪个cell的ceil和floor中间，就选取哪个cell作为in operation的curr cell， in上面的点为c, in下面的点为f
@@ -1326,138 +1255,6 @@ int CountCells2(const std::deque<Event>& slice, int curr_idx)
  * **/
 
 void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
-{
-    int curr_cell_idx = INT_MAX;
-    int top_cell_idx = INT_MAX;
-    int bottom_cell_idx = INT_MAX;
-
-    int slice_x = INT_MAX;
-    int event_y = INT_MAX;
-
-    std::deque<Event> sorted_slice;
-
-    std::vector<int> sub_cell_index_slices;
-
-    int cell_counter = 0;
-
-    cell_index_slice.emplace_back(0); // initialization
-
-    for(int i = 0; i < slice_list.size(); i++)
-    {
-        slice_x = slice_list[i].front().x;
-        slice_list[i].emplace_front(Event(INT_MAX, slice_x, 0, CEILING));       // add map upper boundary
-        slice_list[i].emplace_back(Event(INT_MAX, slice_x, map.rows-1, FLOOR)); // add map lower boundary
-
-        sorted_slice = SortSliceEvent(slice_list[i]);
-
-        for(int j = 0; j < sorted_slice.size(); j++)
-        {
-            if(sorted_slice[j].event_type == IN)
-            {
-                if(sorted_slice.size() == 3)
-                {
-                    curr_cell_idx = cell_index_slice.back();
-                    ExecuteOpenOperation(curr_cell_idx, Point2D(sorted_slice[j].x, sorted_slice[j].y),
-                                                        Point2D(slice_list[i][sorted_slice[j].original_index_in_slice-1].x, slice_list[i][sorted_slice[j].original_index_in_slice-1].y),
-                                                        Point2D(slice_list[i][sorted_slice[j].original_index_in_slice+1].x, slice_list[i][sorted_slice[j].original_index_in_slice+1].y));
-                    cell_index_slice.pop_back();
-                    cell_index_slice.emplace_back(curr_cell_idx+1);
-                    cell_index_slice.emplace_back(curr_cell_idx+2);
-
-                    slice_list[i][sorted_slice[j].original_index_in_slice].isUsed = true;
-                    slice_list[i][sorted_slice[j].original_index_in_slice-1].isUsed = true;
-                    slice_list[i][sorted_slice[j].original_index_in_slice+1].isUsed = true;
-                }
-                else
-                {
-                    event_y = sorted_slice[j].y;
-                    for(int k = 0; k < cell_index_slice.size(); k++)
-                    {
-                        if(event_y > cell_graph[cell_index_slice[k]].ceiling.back().y && event_y < cell_graph[cell_index_slice[k]].floor.back().y)
-                        {
-                            curr_cell_idx = cell_index_slice[k];
-                            ExecuteOpenOperation(curr_cell_idx, Point2D(sorted_slice[j].x, sorted_slice[j].y),
-                                                                Point2D(slice_list[i][sorted_slice[j].original_index_in_slice-1].x, slice_list[i][sorted_slice[j].original_index_in_slice-1].y),
-                                                                Point2D(slice_list[i][sorted_slice[j].original_index_in_slice+1].x, slice_list[i][sorted_slice[j].original_index_in_slice+1].y));
-                            cell_index_slice.erase(cell_index_slice.begin()+k);
-                            sub_cell_index_slices.clear();
-                            sub_cell_index_slices = {int(cell_graph.size()-2), int(cell_graph.size()-1)};
-                            cell_index_slice.insert(cell_index_slice.begin()+k, sub_cell_index_slices.begin(), sub_cell_index_slices.end());
-
-                            slice_list[i][sorted_slice[j].original_index_in_slice].isUsed = true;
-                            slice_list[i][sorted_slice[j].original_index_in_slice-1].isUsed = true;
-                            slice_list[i][sorted_slice[j].original_index_in_slice+1].isUsed = true;
-
-                            break;
-                        }
-                    }
-                }
-            }
-            if(sorted_slice[j].event_type == OUT)
-            {
-                event_y = sorted_slice[j].y;
-                for(int k = 1; k < cell_index_slice.size(); k++)
-                {
-                    if(event_y > cell_graph[cell_index_slice[k-1]].ceiling.back().y && event_y < cell_graph[cell_index_slice[k]].floor.back().y)
-                    {
-                        top_cell_idx = cell_index_slice[k-1];
-                        bottom_cell_idx = cell_index_slice[k];
-                        ExecuteCloseOperation(top_cell_idx, bottom_cell_idx,
-                                              Point2D(sorted_slice[j].x, sorted_slice[j].y),
-                                              Point2D(slice_list[i][sorted_slice[j].original_index_in_slice-1].x, slice_list[i][sorted_slice[j].original_index_in_slice-1].y),
-                                              Point2D(slice_list[i][sorted_slice[j].original_index_in_slice+1].x, slice_list[i][sorted_slice[j].original_index_in_slice+1].y));
-                        cell_index_slice.erase(cell_index_slice.begin()+k-1);
-                        cell_index_slice.erase(cell_index_slice.begin()+k-1);
-                        cell_index_slice.insert(cell_index_slice.begin()+k-1, int(cell_graph.size()-1));
-
-                        slice_list[i][sorted_slice[j].original_index_in_slice].isUsed = true;
-                        slice_list[i][sorted_slice[j].original_index_in_slice-1].isUsed = true;
-                        slice_list[i][sorted_slice[j].original_index_in_slice+1].isUsed = true;
-
-                        break;
-                    }
-                }
-
-            }
-            if(sorted_slice[j].event_type == CEILING)
-            {
-                cell_counter = CountCells(slice_list[i],sorted_slice[j].original_index_in_slice);
-                curr_cell_idx = cell_index_slice[cell_counter];
-                if(!slice_list[i][sorted_slice[j].original_index_in_slice].isUsed)
-                {
-                    ExecuteCeilOperation(curr_cell_idx, Point2D(sorted_slice[j].x, sorted_slice[j].y));
-                }
-            }
-            if(sorted_slice[j].event_type == FLOOR)
-            {
-                cell_counter = CountCells(slice_list[i],sorted_slice[j].original_index_in_slice);
-                curr_cell_idx = cell_index_slice[cell_counter];
-                if(!slice_list[i][sorted_slice[j].original_index_in_slice].isUsed)
-                {
-                    ExecuteFloorOperation(curr_cell_idx, Point2D(sorted_slice[j].x, sorted_slice[j].y));
-                }
-            }
-        }
-    }
-}
-
-
-std::deque<Event> FilterSlice(std::deque<Event> slice)
-{
-    std::deque<Event> filtered_slice;
-
-    for(int i = 0; i < slice.size(); i++)
-    {
-        if(slice[i].event_type!=MIDDLE && slice[i].event_type!=UNALLOCATED)
-        {
-            filtered_slice.emplace_back(slice[i]);
-        }
-    }
-    return filtered_slice;
-}
-
-
-void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list)
 {
     int curr_cell_idx = INT_MAX;
     int top_cell_idx = INT_MAX;
@@ -1811,7 +1608,7 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list)
         {
             if(curr_slice[j].event_type == CEILING)
             {
-                cell_counter = CountCells2(curr_slice,j);
+                cell_counter = CountCells(curr_slice,j);
                 curr_cell_idx = cell_index_slice[cell_counter];
                 if(!curr_slice[j].isUsed)
                 {
@@ -1820,7 +1617,7 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list)
             }
             if(curr_slice[j].event_type == FLOOR)
             {
-                cell_counter = CountCells2(curr_slice,j);
+                cell_counter = CountCells(curr_slice,j);
                 curr_cell_idx = cell_index_slice[cell_counter];
                 if(!curr_slice[j].isUsed)
                 {
@@ -1830,9 +1627,6 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list)
         }
     }
 }
-
-
-
 
 std::vector<Point2D> ComputeCellCornerPoints(CellNode cell, int robot_radius=0)
 {
@@ -1851,27 +1645,6 @@ std::vector<Point2D> ComputeCellCornerPoints(CellNode cell, int robot_radius=0)
 }
 
 Point2D FindNextEntrance(Point2D curr_point, CellNode next_cell, int& corner_indicator, int robot_radius=0)
-{
-
-    double distance = DBL_MAX;
-    Point2D next_entrance = Point2D(INT_MAX, INT_MAX);
-
-    std::vector<Point2D> next_points = ComputeCellCornerPoints(next_cell, robot_radius);
-
-    for(int i = 0; i < next_points.size(); i++)
-    {
-        if(std::sqrt(pow((next_points[i].x-curr_point.x),2)+pow((next_points[i].y-curr_point.y),2))<distance)
-        {
-            distance = std::sqrt(pow((next_points[i].x-curr_point.x),2)+pow((next_points[i].y-curr_point.y),2));
-            next_entrance.x = next_points[i].x;
-            next_entrance.y = next_points[i].y;
-            corner_indicator = i;
-        }
-    }
-    return next_entrance;
-}
-
-Point2D FindNextEntrance2(Point2D curr_point, CellNode next_cell, int& corner_indicator, int robot_radius=0)
 {
     Point2D next_entrance = Point2D(INT_MAX, INT_MAX);
 
@@ -1912,111 +1685,7 @@ Point2D FindNextEntrance2(Point2D curr_point, CellNode next_cell, int& corner_in
     return next_entrance;
 }
 
-std::deque<Point2D> ExitAlongWall(Point2D start, Point2D end, int end_corner_indicator, CellNode cell, int robot_radius=0)
-{
-    int start_corner_indicator = INT_MAX;
-
-    std::vector<Point2D> corner_points = ComputeCellCornerPoints(cell, robot_radius);
-    for(int i = 0; i < corner_points.size(); i++)
-    {
-        if(corner_points[i].x==start.x && corner_points[i].y == start.y)
-        {
-            start_corner_indicator = i;
-            break;
-        }
-    }
-
-    std::vector<Point2D> left, bottom, right, top;  // 从上往下或从左往右
-    for(int y = corner_points[0].y; y < corner_points[1].y; y++)
-    {
-        left.emplace_back(Point2D(corner_points[0].x, y));
-    }
-    for(int i = robot_radius+1; i < cell.ceiling.size()-(robot_radius+1); i++)
-    {
-        top.emplace_back(Point2D(cell.ceiling[i].x,cell.ceiling[i].y+(robot_radius+1)));
-        bottom.emplace_back(Point2D(cell.floor[i].x,cell.floor[i].y-(robot_radius+1)));
-    }
-    for(int y = corner_points[3].y; y < corner_points[2].y; y++)
-    {
-        right.emplace_back(Point2D(corner_points[3].x, y));
-    }
-
-
-    std::deque<Point2D> path;
-
-    if (start_corner_indicator == end_corner_indicator)
-    {
-        return path;
-    }
-
-    if(start_corner_indicator == TOPLEFT && end_corner_indicator == TOPRIGHT)
-    {
-        path.insert(path.begin(), top.begin(), top.end());
-        return path;
-    }
-    if(start_corner_indicator == TOPLEFT && end_corner_indicator == BOTTOMLEFT)
-    {
-        path.insert(path.begin(), left.begin(), left.end());
-        return path;
-    }
-    if(start_corner_indicator == TOPLEFT && end_corner_indicator == BOTTOMRIGHT)
-    {
-        path.insert(path.begin(),left.begin(), left.end());
-        path.insert(path.end(), bottom.begin(), bottom.end());
-        return path;
-    }
-    if(start_corner_indicator == TOPRIGHT && end_corner_indicator == TOPLEFT)
-    {
-        path.insert(path.begin(), top.rbegin(), top.rend());
-        return path;
-    }
-    if(start_corner_indicator == TOPRIGHT && end_corner_indicator == BOTTOMLEFT)
-    {
-        path.insert(path.begin(), top.rbegin(), top.rend());
-        path.insert(path.end(), left.begin(), left.end());
-        return path;
-    }
-    if(start_corner_indicator == TOPRIGHT && end_corner_indicator == BOTTOMRIGHT)
-    {
-        path.insert(path.begin(), right.begin(), right.end());
-        return path;
-    }
-    if(start_corner_indicator == BOTTOMLEFT && end_corner_indicator == TOPLEFT)
-    {
-        path.insert(path.begin(), left.rbegin(), left.rend());
-        return path;
-    }
-    if(start_corner_indicator == BOTTOMLEFT && end_corner_indicator == TOPRIGHT)
-    {
-        path.insert(path.begin(), bottom.begin(), bottom.end());
-        path.insert(path.end(), right.rbegin(), right.rend());
-        return path;
-    }
-    if(start_corner_indicator == BOTTOMLEFT && end_corner_indicator == BOTTOMRIGHT)
-    {
-        path.insert(path.begin(), bottom.begin(), bottom.end());
-        return path;
-    }
-    if(start_corner_indicator == BOTTOMRIGHT && end_corner_indicator == TOPLEFT)
-    {
-        path.insert(path.begin(), right.rbegin(), right.rend());
-        path.insert(path.end(), top.rbegin(), top.rend());
-        return path;
-    }
-    if(start_corner_indicator == BOTTOMRIGHT && end_corner_indicator == TOPRIGHT)
-    {
-        path.insert(path.begin(), right.rbegin(), right.rend());
-        return path;
-    }
-    if(start_corner_indicator == BOTTOMRIGHT && end_corner_indicator == BOTTOMLEFT)
-    {
-        path.insert(path.begin(), bottom.rbegin(), bottom.rend());
-        return path;
-    }
-
-}
-
-std::deque<Point2D> ExitAlongWall2(Point2D start, Point2D& end, CellNode cell, int robot_radius=0)
+std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell, int robot_radius=0)
 {
     int start_corner_indicator = INT_MAX;
     int end_corner_indicator = INT_MAX;
@@ -2125,15 +1794,17 @@ std::deque<Point2D> ExitAlongWall2(Point2D start, Point2D& end, CellNode cell, i
 
 }
 
-std::deque<Point2D> FindLinkingPath(Point2D curr_exit, Point2D next_entrance, CellNode curr_cell, CellNode next_cell, int robot_radius=0)
+std::deque<Point2D> FindLinkingPath(Point2D curr_exit, Point2D& next_entrance, int& corner_indicator, CellNode curr_cell, CellNode next_cell, int robot_radius=0)
 {
     std::deque<Point2D> path;
     std::deque<Point2D> sub_path;
 
     int exit_corner_indicator = INT_MAX;
     Point2D exit = FindNextEntrance(next_entrance, curr_cell, exit_corner_indicator, robot_radius);
-    sub_path = ExitAlongWall(curr_exit, exit, exit_corner_indicator, curr_cell, robot_radius);
+    sub_path = ExitAlongWall(curr_exit, exit, curr_cell, robot_radius);
     path.insert(path.begin(), sub_path.begin(), sub_path.end());
+
+    next_entrance = FindNextEntrance(exit, next_cell, corner_indicator, robot_radius);
 
     int delta_x = next_entrance.x - exit.x;
     int delta_y = next_entrance.y - exit.y;
@@ -2177,64 +1848,7 @@ std::deque<Point2D> FindLinkingPath(Point2D curr_exit, Point2D next_entrance, Ce
             path.emplace_back(Point2D(next_entrance.x, y));
         }
     }
-
-    return path;
-}
-
-std::deque<Point2D> FindLinkingPath2(Point2D curr_exit, Point2D& next_entrance, int& corner_indicator, CellNode curr_cell, CellNode next_cell, int robot_radius=0)
-{
-    std::deque<Point2D> path;
-    std::deque<Point2D> sub_path;
-
-    int exit_corner_indicator = INT_MAX;
-    Point2D exit = FindNextEntrance2(next_entrance, curr_cell, exit_corner_indicator, robot_radius);
-    sub_path = ExitAlongWall2(curr_exit, exit, curr_cell, robot_radius);
-    path.insert(path.begin(), sub_path.begin(), sub_path.end());
-
-    next_entrance = FindNextEntrance2(exit, next_cell, corner_indicator, robot_radius);
-
-    int delta_x = next_entrance.x - exit.x;
-    int delta_y = next_entrance.y - exit.y;
-
-    int increment_x = 0;
-    int increment_y = 0;
-
-    if (delta_x != 0) {
-        increment_x = delta_x / std::abs(delta_x);
-    }
-    if (delta_y != 0) {
-        increment_y = delta_y / std::abs(delta_y);
-    }
-
-    int upper_bound = INT_MIN;
-    int lower_bound = INT_MAX;
-
-    if (exit.x >= curr_cell.ceiling.back().x - (robot_radius + 1))
-    {
-        upper_bound = (curr_cell.ceiling.end() - 1 - (robot_radius + 1))->y;
-        lower_bound = (curr_cell.floor.end() - 1 - (robot_radius + 1))->y;
-    }
-    if (exit.x <= curr_cell.ceiling.front().x + (robot_radius + 1))
-    {
-        upper_bound = (curr_cell.ceiling.begin() + (robot_radius + 1))->y;
-        lower_bound = (curr_cell.floor.begin() + (robot_radius + 1))->y;
-    }
-
-    if ((next_entrance.y >= upper_bound) && (next_entrance.y <= lower_bound)) {
-        for (int y = exit.y; y != next_entrance.y; y += increment_y) {
-            path.emplace_back(Point2D(exit.x, y));
-        }
-        for (int x = exit.x; x != next_entrance.x; x += increment_x) {
-            path.emplace_back(Point2D(x, next_entrance.y));
-        }
-    } else {
-        for (int x = exit.x; x != next_entrance.x; x += increment_x) {
-            path.emplace_back(Point2D(x, exit.y));
-        }
-        for (int y = exit.y; y != next_entrance.y; y += increment_y) {
-            path.emplace_back(Point2D(next_entrance.x, y));
-        }
-    }
+//    path.emplace_back(next_entrance);
 
     return path;
 }
@@ -2317,7 +1931,6 @@ void UpdateColorMap()
     JetColorMap.pop_front();
     JetColorMap.emplace_back(color);
 }
-
 
 int DetermineCellIndex(Point2D point)
 {
@@ -2495,13 +2108,13 @@ std::deque<Point2D> WalkingCrossCells(std::deque<int> cell_path, Point2D start, 
     Point2D curr_exit, next_entrance;
     int curr_corner_indicator, next_corner_indicator;
 
-    next_entrance = FindNextEntrance2(start, cells[cell_path[1]], next_corner_indicator, robot_radius);
-    curr_exit = FindNextEntrance2(next_entrance, cells[cell_path[0]], curr_corner_indicator, robot_radius);
+    next_entrance = FindNextEntrance(start, cells[cell_path[1]], next_corner_indicator, robot_radius);
+    curr_exit = FindNextEntrance(next_entrance, cells[cell_path[0]], curr_corner_indicator, robot_radius);
     sub_path = WalkingInsideCell(cells[cell_path[0]], start, curr_exit, robot_radius);
     overall_path.insert(overall_path.end(), sub_path.begin(), sub_path.end());
     sub_path.clear();
 
-    sub_path = FindLinkingPath2(curr_exit, next_entrance, next_corner_indicator, cells[cell_path[0]], cells[cell_path[1]], robot_radius);
+    sub_path = FindLinkingPath(curr_exit, next_entrance, next_corner_indicator, cells[cell_path[0]], cells[cell_path[1]], robot_radius);
     overall_path.insert(overall_path.end(), sub_path.begin(), sub_path.end());
     sub_path.clear();
 
@@ -2515,9 +2128,9 @@ std::deque<Point2D> WalkingCrossCells(std::deque<int> cell_path, Point2D start, 
         sub_path.clear();
 
         curr_exit = overall_path.back();
-        next_entrance = FindNextEntrance2(curr_exit, cells[cell_path[i+1]], next_corner_indicator, robot_radius);
+        next_entrance = FindNextEntrance(curr_exit, cells[cell_path[i+1]], next_corner_indicator, robot_radius);
 
-        sub_path = FindLinkingPath2(curr_exit, next_entrance, next_corner_indicator, cells[cell_path[i]], cells[cell_path[i+1]], robot_radius);
+        sub_path = FindLinkingPath(curr_exit, next_entrance, next_corner_indicator, cells[cell_path[i]], cells[cell_path[i+1]], robot_radius);
         overall_path.insert(overall_path.end(), sub_path.begin(), sub_path.end());
         sub_path.clear();
 
@@ -2596,7 +2209,7 @@ int main() {
 //    std::vector<cv::Point> contour1 = {cv::Point(200,300), cv::Point(300,200), cv::Point(200,100), cv::Point(100,200)};
 //    std::vector<cv::Point> contour2 = {cv::Point(300,350), cv::Point(350,300), cv::Point(300,250), cv::Point(250,300)};
 //    std::vector<std::vector<cv::Point>> contours = {contour1, contour2};
-//
+
 
 
 // new data
@@ -2657,13 +2270,13 @@ int main() {
     }
 
     PolygonList polygons = {polygon};
-//
 
-    std::vector<Event> event_list = EventListGenerator2(polygons);
+
+    std::vector<Event> event_list = EventListGenerator(polygons);
 
     std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
     InitializeCellDecomposition(Point2D(slice_list.front().front().x, slice_list.front().front().y));
-    ExecuteCellDecomposition2(slice_list);
+    ExecuteCellDecomposition(slice_list);
     FinishCellDecomposition(Point2D(slice_list.back().back().x, slice_list.back().back().y));
 
     Point2D start_point = Point2D(10, 10);
@@ -2698,22 +2311,22 @@ int main() {
 
     cv::namedWindow("trajectory", cv::WINDOW_NORMAL);
     cv::imshow("trajectory", map);
-    cv::waitKey(0);
+//    cv::waitKey(0);
 
     for(int i = 0; i < cell_graph.size(); i++)
     {
         DrawCells(cell_graph[i]);
         cv::imshow("trajectory", map);
-//        cv::waitKey(500);
+        cv::waitKey(500);
     }
 
 
     for(int i = 0; i < first_steps.size(); i++)
     {
-//        map.at<cv::Vec3b>(first_steps[i].y, first_steps[i].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
-//        UpdateColorMap();
-//        cv::imshow("trajectory", map);
-//        cv::waitKey(1);
+        map.at<cv::Vec3b>(first_steps[i].y, first_steps[i].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+        UpdateColorMap();
+        cv::imshow("trajectory", map);
+        cv::waitKey(1);
     }
 
     std::deque<Point2D> sub_path;
@@ -2724,10 +2337,10 @@ int main() {
         sub_path = GetBoustrophedonPath(path[i], corner_indicator, robot_radius);
         for(int j = 0; j < sub_path.size(); j++)
         {
-//            map.at<cv::Vec3b>(sub_path[j].y, sub_path[j].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
-//            UpdateColorMap();
-//            cv::imshow("trajectory", map);
-//            cv::waitKey(1);
+            map.at<cv::Vec3b>(sub_path[j].y, sub_path[j].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+            UpdateColorMap();
+            cv::imshow("trajectory", map);
+            cv::waitKey(1);
         }
 
         cell_graph[path[i].cellIndex].isCleaned = true;
@@ -2735,14 +2348,15 @@ int main() {
         if((i-1)>=0)
         {
             Point2D curr_exit = sub_path.back();
-            Point2D next_entrance = FindNextEntrance2(curr_exit, path[i - 1], corner_indicator, robot_radius);
-            std::deque<Point2D> link_path = FindLinkingPath2(curr_exit, next_entrance, corner_indicator, path[i], path[i-1], robot_radius);
+            Point2D next_entrance = FindNextEntrance(curr_exit, path[i - 1], corner_indicator, robot_radius);
+            std::deque<Point2D> link_path = FindLinkingPath(curr_exit, next_entrance, corner_indicator, path[i], path[i-1], robot_radius);
             for(int k = 0; k < link_path.size(); k++)
             {
+                map.at<cv::Vec3b>(link_path[k].y, link_path[k].x)=cv::Vec3b(0,0,255);
 //                map.at<cv::Vec3b>(link_path[k].y, link_path[k].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
 //                UpdateColorMap();
-//                cv::imshow("trajectory", map);
-//                cv::waitKey(1);
+                cv::imshow("trajectory", map);
+                cv::waitKey(10);
             }
         }
     }
@@ -2752,7 +2366,7 @@ int main() {
     std::deque<Point2D> return_path = WalkingCrossCells(return_cell_path, end_point, start_point, robot_radius);
     for(int i = 0; i < return_path.size(); i++)
     {
-        map.at<cv::Vec3b>(return_path[i].y, return_path[i].x)=cv::Vec3b(128, 128, 128);
+        map.at<cv::Vec3b>(return_path[i].y, return_path[i].x)=cv::Vec3b(255, 255, 255);
 //        UpdateColorMap();
         cv::imshow("trajectory", map);
         cv::waitKey(1);
