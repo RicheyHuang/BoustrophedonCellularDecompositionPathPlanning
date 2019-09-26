@@ -813,7 +813,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
                 }
                 if(event_list[0].x != event_list[event_list.size()-1].x)
                 {
-                    event_list[0].event_type = CEILING;
+                    event_list[0].event_type = FLOOR;
                 }
                 for(int k = 1; k < index_list[1]; k++)
                 {
