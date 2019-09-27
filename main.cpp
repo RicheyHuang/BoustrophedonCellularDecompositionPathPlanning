@@ -2027,6 +2027,26 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end,
         }
         for(int i = 1; i <= abs(delta_x); i++)
         {
+            // 提前转
+            if(cell.ceiling[start_ceiling_index_offset+increment_x*(i+robot_radius+1)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i-1+robot_radius+1)].y>=2)
+            {
+                int delta = cell.ceiling[start_ceiling_index_offset+increment_x*(i+robot_radius+1)].y-cell.ceiling[start_ceiling_index_offset+increment_x*i].y;
+                int increment = delta/abs(delta);
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    inner_path.emplace_back(Point2D(cell.ceiling[start_ceiling_index_offset+increment_x*i].x, cell.ceiling[start_ceiling_index_offset+increment_x*i].y+(robot_radius + 1)+increment*(j)));
+                }
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    inner_path.emplace_back(Point2D(cell.ceiling[start_ceiling_index_offset+increment_x*(i+k)].x, cell.ceiling[start_ceiling_index_offset+increment_x*(i+k)].y+(robot_radius + 1)+abs(delta)));
+                }
+                i += (robot_radius+1);
+            }
+            // 滞后转
+            if(cell.ceiling[start_ceiling_index_offset+increment_x*(i+robot_radius+1)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i+1+robot_radius+1)].y>=2)
+            {
+
+            }
             inner_path.emplace_back(Point2D(cell.ceiling[start_ceiling_index_offset+(increment_x*i)].x,cell.ceiling[start_ceiling_index_offset+(increment_x*i)].y+(robot_radius + 1)));
         }
 
@@ -2060,6 +2080,16 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end,
         }
         for(int i = 1; i <= abs(delta_x); i++)
         {
+            //提前转
+            if(cell.floor[start_floor_index_offset+increment_x*(i-1+robot_radius+1)].y-cell.floor[start_floor_index_offset+increment_x*(i+robot_radius+1)].y>=2)
+            {
+
+            }
+            //滞后转
+            if(cell.floor[start_floor_index_offset+increment_x*(i+1+robot_radius+1)].y-cell.floor[start_floor_index_offset+increment_x*(i+robot_radius+1)].y>=2)
+            {
+
+            }
             inner_path.emplace_back(Point2D(cell.floor[start_floor_index_offset+(increment_x*i)].x,cell.floor[start_floor_index_offset+(increment_x*i)].y-(robot_radius + 1)));
         }
 
