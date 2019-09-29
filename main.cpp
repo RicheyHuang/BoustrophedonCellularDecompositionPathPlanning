@@ -1697,6 +1697,7 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell, in
 
 
     std::deque<Point2D> path;
+    std::deque<Point2D> temp_path;
 
     if (start_corner_indicator == end_corner_indicator)
     {
@@ -1705,7 +1706,43 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell, in
 
     if(start_corner_indicator == TOPLEFT && end_corner_indicator == TOPRIGHT)
     {
-        path.insert(path.end(), top.begin(), top.end());
+        temp_path.assign(top.begin(), top.end());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            // 提前转
+            if((temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y>=2)&&(i+robot_radius+1<temp_path.size())&&(i-1+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y+abs(delta)));
+                }
+                i += (robot_radius+1);
+            }
+            // 滞后转
+            if((temp_path[i].y-temp_path[i+1].y>=2)&&(i<temp_path.size())&&(i+1<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y+abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y+ + abs(delta) + increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
         return path;
     }
     if(start_corner_indicator == TOPLEFT && end_corner_indicator == BOTTOMLEFT)
@@ -1716,19 +1753,127 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell, in
     }
     if(start_corner_indicator == TOPLEFT && end_corner_indicator == BOTTOMRIGHT)
     {
-        path.insert(path.end(), top.begin(), top.end());
+        temp_path.assign(top.begin(), top.end());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            // 提前转
+            if((temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y>=2)&&(i+robot_radius+1<temp_path.size())&&(i-1+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y+abs(delta)));
+                }
+                i += (robot_radius+1);
+            }
+            // 滞后转
+            if((temp_path[i].y-temp_path[i+1].y>=2)&&(i<temp_path.size())&&(i+1<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y+abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y+ abs(delta) +increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
         end.x = corner_points[TOPRIGHT].x;
         end.y = corner_points[TOPRIGHT].y;
         return path;
     }
     if(start_corner_indicator == TOPRIGHT && end_corner_indicator == TOPLEFT)
     {
-        path.insert(path.end(), top.rbegin(), top.rend());
+        temp_path.assign(top.rbegin(), top.rend());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            // 提前转
+            if((temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y>=2)&&(i+robot_radius+1<temp_path.size())&&(i-1+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y+abs(delta)));
+                }
+                i += (robot_radius+1);
+            }
+            // 滞后转
+            if((temp_path[i].y-temp_path[i+1].y>=2)&&(i<temp_path.size())&&(i+1<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y+abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y+ abs(delta) +increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
         return path;
     }
     if(start_corner_indicator == TOPRIGHT && end_corner_indicator == BOTTOMLEFT)
     {
-        path.insert(path.end(), top.rbegin(), top.rend());
+        temp_path.assign(top.rbegin(), top.rend());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            // 提前转
+            if((temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y>=2)&&(i+robot_radius+1<temp_path.size())&&(i-1+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y+abs(delta)));
+                }
+                i += (robot_radius+1);
+            }
+            // 滞后转
+            if((temp_path[i].y-temp_path[i+1].y>=2)&&(i<temp_path.size())&&(i+1<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y+abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y+ abs(delta) +increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
         end.x = corner_points[TOPLEFT].x;
         end.y = corner_points[TOPLEFT].y;
         return path;
@@ -1747,19 +1892,135 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell, in
     }
     if(start_corner_indicator == BOTTOMLEFT && end_corner_indicator == TOPRIGHT)
     {
-        path.insert(path.end(), bottom.begin(), bottom.end());
+        temp_path.assign(bottom.begin(), bottom.end());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            //提前转
+            if((temp_path[i-1+robot_radius+1].y-temp_path[i+robot_radius+1].y>=2)&&(i-1+robot_radius+1<temp_path.size())&&(i+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y-abs(delta)));
+                }
+                i+= (robot_radius+1);
+            }
+            //滞后转
+            if((temp_path[i+1].y-temp_path[i].y>=2)&&(i+1<temp_path.size())&&(i<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y-abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y -abs(delta) + increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
         end.x = corner_points[BOTTOMRIGHT].x;
         end.y = corner_points[BOTTOMRIGHT].y;
         return path;
     }
     if(start_corner_indicator == BOTTOMLEFT && end_corner_indicator == BOTTOMRIGHT)
     {
-        path.insert(path.end(), bottom.begin(), bottom.end());
+        temp_path.assign(bottom.begin(), bottom.end());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            //提前转
+            if((temp_path[i-1+robot_radius+1].y-temp_path[i+robot_radius+1].y>=2)&&(i-1+robot_radius+1<temp_path.size())&&(i+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y-abs(delta)));
+                }
+                i+= (robot_radius+1);
+            }
+            //滞后转
+            if((temp_path[i+1].y-temp_path[i].y>=2)&&(i+1<temp_path.size())&&(i<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y-abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y -abs(delta) + increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
+
+
         return path;
     }
     if(start_corner_indicator == BOTTOMRIGHT && end_corner_indicator == TOPLEFT)
     {
-        path.insert(path.end(), bottom.rbegin(), bottom.rend());
+        temp_path.assign(bottom.rbegin(), bottom.rend());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            //提前转
+            if((temp_path[i-1+robot_radius+1].y-temp_path[i+robot_radius+1].y>=2)&&(i-1+robot_radius+1<temp_path.size())&&(i+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y-abs(delta)));
+                }
+                i+= (robot_radius+1);
+            }
+            //滞后转
+            if((temp_path[i+1].y-temp_path[i].y>=2)&&(i+1<temp_path.size())&&(i<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y-abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y -abs(delta) + increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
         end.x = corner_points[BOTTOMLEFT].x;
         end.y = corner_points[BOTTOMLEFT].y;
         return path;
@@ -1772,7 +2033,45 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell, in
     }
     if(start_corner_indicator == BOTTOMRIGHT && end_corner_indicator == BOTTOMLEFT)
     {
-        path.insert(path.end(), bottom.rbegin(), bottom.rend());
+        temp_path.assign(bottom.rbegin(), bottom.rend());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            //提前转
+            if((temp_path[i-1+robot_radius+1].y-temp_path[i+robot_radius+1].y>=2)&&(i-1+robot_radius+1<temp_path.size())&&(i+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y-abs(delta)));
+                }
+                i+= (robot_radius+1);
+            }
+            //滞后转
+            if((temp_path[i+1].y-temp_path[i].y>=2)&&(i+1<temp_path.size())&&(i<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y-abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y -abs(delta) + increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
         return path;
     }
 
@@ -2028,7 +2327,9 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end,
         for(int i = 1; i <= abs(delta_x); i++)
         {
             // 提前转
-            if(cell.ceiling[start_ceiling_index_offset+increment_x*(i+robot_radius+1)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i-1+robot_radius+1)].y>=2)
+            if((cell.ceiling[start_ceiling_index_offset+increment_x*(i+robot_radius+1)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i-1+robot_radius+1)].y>=2)
+            &&(i+robot_radius+1 <= abs(delta_x))
+            &&(i-1+robot_radius+1 <= abs(delta_x)))
             {
                 int delta = cell.ceiling[start_ceiling_index_offset+increment_x*(i+robot_radius+1)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i-1+robot_radius+1)].y;
                 int increment = delta/abs(delta);
@@ -2043,7 +2344,9 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end,
                 i += (robot_radius+1);
             }
             // 滞后转
-            if(cell.ceiling[start_ceiling_index_offset+increment_x*(i)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i+1)].y>=2)
+            if((cell.ceiling[start_ceiling_index_offset+increment_x*(i)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i+1)].y>=2)
+            &&(i<=abs(delta_x))
+            &&(i+1<=abs(delta_x)))
             {
                 inner_path.emplace_back(Point2D(cell.ceiling[start_ceiling_index_offset+increment_x*(i)].x, cell.ceiling[start_ceiling_index_offset+increment_x*(i)].y+(robot_radius+1)));
 
@@ -2093,7 +2396,9 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end,
         for(int i = 1; i <= abs(delta_x); i++)
         {
             //提前转
-            if(cell.floor[start_floor_index_offset+increment_x*(i-1+(robot_radius+1))].y-cell.floor[start_floor_index_offset+increment_x*(i+(robot_radius+1))].y>=2)
+            if((cell.floor[start_floor_index_offset+increment_x*(i-1+(robot_radius+1))].y-cell.floor[start_floor_index_offset+increment_x*(i+(robot_radius+1))].y>=2)
+            &&(i-1+(robot_radius+1)<=abs(delta_x))
+            &&(i+(robot_radius+1)<=abs(delta_x)))
             {
                 int delta = cell.floor[start_floor_index_offset+increment_x*(i+(robot_radius+1))].y-cell.floor[start_floor_index_offset+increment_x*(i-1+(robot_radius+1))].y;
                 int increment = delta/abs(delta);
@@ -2108,7 +2413,9 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end,
                 i += (robot_radius + 1);
             }
             //滞后转
-            if(cell.floor[start_floor_index_offset+increment_x*(i+1)].y-cell.floor[start_floor_index_offset+increment_x*(i)].y>=2)
+            if((cell.floor[start_floor_index_offset+increment_x*(i+1)].y-cell.floor[start_floor_index_offset+increment_x*(i)].y>=2)
+            &&(i+1<=abs(delta_x))
+            &&(i<=abs(delta_x)))
             {
                 inner_path.emplace_back(Point2D(cell.floor[start_floor_index_offset+increment_x*(i)].x, cell.floor[start_floor_index_offset+increment_x*(i)].y-(robot_radius+1)));
 
@@ -2120,7 +2427,7 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end,
                 int increment = delta/abs(delta);
                 for(int k = 0; k <= abs(delta); k++)
                 {
-                    inner_path.emplace_back(Point2D(cell.floor[start_floor_index_offset+increment_x*(i+(robot_radius+1))].x, cell.floor[start_floor_index_offset+increment_x*(i+(robot_radius+1))].y-(robot_radius+1)+increment*(k)));
+                    inner_path.emplace_back(Point2D(cell.floor[start_floor_index_offset+increment_x*(i+(robot_radius+1))].x, cell.floor[start_floor_index_offset+increment_x*(i+(robot_radius+1))].y-(robot_radius+1) -abs(delta) +increment*(k)));
                 }
                 i += (robot_radius+2);
             }
@@ -2417,7 +2724,7 @@ int main() {
         map.at<cv::Vec3b>(return_path[i].y, return_path[i].x)=cv::Vec3b(255, 255, 255);
 //        UpdateColorMap();
         cv::imshow("trajectory", map);
-        cv::waitKey(1);
+        cv::waitKey(10);
     }
 
     cv::waitKey(0);
