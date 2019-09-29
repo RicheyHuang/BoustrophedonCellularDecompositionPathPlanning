@@ -206,15 +206,41 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(( x+j > ceiling.back().x - (robot_radius + 2))
-                              ||(ceiling[i+j+robot_radius+3].y-ceiling[i+j+robot_radius+2].y>=2)
-                              ||(ceiling[i+j+2].y-ceiling[i+j+3].y>=2)
-                              ||(floor[i+j+robot_radius].y-floor[i+j+robot_radius+1].y>=2)
-                              ||(floor[i+j+1].y-floor[i+j].y>=2))
+                            // 沿着floor从左往右
+                            if( x+j >= ceiling.back().x - (robot_radius + 1))
                             {
                                 i = i - (robot_radius - (j - 1));
                                 break;
                             }
+                            if((floor[i+(j+robot_radius+2)].y-floor[i+(j-1+robot_radius+2)].y>=2)
+                            &&(i+(j+robot_radius+2) < floor.size()-(robot_radius + 1))
+                            &&(i+(j-1+robot_radius+2) < floor.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i+(j+1)].y-floor[i+(j+2)].y>=2)
+                            &&(i+(j+1)< floor.size()-(robot_radius + 1))
+                            &&(i+(j+2)< floor.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i+(j-1+robot_radius+1)].y-floor[i+(j+robot_radius+1)].y>=2)
+                            &&(i+(j-1+robot_radius+1)< floor.size()-(robot_radius + 1))
+                            &&(i+(j+robot_radius+1)< floor.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i+(j+1)].y-floor[i+(j)].y>=2)
+                            &&(i+(j+1)< floor.size()-(robot_radius + 1))
+                            &&(i+(j)< floor.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+
                             path.emplace_back(Point2D(x+j, floor[i+j].y-(robot_radius + 1)));
                         }
                     }
@@ -235,11 +261,36 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if((x+j > ceiling.back().x - (robot_radius + 2))
-                            ||(ceiling[i+j+robot_radius+1].y-ceiling[i+j+robot_radius].y>=2)
-                            ||(ceiling[i+j].y-ceiling[i+j+1].y>=2)
-                            ||(floor[i+j+robot_radius+2].y-floor[i+j+robot_radius+3].y>=2)
-                            ||(floor[i+j+3].y-floor[i+j+2].y>=2))
+                            // 沿着ceiling从左往右
+                            if(x+j >= ceiling.back().x - (robot_radius + 1))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i+(j+robot_radius+1)].y-ceiling[i+(j-1+robot_radius+1)].y>=2)
+                            &&(i+(j+robot_radius+1)<ceiling.size()-(robot_radius + 1))
+                            &&(i+(j-1+robot_radius+1)<ceiling.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i+(j)].y-ceiling[i+(j+1)].y>=2)
+                            &&(i+(j)<ceiling.size()-(robot_radius + 1))
+                            &&(i+(j+1)<ceiling.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i+(j-1+robot_radius+2)].y-ceiling[i+(j+robot_radius+2)].y>=2)
+                            &&(i+(j-1+robot_radius+2)<ceiling.size()-(robot_radius + 1))
+                            &&(i+(j+robot_radius+2)<ceiling.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i+(j+2)].y-ceiling[i+(j+1)].y>=2)
+                            &&(i+(j+2)<ceiling.size()-(robot_radius + 1))
+                            &&(i+(j+1)<ceiling.size()-(robot_radius + 1)))
                             {
                                 i = i - (robot_radius - (j - 1));
                                 break;
@@ -276,11 +327,36 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if((x-j < ceiling.front().x + (robot_radius + 2))
-                            ||(ceiling[i-j-2].y-ceiling[i-j-3].y>=2)
-                            ||(ceiling[i-j-robot_radius-3].y-ceiling[i-j-robot_radius-2].y>=2)
-                            ||(floor[i-j-1].y-floor[i-j].y>=2)
-                            ||(floor[i-j-robot_radius].y-floor[i-j-robot_radius-1].y>=2))
+                            // 沿着floor从右往左
+                            if(x-j <= ceiling.front().x + (robot_radius + 1))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i-(j+1)].y-floor[i-(j+2)].y>=2)
+                            &&(i-(j+1)>=(robot_radius+1))
+                            &&(i-(j+2)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i-(j+robot_radius+2)].y-floor[i-(j-1+robot_radius+2)].y>=2)
+                            &&(i-(j+robot_radius+2)>=(robot_radius+1))
+                            &&(i-(j-1+robot_radius+2)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i-(j+1)].y-floor[i-(j)].y>=2)
+                            &&(i-(j+1)>=(robot_radius+1))
+                            &&(i-(j)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i-(j-1+robot_radius+1)].y-floor[i-(j+robot_radius+1)].y>=2)
+                            &&(i-(j-1+robot_radius+1)>=(robot_radius+1))
+                            &&(i-(j+robot_radius+1)>=(robot_radius+1)))
                             {
                                 i = i + (robot_radius - (j - 1));
                                 break;
@@ -305,11 +381,36 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(( x-j < ceiling.front().x + (robot_radius + 2))
-                            ||(ceiling[i-j].y-ceiling[i-j-1].y>=2)
-                            ||(ceiling[i-j-robot_radius-1].y-ceiling[i-j-robot_radius].y>=2)
-                            ||(floor[i-j-3].y-floor[i-j-2].y>=2)
-                            ||(floor[i-j-robot_radius-2].y-floor[i-j-robot_radius-3].y>=2))
+                            // 沿着ceiling从右往左
+                            if( x-j <= ceiling.front().x + (robot_radius + 1))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i-(j)].y-ceiling[i-(j+1)].y>=2)
+                            &&(i-(j)>=(robot_radius+1))
+                            &&(i-(j+1)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i-(j+robot_radius+1)].y-ceiling[i-(j-1+robot_radius+1)].y>=2)
+                            &&(i-(j+robot_radius+1)>=(robot_radius+1))
+                            &&(i-(j-1+robot_radius+1)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i-(j+2)].y-ceiling[i-(j+1)].y>=2)
+                            &&(i-(j+2)>=(robot_radius+1))
+                            &&(i-(j+1)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i-(j-1+robot_radius+2)].y-ceiling[i-(j+robot_radius+2)].y>=2)
+                            &&(i-(j-1+robot_radius+2)>=(robot_radius+1))
+                            &&(i-(j+robot_radius+2)>=(robot_radius+1)))
                             {
                                 i = i + (robot_radius - (j - 1));
                                 break;
@@ -346,11 +447,36 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if((x+j > ceiling.back().x - (robot_radius + 2))
-                              ||(ceiling[i+j+robot_radius+1].y-ceiling[i+j+robot_radius].y>=2)
-                              ||(ceiling[i+j].y-ceiling[i+j+1].y>=2)
-                              ||(floor[i+j+robot_radius+2].y-floor[i+j+robot_radius+3].y>=2)
-                              ||(floor[i+j+3].y-floor[i+j+2].y>=2))
+                            // 沿着ceiling从左往右
+                            if(x+j >= ceiling.back().x - (robot_radius + 1))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i+(j+robot_radius+1)].y-ceiling[i+(j-1+robot_radius+1)].y>=2)
+                               &&(i+(j+robot_radius+1)<ceiling.size()-(robot_radius + 1))
+                               &&(i+(j-1+robot_radius+1)<ceiling.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i+(j)].y-ceiling[i+(j+1)].y>=2)
+                               &&(i+(j)<ceiling.size()-(robot_radius + 1))
+                               &&(i+(j+1)<ceiling.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i+(j-1+robot_radius+2)].y-ceiling[i+(j+robot_radius+2)].y>=2)
+                               &&(i+(j-1+robot_radius+2)<ceiling.size()-(robot_radius + 1))
+                               &&(i+(j+robot_radius+2)<ceiling.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i+(j+2)].y-ceiling[i+(j+1)].y>=2)
+                               &&(i+(j+2)<ceiling.size()-(robot_radius + 1))
+                               &&(i+(j+1)<ceiling.size()-(robot_radius + 1)))
                             {
                                 i = i - (robot_radius - (j - 1));
                                 break;
@@ -375,11 +501,36 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if((x+j > ceiling.back().x - (robot_radius + 2))
-                              ||(ceiling[i+j+robot_radius+3].y-ceiling[i+j+robot_radius+2].y>=2)
-                              ||(ceiling[i+j+2].y-ceiling[i+j+3].y>=2)
-                              ||(floor[i+j+robot_radius].y-floor[i+j+robot_radius+1].y>=2)
-                              ||(floor[i+j+1].y-floor[i+j].y>=2))
+                            // 沿着floor从左往右
+                            if(x+j >= ceiling.back().x - (robot_radius + 1))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i+(j+robot_radius+2)].y-floor[i+(j-1+robot_radius+2)].y>=2)
+                               &&(i+(j+robot_radius+2) < floor.size()-(robot_radius + 1))
+                               &&(i+(j-1+robot_radius+2) < floor.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i+(j+1)].y-floor[i+(j+2)].y>=2)
+                               &&(i+(j+1)< floor.size()-(robot_radius + 1))
+                               &&(i+(j+2)< floor.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i+(j-1+robot_radius+1)].y-floor[i+(j+robot_radius+1)].y>=2)
+                               &&(i+(j-1+robot_radius+1)< floor.size()-(robot_radius + 1))
+                               &&(i+(j+robot_radius+1)< floor.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i+(j+1)].y-floor[i+(j)].y>=2)
+                               &&(i+(j+1)< floor.size()-(robot_radius + 1))
+                               &&(i+(j)< floor.size()-(robot_radius + 1)))
                             {
                                 i = i - (robot_radius - (j - 1));
                                 break;
@@ -416,15 +567,41 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if((x-j < ceiling.front().x + (robot_radius + 2))
-                              ||(ceiling[i-j].y-ceiling[i-j-1].y>=2)
-                              ||(ceiling[i-j-robot_radius-1].y-ceiling[i-j-robot_radius].y>=2)
-                              ||(floor[i-j-3].y-floor[i-j-2].y>=2)
-                              ||(floor[i-j-robot_radius-2].y-floor[i-j-robot_radius-3].y>=2))
+                            // 沿着ceiling从右往左
+                            if(x-j <= ceiling.front().x + (robot_radius + 1))
                             {
                                 i = i + (robot_radius - (j - 1));
                                 break;
                             }
+                            if((ceiling[i-(j)].y-ceiling[i-(j+1)].y>=2)
+                               &&(i-(j)>=(robot_radius+1))
+                               &&(i-(j+1)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i-(j+robot_radius+1)].y-ceiling[i-(j-1+robot_radius+1)].y>=2)
+                               &&(i-(j+robot_radius+1)>=(robot_radius+1))
+                               &&(i-(j-1+robot_radius+1)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i-(j+2)].y-ceiling[i-(j+1)].y>=2)
+                               &&(i-(j+2)>=(robot_radius+1))
+                               &&(i-(j+1)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i-(j-1+robot_radius+2)].y-ceiling[i-(j+robot_radius+2)].y>=2)
+                               &&(i-(j-1+robot_radius+2)>=(robot_radius+1))
+                               &&(i-(j+robot_radius+2)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+
                             path.emplace_back(Point2D(x-j, ceiling[i-j].y+(robot_radius + 1)));
                         }
                     }
@@ -445,11 +622,36 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if((x-j < ceiling.front().x + (robot_radius + 2))
-                              ||(ceiling[i-j-2].y-ceiling[i-j-3].y>=2)
-                              ||(ceiling[i-j-robot_radius-3].y-ceiling[i-j-robot_radius-2].y>=2)
-                              ||(floor[i-j-1].y-floor[i-j].y>=2)
-                              ||(floor[i-j-robot_radius].y-floor[i-j-robot_radius-1].y>=2))
+                            // 沿着floor从右往左
+                            if(x-j <= ceiling.front().x + (robot_radius + 1))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i-(j+1)].y-floor[i-(j+2)].y>=2)
+                               &&(i-(j+1)>=(robot_radius+1))
+                               &&(i-(j+2)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i-(j+robot_radius+2)].y-floor[i-(j-1+robot_radius+2)].y>=2)
+                               &&(i-(j+robot_radius+2)>=(robot_radius+1))
+                               &&(i-(j-1+robot_radius+2)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i-(j+1)].y-floor[i-(j)].y>=2)
+                               &&(i-(j+1)>=(robot_radius+1))
+                               &&(i-(j)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i-(j-1+robot_radius+1)].y-floor[i-(j+robot_radius+1)].y>=2)
+                               &&(i-(j-1+robot_radius+1)>=(robot_radius+1))
+                               &&(i-(j+robot_radius+1)>=(robot_radius+1)))
                             {
                                 i = i + (robot_radius - (j - 1));
                                 break;
