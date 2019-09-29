@@ -206,24 +206,41 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if( x+j > ceiling.back().x - (robot_radius + 1))
+                            // 沿着floor从左往右
+                            if( x+j >= ceiling.back().x - (robot_radius + 1))
                             {
                                 i = i - (robot_radius - (j - 1));
                                 break;
                             }
-//                            if(floor[i+j+(robot_radius + 1)].x == floor[i+j+(robot_radius + 1)+1].x)
-//                            {
-//                                if (floor[i + j + (robot_radius + 1)].y > floor[i + j + (robot_radius + 1) + 1].y)
-//                                {
-//                                    i = i - (robot_radius - (j - 1));
-//                                    break;
-//                                }
-//                            }
-//                            if(floor[i+j].x == floor[i+j+1].x)
-//                            {
-//                                i = i - (robot_radius - (j - 1));
-//                                break;
-//                            }
+                            if((floor[i+(j+robot_radius+2)].y-floor[i+(j-1+robot_radius+2)].y>=2)
+                            &&(i+(j+robot_radius+2) < floor.size()-(robot_radius + 1))
+                            &&(i+(j-1+robot_radius+2) < floor.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i+(j+1)].y-floor[i+(j+2)].y>=2)
+                            &&(i+(j+1)< floor.size()-(robot_radius + 1))
+                            &&(i+(j+2)< floor.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i+(j-1+robot_radius+1)].y-floor[i+(j+robot_radius+1)].y>=2)
+                            &&(i+(j-1+robot_radius+1)< floor.size()-(robot_radius + 1))
+                            &&(i+(j+robot_radius+1)< floor.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i+(j+1)].y-floor[i+(j)].y>=2)
+                            &&(i+(j+1)< floor.size()-(robot_radius + 1))
+                            &&(i+(j)< floor.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+
                             path.emplace_back(Point2D(x+j, floor[i+j].y-(robot_radius + 1)));
                         }
                     }
@@ -244,25 +261,40 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(x+j > ceiling.back().x - (robot_radius + 1))
+                            // 沿着ceiling从左往右
+                            if(x+j >= ceiling.back().x - (robot_radius + 1))
                             {
                                 i = i - (robot_radius - (j - 1));
                                 break;
                             }
-//                            if(ceiling[i+j+(robot_radius + 1)].x == ceiling[i+j+(robot_radius + 1)+1].x)
-//                            {
-//                               if(ceiling[i+j+(robot_radius + 1)].y < ceiling[i+j+(robot_radius + 1)+1].y)
-//                               {
-//                                   i = i - (robot_radius - (j - 1));
-//                                   break;
-//                               }
-//                            }
-//                            if(ceiling[i+j].x == ceiling[i+j+1].x)
-//                            {
-//                                i = i - (robot_radius - (j - 1));
-//                                break;
-//                            }
-
+                            if((ceiling[i+(j+robot_radius+1)].y-ceiling[i+(j-1+robot_radius+1)].y>=2)
+                            &&(i+(j+robot_radius+1)<ceiling.size()-(robot_radius + 1))
+                            &&(i+(j-1+robot_radius+1)<ceiling.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i+(j)].y-ceiling[i+(j+1)].y>=2)
+                            &&(i+(j)<ceiling.size()-(robot_radius + 1))
+                            &&(i+(j+1)<ceiling.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i+(j-1+robot_radius+2)].y-ceiling[i+(j+robot_radius+2)].y>=2)
+                            &&(i+(j-1+robot_radius+2)<ceiling.size()-(robot_radius + 1))
+                            &&(i+(j+robot_radius+2)<ceiling.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i+(j+2)].y-ceiling[i+(j+1)].y>=2)
+                            &&(i+(j+2)<ceiling.size()-(robot_radius + 1))
+                            &&(i+(j+1)<ceiling.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
                             path.emplace_back(Point2D(x+j, ceiling[i+j].y+(robot_radius + 1)));
                         }
                     }
@@ -295,24 +327,40 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(x-j < ceiling.front().x + (robot_radius + 1))
+                            // 沿着floor从右往左
+                            if(x-j <= ceiling.front().x + (robot_radius + 1))
                             {
                                 i = i + (robot_radius - (j - 1));
                                 break;
                             }
-//                            if(floor[i-j-(robot_radius + 1)].x == floor[i-j-(robot_radius + 1)-1].x)
-//                            {
-//                                if(floor[i-j-(robot_radius + 1)].y > floor[i-j-(robot_radius + 1)-1].y)
-//                                {
-//                                    i = i + (robot_radius - (j - 1));
-//                                    break;
-//                                }
-//                            }
-//                            if(floor[i-j].x == floor[i-j-1].x)
-//                            {
-//                                i = i + (robot_radius - (j - 1));
-//                                break;
-//                            }
+                            if((floor[i-(j+1)].y-floor[i-(j+2)].y>=2)
+                            &&(i-(j+1)>=(robot_radius+1))
+                            &&(i-(j+2)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i-(j+robot_radius+2)].y-floor[i-(j-1+robot_radius+2)].y>=2)
+                            &&(i-(j+robot_radius+2)>=(robot_radius+1))
+                            &&(i-(j-1+robot_radius+2)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i-(j+1)].y-floor[i-(j)].y>=2)
+                            &&(i-(j+1)>=(robot_radius+1))
+                            &&(i-(j)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i-(j-1+robot_radius+1)].y-floor[i-(j+robot_radius+1)].y>=2)
+                            &&(i-(j-1+robot_radius+1)>=(robot_radius+1))
+                            &&(i-(j+robot_radius+1)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
                             path.emplace_back(Point2D(x-j, floor[i-j].y-(robot_radius + 1)));
                         }
                     }
@@ -333,24 +381,40 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if( x-j < ceiling.front().x + (robot_radius + 1))
+                            // 沿着ceiling从右往左
+                            if( x-j <= ceiling.front().x + (robot_radius + 1))
                             {
                                 i = i + (robot_radius - (j - 1));
                                 break;
                             }
-//                            if(ceiling[i-j-(robot_radius + 1)].x == ceiling[i-j-(robot_radius + 1)-1].x)
-//                            {
-//                                if(ceiling[i-j-(robot_radius + 1)].y < ceiling[i-j-(robot_radius + 1)-1].y)
-//                                {
-//                                    i = i + (robot_radius - (j - 1));
-//                                    break;
-//                                }
-//                            }
-//                            if(ceiling[i-j].x == ceiling[i-j-1].x)
-//                            {
-//                                i = i + (robot_radius - (j - 1));
-//                                break;
-//                            }
+                            if((ceiling[i-(j)].y-ceiling[i-(j+1)].y>=2)
+                            &&(i-(j)>=(robot_radius+1))
+                            &&(i-(j+1)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i-(j+robot_radius+1)].y-ceiling[i-(j-1+robot_radius+1)].y>=2)
+                            &&(i-(j+robot_radius+1)>=(robot_radius+1))
+                            &&(i-(j-1+robot_radius+1)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i-(j+2)].y-ceiling[i-(j+1)].y>=2)
+                            &&(i-(j+2)>=(robot_radius+1))
+                            &&(i-(j+1)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i-(j-1+robot_radius+2)].y-ceiling[i-(j+robot_radius+2)].y>=2)
+                            &&(i-(j-1+robot_radius+2)>=(robot_radius+1))
+                            &&(i-(j+robot_radius+2)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
                             path.emplace_back(Point2D(x-j, ceiling[i-j].y+(robot_radius + 1)));
                         }
                     }
@@ -383,24 +447,40 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(x+j > ceiling.back().x - (robot_radius + 1))
+                            // 沿着ceiling从左往右
+                            if(x+j >= ceiling.back().x - (robot_radius + 1))
                             {
                                 i = i - (robot_radius - (j - 1));
                                 break;
                             }
-//                            if(ceiling[i+j+(robot_radius + 1)].x == ceiling[i+j+(robot_radius + 1)+1].x)
-//                            {
-//                                if(ceiling[i+j+(robot_radius + 1)].y > ceiling[i+j+(robot_radius + 1)+1].y)
-//                                {
-//                                    i = i - (robot_radius - (j - 1));
-//                                    break;
-//                                }
-//                            }
-//                            if(ceiling[i+j].x == ceiling[i+j+1].x)
-//                            {
-//                                i = i - (robot_radius - (j - 1));
-//                                break;
-//                            }
+                            if((ceiling[i+(j+robot_radius+1)].y-ceiling[i+(j-1+robot_radius+1)].y>=2)
+                               &&(i+(j+robot_radius+1)<ceiling.size()-(robot_radius + 1))
+                               &&(i+(j-1+robot_radius+1)<ceiling.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i+(j)].y-ceiling[i+(j+1)].y>=2)
+                               &&(i+(j)<ceiling.size()-(robot_radius + 1))
+                               &&(i+(j+1)<ceiling.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i+(j-1+robot_radius+2)].y-ceiling[i+(j+robot_radius+2)].y>=2)
+                               &&(i+(j-1+robot_radius+2)<ceiling.size()-(robot_radius + 1))
+                               &&(i+(j+robot_radius+2)<ceiling.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i+(j+2)].y-ceiling[i+(j+1)].y>=2)
+                               &&(i+(j+2)<ceiling.size()-(robot_radius + 1))
+                               &&(i+(j+1)<ceiling.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
                             path.emplace_back(Point2D(x+j, ceiling[i+j].y+(robot_radius + 1)));
                         }
                     }
@@ -421,24 +501,40 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(x+j > ceiling.back().x - (robot_radius + 1))
+                            // 沿着floor从左往右
+                            if(x+j >= ceiling.back().x - (robot_radius + 1))
                             {
                                 i = i - (robot_radius - (j - 1));
                                 break;
                             }
-//                            if(floor[i+j+(robot_radius + 1)].x == floor[i+j+(robot_radius + 1)+1].x)
-//                            {
-//                                if(floor[i+j+(robot_radius + 1)].y < floor[i+j+(robot_radius + 1)+1].y)
-//                                {
-//                                    i = i - (robot_radius - (j - 1));
-//                                    break;
-//                                }
-//                            }
-//                            if(floor[i+j].x == floor[i+j+1].x)
-//                            {
-//                                i = i - (robot_radius - (j - 1));
-//                                break;
-//                            }
+                            if((floor[i+(j+robot_radius+2)].y-floor[i+(j-1+robot_radius+2)].y>=2)
+                               &&(i+(j+robot_radius+2) < floor.size()-(robot_radius + 1))
+                               &&(i+(j-1+robot_radius+2) < floor.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i+(j+1)].y-floor[i+(j+2)].y>=2)
+                               &&(i+(j+1)< floor.size()-(robot_radius + 1))
+                               &&(i+(j+2)< floor.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i+(j-1+robot_radius+1)].y-floor[i+(j+robot_radius+1)].y>=2)
+                               &&(i+(j-1+robot_radius+1)< floor.size()-(robot_radius + 1))
+                               &&(i+(j+robot_radius+1)< floor.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i+(j+1)].y-floor[i+(j)].y>=2)
+                               &&(i+(j+1)< floor.size()-(robot_radius + 1))
+                               &&(i+(j)< floor.size()-(robot_radius + 1)))
+                            {
+                                i = i - (robot_radius - (j - 1));
+                                break;
+                            }
                             path.emplace_back(Point2D(x+j, floor[i+j].y-(robot_radius + 1)));
                         }
                     }
@@ -471,24 +567,41 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(x-j < ceiling.front().x + (robot_radius + 1))
+                            // 沿着ceiling从右往左
+                            if(x-j <= ceiling.front().x + (robot_radius + 1))
                             {
                                 i = i + (robot_radius - (j - 1));
                                 break;
                             }
-//                            if(ceiling[i-j-(robot_radius + 1)].x == ceiling[i-j-(robot_radius + 1)-1].x)
-//                            {
-//                                if(ceiling[i-j-(robot_radius + 1)].y < ceiling[i-j-(robot_radius + 1)-1].y)
-//                                {
-//                                    i = i + (robot_radius - (j - 1));
-//                                    break;
-//                                }
-//                            }
-//                            if(ceiling[i-j].x == ceiling[i-j-1].x)
-//                            {
-//                                i = i + (robot_radius - (j - 1));
-//                                break;
-//                            }
+                            if((ceiling[i-(j)].y-ceiling[i-(j+1)].y>=2)
+                               &&(i-(j)>=(robot_radius+1))
+                               &&(i-(j+1)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i-(j+robot_radius+1)].y-ceiling[i-(j-1+robot_radius+1)].y>=2)
+                               &&(i-(j+robot_radius+1)>=(robot_radius+1))
+                               &&(i-(j-1+robot_radius+1)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i-(j+2)].y-ceiling[i-(j+1)].y>=2)
+                               &&(i-(j+2)>=(robot_radius+1))
+                               &&(i-(j+1)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((ceiling[i-(j-1+robot_radius+2)].y-ceiling[i-(j+robot_radius+2)].y>=2)
+                               &&(i-(j-1+robot_radius+2)>=(robot_radius+1))
+                               &&(i-(j+robot_radius+2)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+
                             path.emplace_back(Point2D(x-j, ceiling[i-j].y+(robot_radius + 1)));
                         }
                     }
@@ -509,24 +622,40 @@ std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, in
                     {
                         for(int j = 1; j <= robot_radius; j++)
                         {
-                            if(x-j < ceiling.front().x + (robot_radius + 1))
+                            // 沿着floor从右往左
+                            if(x-j <= ceiling.front().x + (robot_radius + 1))
                             {
                                 i = i + (robot_radius - (j - 1));
                                 break;
                             }
-//                            if(floor[i-j-(robot_radius + 1)].x == floor[i-j-(robot_radius + 1)-1].x)
-//                            {
-//                                if(floor[i-j-(robot_radius + 1)].y > floor[i-j-(robot_radius + 1)-1].y)
-//                                {
-//                                    i = i + (robot_radius - (j - 1));
-//                                    break;
-//                                }
-//                            }
-//                            if(floor[i-j].x == floor[i-j-1].x)
-//                            {
-//                                i = i + (robot_radius - (j - 1));
-//                                break;
-//                            }
+                            if((floor[i-(j+1)].y-floor[i-(j+2)].y>=2)
+                               &&(i-(j+1)>=(robot_radius+1))
+                               &&(i-(j+2)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i-(j+robot_radius+2)].y-floor[i-(j-1+robot_radius+2)].y>=2)
+                               &&(i-(j+robot_radius+2)>=(robot_radius+1))
+                               &&(i-(j-1+robot_radius+2)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i-(j+1)].y-floor[i-(j)].y>=2)
+                               &&(i-(j+1)>=(robot_radius+1))
+                               &&(i-(j)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
+                            if((floor[i-(j-1+robot_radius+1)].y-floor[i-(j+robot_radius+1)].y>=2)
+                               &&(i-(j-1+robot_radius+1)>=(robot_radius+1))
+                               &&(i-(j+robot_radius+1)>=(robot_radius+1)))
+                            {
+                                i = i + (robot_radius - (j - 1));
+                                break;
+                            }
                             path.emplace_back(Point2D(x-j, floor[i-j].y-(robot_radius + 1)));
                         }
                     }
@@ -572,15 +701,15 @@ void EventTypeAllocator(std::vector<Event>& event_list)
     event_list_ex.insert(event_list_ex.end(), tail.begin(), tail.end());
 
     int index_offset;
-    std::deque<int> index_list; // 只存放各种in和out的index
+    std::deque<int> in_out_index_list; // 只存放各种in和out的index
 
-    // determine in and out
+    // determine in and out and middle
     for(int i = half_size; i < half_size + event_list.size(); i++)
     {
         if(event_list_ex[i].x < event_list_ex[i-1].x && event_list_ex[i].x < event_list_ex[i+1].x)
         {
             event_list[i-half_size].event_type = IN;
-            index_list.emplace_back(i-half_size);
+            in_out_index_list.emplace_back(i-half_size);
         }
         if(event_list_ex[i].x < event_list_ex[i-1].x && event_list_ex[i].x == event_list_ex[i+1].x && event_list_ex[i].y < event_list_ex[i+1].y)
         {
@@ -592,7 +721,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
             if(event_list_ex[i].x < event_list_ex[i+index_offset].x && event_list_ex[i].y < event_list_ex[i+index_offset].y)
             {
                 event_list[i-half_size].event_type = IN_TOP;
-                index_list.emplace_back(i-half_size);
+                in_out_index_list.emplace_back(i-half_size);
             }
         }
 
@@ -606,7 +735,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
             if(event_list_ex[i].x < event_list_ex[i+index_offset].x && event_list_ex[i].y > event_list_ex[i+index_offset].y)
             {
                 event_list[i-half_size].event_type = IN_BOTTOM;
-                index_list.emplace_back(i-half_size);
+                in_out_index_list.emplace_back(i-half_size);
             }
         }
 
@@ -625,7 +754,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
             if(event_list_ex[i].x < event_list_ex[i-index_offset].x && event_list_ex[i].y > event_list_ex[i-index_offset].y)
             {
                 event_list[i-half_size].event_type = IN_BOTTOM;
-                index_list.emplace_back(i-half_size);
+                in_out_index_list.emplace_back(i-half_size);
             }
         }
 
@@ -639,7 +768,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
             if(event_list_ex[i].x < event_list_ex[i-index_offset].x && event_list_ex[i].y < event_list_ex[i-index_offset].y)
             {
                 event_list[i-half_size].event_type = IN_TOP;
-                index_list.emplace_back(i-half_size);
+                in_out_index_list.emplace_back(i-half_size);
             }
         }
 
@@ -653,7 +782,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
             if(event_list_ex[i].x > event_list_ex[i-index_offset].x && event_list_ex[i].y < event_list_ex[i-index_offset].y)
             {
                 event_list[i-half_size].event_type = OUT_TOP;
-                index_list.emplace_back(i-half_size);
+                in_out_index_list.emplace_back(i-half_size);
             }
         }
 
@@ -667,7 +796,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
             if(event_list_ex[i].x > event_list_ex[i-index_offset].x && event_list_ex[i].y > event_list_ex[i-index_offset].y)
             {
                 event_list[i-half_size].event_type = OUT_BOTTOM;
-                index_list.emplace_back(i-half_size);
+                in_out_index_list.emplace_back(i-half_size);
             }
         }
 
@@ -675,7 +804,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
         if(event_list_ex[i].x > event_list_ex[i-1].x && event_list_ex[i].x > event_list_ex[i+1].x)
         {
             event_list[i-half_size].event_type = OUT;
-            index_list.emplace_back(i-half_size);
+            in_out_index_list.emplace_back(i-half_size);
         }
         if(event_list_ex[i].x > event_list_ex[i-1].x && event_list_ex[i].x == event_list_ex[i+1].x && event_list_ex[i].y > event_list_ex[i+1].y)
         {
@@ -687,7 +816,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
             if(event_list_ex[i].x > event_list_ex[i+index_offset].x && event_list_ex[i].y > event_list_ex[i+index_offset].y)
             {
                 event_list[i-half_size].event_type = OUT_BOTTOM;
-                index_list.emplace_back(i-half_size);
+                in_out_index_list.emplace_back(i-half_size);
             }
         }
 
@@ -701,7 +830,7 @@ void EventTypeAllocator(std::vector<Event>& event_list)
             if(event_list_ex[i].x > event_list_ex[i+index_offset].x && event_list_ex[i].y < event_list_ex[i+index_offset].y)
             {
                 event_list[i-half_size].event_type = OUT_TOP;
-                index_list.emplace_back(i-half_size);
+                in_out_index_list.emplace_back(i-half_size);
             }
         }
 
@@ -712,171 +841,228 @@ void EventTypeAllocator(std::vector<Event>& event_list)
     // determine inner
     Point2D neighbor_point;
 
-    for(int i = 0; i < index_list.size(); i++)
+    for(int i = 0; i < in_out_index_list.size(); i++)
     {
-        if(event_list[index_list[i]].event_type == OUT)
+        if(event_list[in_out_index_list[i]].event_type == OUT)
         {
-            neighbor_point = Point2D(event_list[index_list[i]].x+1, event_list[index_list[i]].y);
+            neighbor_point = Point2D(event_list[in_out_index_list[i]].x+1, event_list[in_out_index_list[i]].y);
             if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255))
             {
-                event_list[index_list[i]].event_type = INNER_OUT;
+                event_list[in_out_index_list[i]].event_type = INNER_OUT;
             }
         }
 
-        if(event_list[index_list[i]].event_type == OUT_TOP)
+        if(event_list[in_out_index_list[i]].event_type == OUT_TOP)
         {
-            neighbor_point = Point2D(event_list[index_list[i]].x+1, event_list[index_list[i]].y);
+            neighbor_point = Point2D(event_list[in_out_index_list[i]].x+1, event_list[in_out_index_list[i]].y);
             if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255))
             {
-                event_list[index_list[i]].event_type = INNER_OUT_TOP;
+                event_list[in_out_index_list[i]].event_type = INNER_OUT_TOP;
             }
         }
 
-        if(event_list[index_list[i]].event_type == OUT_BOTTOM)
+        if(event_list[in_out_index_list[i]].event_type == OUT_BOTTOM)
         {
-            neighbor_point = Point2D(event_list[index_list[i]].x+1, event_list[index_list[i]].y);
+            neighbor_point = Point2D(event_list[in_out_index_list[i]].x+1, event_list[in_out_index_list[i]].y);
             if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255))
             {
-                event_list[index_list[i]].event_type = INNER_OUT_BOTTOM;
+                event_list[in_out_index_list[i]].event_type = INNER_OUT_BOTTOM;
             }
 
         }
 
-        if(event_list[index_list[i]].event_type == IN)
+        if(event_list[in_out_index_list[i]].event_type == IN)
         {
-            neighbor_point = Point2D(event_list[index_list[i]].x-1, event_list[index_list[i]].y);
+            neighbor_point = Point2D(event_list[in_out_index_list[i]].x-1, event_list[in_out_index_list[i]].y);
             if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255))
             {
-                event_list[index_list[i]].event_type = INNER_IN;
+                event_list[in_out_index_list[i]].event_type = INNER_IN;
             }
         }
 
 
-        if(event_list[index_list[i]].event_type == IN_TOP)
+        if(event_list[in_out_index_list[i]].event_type == IN_TOP)
         {
-            neighbor_point = Point2D(event_list[index_list[i]].x-1, event_list[index_list[i]].y);
+            neighbor_point = Point2D(event_list[in_out_index_list[i]].x-1, event_list[in_out_index_list[i]].y);
             if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255))
             {
-                event_list[index_list[i]].event_type = INNER_IN_TOP;
+                event_list[in_out_index_list[i]].event_type = INNER_IN_TOP;
             }
         }
 
-        if(event_list[index_list[i]].event_type == IN_BOTTOM)
+        if(event_list[in_out_index_list[i]].event_type == IN_BOTTOM)
         {
-            neighbor_point = Point2D(event_list[index_list[i]].x-1, event_list[index_list[i]].y);
+            neighbor_point = Point2D(event_list[in_out_index_list[i]].x-1, event_list[in_out_index_list[i]].y);
             if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255))
             {
-                event_list[index_list[i]].event_type = INNER_IN_BOTTOM;
+                event_list[in_out_index_list[i]].event_type = INNER_IN_BOTTOM;
             }
         }
     }
 
     // determine floor and ceiling
     int temp_index;
+    std::deque<int> ceiling_floor_index_list;
 
-    for(int i = 0; i < index_list.size(); i++)
+    for(int i = 0; i < in_out_index_list.size(); i++)
     {
         if(
-            (event_list[index_list[0]].event_type==OUT
-            ||event_list[index_list[0]].event_type==OUT_TOP
-            ||event_list[index_list[0]].event_type==OUT_BOTTOM
-            ||event_list[index_list[0]].event_type==INNER_OUT
-            ||event_list[index_list[0]].event_type==INNER_OUT_TOP
-            ||event_list[index_list[0]].event_type==INNER_OUT_BOTTOM)
+            (event_list[in_out_index_list[0]].event_type==OUT
+            ||event_list[in_out_index_list[0]].event_type==OUT_TOP
+            ||event_list[in_out_index_list[0]].event_type==OUT_BOTTOM
+            ||event_list[in_out_index_list[0]].event_type==INNER_OUT
+            ||event_list[in_out_index_list[0]].event_type==INNER_OUT_TOP
+            ||event_list[in_out_index_list[0]].event_type==INNER_OUT_BOTTOM)
             &&
-            (event_list[index_list[1]].event_type==IN
-             ||event_list[index_list[1]].event_type==IN_TOP
-             ||event_list[index_list[1]].event_type==IN_BOTTOM
-             ||event_list[index_list[1]].event_type==INNER_IN
-             ||event_list[index_list[1]].event_type==INNER_IN_TOP
-             ||event_list[index_list[1]].event_type==INNER_IN_BOTTOM)
+            (event_list[in_out_index_list[1]].event_type==IN
+             ||event_list[in_out_index_list[1]].event_type==IN_TOP
+             ||event_list[in_out_index_list[1]].event_type==IN_BOTTOM
+             ||event_list[in_out_index_list[1]].event_type==INNER_IN
+             ||event_list[in_out_index_list[1]].event_type==INNER_IN_TOP
+             ||event_list[in_out_index_list[1]].event_type==INNER_IN_BOTTOM)
            )
         {
-            if(index_list[0] < index_list[1])
+            if(in_out_index_list[0] < in_out_index_list[1])
             {
-                for(int j = index_list[0]+1; j < index_list[1]; j++)
+                for(int j = in_out_index_list[0]+1; j < in_out_index_list[1]; j++)
                 {
-                    if(event_list[j].x != event_list[j-1].x)
+                    if(event_list[j].event_type != MIDDLE)
                     {
                         event_list[j].event_type = FLOOR;
+                        ceiling_floor_index_list.emplace_back(j);
                     }
                 }
             }
             else
             {
-                for(int j = index_list[0]+1; j < event_list.size(); j++)
+                for(int j = in_out_index_list[0]+1; j < event_list.size(); j++)
                 {
-                    if(event_list[j].x != event_list[j-1].x)
+                    if(event_list[j].event_type != MIDDLE)
                     {
                         event_list[j].event_type = FLOOR;
+                        ceiling_floor_index_list.emplace_back(j);
                     }
                 }
-                if(event_list[0].x != event_list[event_list.size()-1].x)
+                for(int k = 0; k < in_out_index_list[1]; k++)
                 {
-                    event_list[0].event_type = CEILING;
-                }
-                for(int k = 1; k < index_list[1]; k++)
-                {
-                    if(event_list[k].x != event_list[k-1].x)
+                    if(event_list[k].event_type != MIDDLE)
                     {
                         event_list[k].event_type = FLOOR;
+                        ceiling_floor_index_list.emplace_back(k);
                     }
                 }
             }
         }
 
         if(
-             (event_list[index_list[0]].event_type==IN
-             ||event_list[index_list[0]].event_type==IN_TOP
-             ||event_list[index_list[0]].event_type==IN_BOTTOM
-             ||event_list[index_list[0]].event_type==INNER_IN
-             ||event_list[index_list[0]].event_type==INNER_IN_TOP
-             ||event_list[index_list[0]].event_type==INNER_IN_BOTTOM)
+             (event_list[in_out_index_list[0]].event_type==IN
+             ||event_list[in_out_index_list[0]].event_type==IN_TOP
+             ||event_list[in_out_index_list[0]].event_type==IN_BOTTOM
+             ||event_list[in_out_index_list[0]].event_type==INNER_IN
+             ||event_list[in_out_index_list[0]].event_type==INNER_IN_TOP
+             ||event_list[in_out_index_list[0]].event_type==INNER_IN_BOTTOM)
              &&
-             (event_list[index_list[1]].event_type==OUT
-             ||event_list[index_list[1]].event_type==OUT_TOP
-             ||event_list[index_list[1]].event_type==OUT_BOTTOM
-             ||event_list[index_list[1]].event_type==INNER_OUT
-             ||event_list[index_list[1]].event_type==INNER_OUT_TOP
-             ||event_list[index_list[1]].event_type==INNER_OUT_BOTTOM)
+             (event_list[in_out_index_list[1]].event_type==OUT
+             ||event_list[in_out_index_list[1]].event_type==OUT_TOP
+             ||event_list[in_out_index_list[1]].event_type==OUT_BOTTOM
+             ||event_list[in_out_index_list[1]].event_type==INNER_OUT
+             ||event_list[in_out_index_list[1]].event_type==INNER_OUT_TOP
+             ||event_list[in_out_index_list[1]].event_type==INNER_OUT_BOTTOM)
            )
         {
-            if(index_list[0] < index_list[1])
+            if(in_out_index_list[0] < in_out_index_list[1])
             {
-                for(int j = index_list[0]+1; j < index_list[1]; j++)
+                for(int j = in_out_index_list[0]+1; j < in_out_index_list[1]; j++)
                 {
-                    if(event_list[j].x != event_list[j-1].x)
+                    if(event_list[j].event_type != MIDDLE)
                     {
                         event_list[j].event_type = CEILING;
+                        ceiling_floor_index_list.emplace_back(j);
                     }
                 }
             }
             else
             {
-                for(int j = index_list[0]+1; j < event_list.size(); j++)
+                for(int j = in_out_index_list[0]+1; j < event_list.size(); j++)
                 {
-                    if(event_list[j].x != event_list[j-1].x)
+                    if(event_list[j].event_type != MIDDLE)
                     {
                         event_list[j].event_type = CEILING;
+                        ceiling_floor_index_list.emplace_back(j);
                     }
                 }
-                if(event_list[0].x != event_list[event_list.size()-1].x)
+                for(int k = 0; k < in_out_index_list[1]; k++)
                 {
-                    event_list[0].event_type = CEILING;
-                }
-                for(int k = 1; k < index_list[1]; k++)
-                {
-                    if(event_list[k].x != event_list[k-1].x)
+                    if(event_list[k].event_type != MIDDLE)
                     {
                         event_list[k].event_type = CEILING;
+                        ceiling_floor_index_list.emplace_back(k);
                     }
                 }
             }
         }
 
-        temp_index = index_list.front();
-        index_list.pop_front();
-        index_list.emplace_back(temp_index);
+        temp_index = in_out_index_list.front();
+        in_out_index_list.pop_front();
+        in_out_index_list.emplace_back(temp_index);
+    }
+
+
+    // filter ceiling and floor
+    for(int i = 0; i < ceiling_floor_index_list.size()-1; i++)
+    {
+        if(event_list[ceiling_floor_index_list[i]].event_type==CEILING
+        && event_list[ceiling_floor_index_list[i+1]].event_type==CEILING
+        && event_list[ceiling_floor_index_list[i]].x==event_list[ceiling_floor_index_list[i+1]].x)
+        {
+            if(event_list[ceiling_floor_index_list[i]].y>event_list[ceiling_floor_index_list[i+1]].y)
+            {
+                event_list[ceiling_floor_index_list[i+1]].event_type = MIDDLE;
+            }
+            else
+            {
+                event_list[ceiling_floor_index_list[i]].event_type = MIDDLE;
+            }
+        }
+        if(event_list[ceiling_floor_index_list[i]].event_type==FLOOR
+        && event_list[ceiling_floor_index_list[i+1]].event_type==FLOOR
+        && event_list[ceiling_floor_index_list[i]].x==event_list[ceiling_floor_index_list[i+1]].x)
+        {
+            if(event_list[ceiling_floor_index_list[i]].y<event_list[ceiling_floor_index_list[i+1]].y)
+            {
+                event_list[ceiling_floor_index_list[i+1]].event_type = MIDDLE;
+            }
+            else
+            {
+                event_list[ceiling_floor_index_list[i]].event_type = MIDDLE;
+            }
+        }
+    }
+    if(event_list[ceiling_floor_index_list.back()].event_type==CEILING
+    && event_list[ceiling_floor_index_list.front()].event_type==CEILING
+    && event_list[ceiling_floor_index_list.back()].x==event_list[ceiling_floor_index_list.front()].x)
+    {
+        if(event_list[ceiling_floor_index_list.back()].y>event_list[ceiling_floor_index_list.front()].y)
+        {
+            event_list[ceiling_floor_index_list.front()].event_type = MIDDLE;
+        }
+        else
+        {
+            event_list[ceiling_floor_index_list.back()].event_type = MIDDLE;
+        }
+    }
+    if(event_list[ceiling_floor_index_list.back()].event_type==FLOOR
+    && event_list[ceiling_floor_index_list.front()].event_type==FLOOR
+    && event_list[ceiling_floor_index_list.back()].x==event_list[ceiling_floor_index_list.front()].x)
+    {
+        if(event_list[ceiling_floor_index_list.back()].y<event_list[ceiling_floor_index_list.front()].y)
+        {
+            event_list[ceiling_floor_index_list.front()].event_type = MIDDLE;
+        }
+        else
+        {
+            event_list[ceiling_floor_index_list.back()].event_type = MIDDLE;
+        }
     }
 }
 
@@ -1713,6 +1899,7 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell, in
 
 
     std::deque<Point2D> path;
+    std::deque<Point2D> temp_path;
 
     if (start_corner_indicator == end_corner_indicator)
     {
@@ -1721,7 +1908,43 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell, in
 
     if(start_corner_indicator == TOPLEFT && end_corner_indicator == TOPRIGHT)
     {
-        path.insert(path.end(), top.begin(), top.end());
+        temp_path.assign(top.begin(), top.end());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            // 提前转
+            if((temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y>=2)&&(i+robot_radius+1<temp_path.size())&&(i-1+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y+abs(delta)));
+                }
+                i += (robot_radius+1);
+            }
+            // 滞后转
+            if((temp_path[i].y-temp_path[i+1].y>=2)&&(i<temp_path.size())&&(i+1<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y+abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y+ + abs(delta) + increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
         return path;
     }
     if(start_corner_indicator == TOPLEFT && end_corner_indicator == BOTTOMLEFT)
@@ -1732,19 +1955,127 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell, in
     }
     if(start_corner_indicator == TOPLEFT && end_corner_indicator == BOTTOMRIGHT)
     {
-        path.insert(path.end(), top.begin(), top.end());
+        temp_path.assign(top.begin(), top.end());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            // 提前转
+            if((temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y>=2)&&(i+robot_radius+1<temp_path.size())&&(i-1+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y+abs(delta)));
+                }
+                i += (robot_radius+1);
+            }
+            // 滞后转
+            if((temp_path[i].y-temp_path[i+1].y>=2)&&(i<temp_path.size())&&(i+1<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y+abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y+ abs(delta) +increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
         end.x = corner_points[TOPRIGHT].x;
         end.y = corner_points[TOPRIGHT].y;
         return path;
     }
     if(start_corner_indicator == TOPRIGHT && end_corner_indicator == TOPLEFT)
     {
-        path.insert(path.end(), top.rbegin(), top.rend());
+        temp_path.assign(top.rbegin(), top.rend());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            // 提前转
+            if((temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y>=2)&&(i+robot_radius+1<temp_path.size())&&(i-1+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y+abs(delta)));
+                }
+                i += (robot_radius+1);
+            }
+            // 滞后转
+            if((temp_path[i].y-temp_path[i+1].y>=2)&&(i<temp_path.size())&&(i+1<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y+abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y+ abs(delta) +increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
         return path;
     }
     if(start_corner_indicator == TOPRIGHT && end_corner_indicator == BOTTOMLEFT)
     {
-        path.insert(path.end(), top.rbegin(), top.rend());
+        temp_path.assign(top.rbegin(), top.rend());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            // 提前转
+            if((temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y>=2)&&(i+robot_radius+1<temp_path.size())&&(i-1+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y+abs(delta)));
+                }
+                i += (robot_radius+1);
+            }
+            // 滞后转
+            if((temp_path[i].y-temp_path[i+1].y>=2)&&(i<temp_path.size())&&(i+1<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y+abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y+ abs(delta) +increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
         end.x = corner_points[TOPLEFT].x;
         end.y = corner_points[TOPLEFT].y;
         return path;
@@ -1763,19 +2094,135 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell, in
     }
     if(start_corner_indicator == BOTTOMLEFT && end_corner_indicator == TOPRIGHT)
     {
-        path.insert(path.end(), bottom.begin(), bottom.end());
+        temp_path.assign(bottom.begin(), bottom.end());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            //提前转
+            if((temp_path[i-1+robot_radius+1].y-temp_path[i+robot_radius+1].y>=2)&&(i-1+robot_radius+1<temp_path.size())&&(i+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y-abs(delta)));
+                }
+                i+= (robot_radius+1);
+            }
+            //滞后转
+            if((temp_path[i+1].y-temp_path[i].y>=2)&&(i+1<temp_path.size())&&(i<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y-abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y -abs(delta) + increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
         end.x = corner_points[BOTTOMRIGHT].x;
         end.y = corner_points[BOTTOMRIGHT].y;
         return path;
     }
     if(start_corner_indicator == BOTTOMLEFT && end_corner_indicator == BOTTOMRIGHT)
     {
-        path.insert(path.end(), bottom.begin(), bottom.end());
+        temp_path.assign(bottom.begin(), bottom.end());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            //提前转
+            if((temp_path[i-1+robot_radius+1].y-temp_path[i+robot_radius+1].y>=2)&&(i-1+robot_radius+1<temp_path.size())&&(i+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y-abs(delta)));
+                }
+                i+= (robot_radius+1);
+            }
+            //滞后转
+            if((temp_path[i+1].y-temp_path[i].y>=2)&&(i+1<temp_path.size())&&(i<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y-abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y -abs(delta) + increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
+
+
         return path;
     }
     if(start_corner_indicator == BOTTOMRIGHT && end_corner_indicator == TOPLEFT)
     {
-        path.insert(path.end(), bottom.rbegin(), bottom.rend());
+        temp_path.assign(bottom.rbegin(), bottom.rend());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            //提前转
+            if((temp_path[i-1+robot_radius+1].y-temp_path[i+robot_radius+1].y>=2)&&(i-1+robot_radius+1<temp_path.size())&&(i+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y-abs(delta)));
+                }
+                i+= (robot_radius+1);
+            }
+            //滞后转
+            if((temp_path[i+1].y-temp_path[i].y>=2)&&(i+1<temp_path.size())&&(i<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y-abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y -abs(delta) + increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
         end.x = corner_points[BOTTOMLEFT].x;
         end.y = corner_points[BOTTOMLEFT].y;
         return path;
@@ -1788,7 +2235,45 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell, in
     }
     if(start_corner_indicator == BOTTOMRIGHT && end_corner_indicator == BOTTOMLEFT)
     {
-        path.insert(path.end(), bottom.rbegin(), bottom.rend());
+        temp_path.assign(bottom.rbegin(), bottom.rend());
+        for(int i = 0; i < temp_path.size(); i++)
+        {
+            //提前转
+            if((temp_path[i-1+robot_radius+1].y-temp_path[i+robot_radius+1].y>=2)&&(i-1+robot_radius+1<temp_path.size())&&(i+robot_radius+1<temp_path.size()))
+            {
+                int delta = temp_path[i+robot_radius+1].y-temp_path[i-1+robot_radius+1].y;
+                int increment = delta/abs(delta);
+
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
+                }
+
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+k].x, temp_path[i+k].y-abs(delta)));
+                }
+                i+= (robot_radius+1);
+            }
+            //滞后转
+            if((temp_path[i+1].y-temp_path[i].y>=2)&&(i+1<temp_path.size())&&(i<temp_path.size()))
+            {
+                path.emplace_back(temp_path[i]);
+
+                int delta = temp_path[i+1].y-temp_path[i].y;
+                int increment = delta/abs(delta);
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+j].x, temp_path[i+j].y-abs(delta)));
+                }
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    path.emplace_back(Point2D(temp_path[i+robot_radius+1].x, temp_path[i+robot_radius+1].y -abs(delta) + increment*k));
+                }
+                i += (robot_radius+2);
+            }
+            path.emplace_back(temp_path[i]);
+        }
         return path;
     }
 
@@ -2043,6 +2528,42 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end,
         }
         for(int i = 1; i <= abs(delta_x); i++)
         {
+            // 提前转
+            if((cell.ceiling[start_ceiling_index_offset+increment_x*(i+robot_radius+1)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i-1+robot_radius+1)].y>=2)
+            &&(i+robot_radius+1 <= abs(delta_x))
+            &&(i-1+robot_radius+1 <= abs(delta_x)))
+            {
+                int delta = cell.ceiling[start_ceiling_index_offset+increment_x*(i+robot_radius+1)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i-1+robot_radius+1)].y;
+                int increment = delta/abs(delta);
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    inner_path.emplace_back(Point2D(cell.ceiling[start_ceiling_index_offset+increment_x*i].x, cell.ceiling[start_ceiling_index_offset+increment_x*i].y+(robot_radius + 1)+increment*(j)));
+                }
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    inner_path.emplace_back(Point2D(cell.ceiling[start_ceiling_index_offset+increment_x*(i+k)].x, cell.ceiling[start_ceiling_index_offset+increment_x*(i+k)].y+(robot_radius + 1)+abs(delta)));
+                }
+                i += (robot_radius+1);
+            }
+            // 滞后转
+            if((cell.ceiling[start_ceiling_index_offset+increment_x*(i)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i+1)].y>=2)
+            &&(i<=abs(delta_x))
+            &&(i+1<=abs(delta_x)))
+            {
+                inner_path.emplace_back(Point2D(cell.ceiling[start_ceiling_index_offset+increment_x*(i)].x, cell.ceiling[start_ceiling_index_offset+increment_x*(i)].y+(robot_radius+1)));
+
+                int delta = cell.ceiling[start_ceiling_index_offset+increment_x*(i+1)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i)].y;
+                for(int j = 1; j<= robot_radius; j++)
+                {
+                    inner_path.emplace_back(Point2D(cell.ceiling[start_ceiling_index_offset+increment_x*(i+j)].x, cell.ceiling[start_ceiling_index_offset+increment_x*(i+j)].y+(robot_radius+1)+abs(delta)));
+                }
+                int increment = delta/abs(delta);
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    inner_path.emplace_back(Point2D(cell.ceiling[start_ceiling_index_offset+increment_x*(i+robot_radius+1)].x, cell.ceiling[start_ceiling_index_offset+increment_x*(i+robot_radius+1)].y+(robot_radius+1)+abs(delta)+increment*(k)));
+                }
+                i += (robot_radius+2);
+            }
             inner_path.emplace_back(Point2D(cell.ceiling[start_ceiling_index_offset+(increment_x*i)].x,cell.ceiling[start_ceiling_index_offset+(increment_x*i)].y+(robot_radius + 1)));
         }
 
@@ -2076,6 +2597,42 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end,
         }
         for(int i = 1; i <= abs(delta_x); i++)
         {
+            //提前转
+            if((cell.floor[start_floor_index_offset+increment_x*(i-1+(robot_radius+1))].y-cell.floor[start_floor_index_offset+increment_x*(i+(robot_radius+1))].y>=2)
+            &&(i-1+(robot_radius+1)<=abs(delta_x))
+            &&(i+(robot_radius+1)<=abs(delta_x)))
+            {
+                int delta = cell.floor[start_floor_index_offset+increment_x*(i+(robot_radius+1))].y-cell.floor[start_floor_index_offset+increment_x*(i-1+(robot_radius+1))].y;
+                int increment = delta/abs(delta);
+                for(int j = 0; j <= abs(delta); j++)
+                {
+                    inner_path.emplace_back(Point2D(cell.floor[start_floor_index_offset+increment_x*(i)].x, cell.floor[start_floor_index_offset+increment_x*(i)].y-(robot_radius+1)+increment*(j)));
+                }
+                for(int k = 1; k <= robot_radius; k++)
+                {
+                    inner_path.emplace_back(Point2D(cell.floor[start_floor_index_offset+increment_x*(i+k)].x, cell.floor[start_floor_index_offset+increment_x*(i+k)].y-(robot_radius+1)-abs(delta)));
+                }
+                i += (robot_radius + 1);
+            }
+            //滞后转
+            if((cell.floor[start_floor_index_offset+increment_x*(i+1)].y-cell.floor[start_floor_index_offset+increment_x*(i)].y>=2)
+            &&(i+1<=abs(delta_x))
+            &&(i<=abs(delta_x)))
+            {
+                inner_path.emplace_back(Point2D(cell.floor[start_floor_index_offset+increment_x*(i)].x, cell.floor[start_floor_index_offset+increment_x*(i)].y-(robot_radius+1)));
+
+                int delta = cell.floor[start_floor_index_offset+increment_x*(i+1)].y-cell.floor[start_floor_index_offset+increment_x*(i)].y;
+                for(int j = 1; j <= robot_radius; j++)
+                {
+                    inner_path.emplace_back(Point2D(cell.floor[start_floor_index_offset+increment_x*(i+j)].x, cell.floor[start_floor_index_offset+increment_x*(i+j)].y-(robot_radius+1)-abs(delta)));
+                }
+                int increment = delta/abs(delta);
+                for(int k = 0; k <= abs(delta); k++)
+                {
+                    inner_path.emplace_back(Point2D(cell.floor[start_floor_index_offset+increment_x*(i+(robot_radius+1))].x, cell.floor[start_floor_index_offset+increment_x*(i+(robot_radius+1))].y-(robot_radius+1) -abs(delta) +increment*(k)));
+                }
+                i += (robot_radius+2);
+            }
             inner_path.emplace_back(Point2D(cell.floor[start_floor_index_offset+(increment_x*i)].x,cell.floor[start_floor_index_offset+(increment_x*i)].y-(robot_radius + 1)));
         }
 
@@ -2316,8 +2873,8 @@ int main() {
     for(int i = 0; i < cell_graph.size(); i++)
     {
         DrawCells(cell_graph[i]);
-        cv::imshow("trajectory", map);
-        cv::waitKey(500);
+//        cv::imshow("trajectory", map);
+//        cv::waitKey(500);
     }
 
 
@@ -2369,7 +2926,7 @@ int main() {
         map.at<cv::Vec3b>(return_path[i].y, return_path[i].x)=cv::Vec3b(255, 255, 255);
 //        UpdateColorMap();
         cv::imshow("trajectory", map);
-        cv::waitKey(1);
+        cv::waitKey(10);
     }
 
     cv::waitKey(0);
