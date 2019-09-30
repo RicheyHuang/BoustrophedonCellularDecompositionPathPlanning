@@ -1118,11 +1118,11 @@ void ExecuteOpenOperation(int curr_cell_idx, Point2D in, Point2D c, Point2D f, b
 
     CellNode top_cell, bottom_cell;
 
-    top_cell.ceiling.emplace_back(Point2D(in.x, c.y));
+    top_cell.ceiling.emplace_back(c);
     top_cell.floor.emplace_back(in);
 
     bottom_cell.ceiling.emplace_back(in);
-    bottom_cell.floor.emplace_back(Point2D(in.x, f.y));
+    bottom_cell.floor.emplace_back(f);
 
     if(!rewrite)
     {
@@ -1160,8 +1160,8 @@ void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out, P
 {
     CellNode new_cell;
 
-    new_cell.ceiling.emplace_back(Point2D(out.x, c.y));
-    new_cell.floor.emplace_back(Point2D(out.x, f.y));
+    new_cell.ceiling.emplace_back(c);
+    new_cell.floor.emplace_back(f);
 
     if(!rewrite)
     {
@@ -1203,11 +1203,11 @@ void ExecuteOpenOperation(int curr_cell_idx, Point2D in_top, Point2D in_bottom, 
 
     CellNode top_cell, bottom_cell;
 
-    top_cell.ceiling.emplace_back(Point2D(in_top.x, c.y));
+    top_cell.ceiling.emplace_back(c);
     top_cell.floor.emplace_back(in_top);
 
     bottom_cell.ceiling.emplace_back(in_bottom);
-    bottom_cell.floor.emplace_back(Point2D(in_bottom.x, f.y));
+    bottom_cell.floor.emplace_back(f);
 
 
     if(!rewrite)
@@ -1246,8 +1246,8 @@ void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out_to
 {
     CellNode new_cell;
 
-    new_cell.ceiling.emplace_back(Point2D(out_top.x, c.y));
-    new_cell.floor.emplace_back(Point2D(out_bottom.x, f.y));
+    new_cell.ceiling.emplace_back(c);
+    new_cell.floor.emplace_back(f);
 
     if(!rewrite)
     {
