@@ -2811,126 +2811,209 @@ int main() {
     std::vector<std::vector<cv::Point>> contours = {contour};
     cv::fillPoly(map, contours, cv::Scalar(255, 255, 255));
 
+
+
+
+
+
+
+
+
+
+    cv::namedWindow("original", cv::WINDOW_NORMAL);
+    cv::imshow("original", map);
+    cv::waitKey(0);
+
+    std::vector<cv::Point> contour_;
+    std::vector<std::vector<cv::Point>> contours_;
+
     for(int i = 0; i < contour.size()-1; i++)
     {
         cv::LineIterator line(map, contour[i], contour[i+1]);
         for(int j = 0; j < line.count-1; j++)
         {
-            polygon.emplace_back(Point2D(line.pos().x, line.pos().y));
+            contour_.emplace_back(cv::Point(line.pos().x, line.pos().y));
             line++;
         }
     }
     cv::LineIterator line(map, contour[contour.size()-1], contour[0]);
     for(int i = 0; i < line.count-1; i++)
     {
-        polygon.emplace_back(Point2D(line.pos().x, line.pos().y));
+        contour_.emplace_back(cv::Point(line.pos().x, line.pos().y));
         line++;
     }
 
-    PolygonList polygons = {polygon};
+    contours_ = {contour_};
 
-
-    std::vector<Event> event_list = EventListGenerator(polygons);
-
-    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
-    InitializeCellDecomposition(Point2D(slice_list.front().front().x, slice_list.front().front().y));
-    ExecuteCellDecomposition(slice_list);
-    FinishCellDecomposition(Point2D(slice_list.back().back().x, slice_list.back().back().y));
-
-    Point2D start_point = Point2D(10, 10);
-    Point2D end_point;
-    int start_cell_index = 0;
-    int robot_radius = 5;
-    std::deque<Point2D> first_steps = PathIninitialization(start_point, cell_graph[start_cell_index], robot_radius);
-    WalkingThroughGraph(start_cell_index);
-
-
-    for(int i = 0; i < cell_graph.size(); i++)
+    int robot_radius = 10;
+    for(int i = 0; i < contours_.size(); i++)
     {
-        std::cout<<"cell "<<i<<" 's ceiling points number:" << cell_graph[i].ceiling.size()<<std::endl;
-        std::cout<<"cell "<<i<<" 's floor points number:" << cell_graph[i].floor.size()<<std::endl;
-    }
-
-    std::cout<<cell_graph.size()<<std::endl;
-
-
-    for(int i = 0; i < cell_graph.size(); i++)
-    {
-        for(int j = 0; j < cell_graph[i].neighbor_indices.size(); j++)
+        for(int j = 0; j < contours_[i].size(); j++)
         {
-            std::cout<<"cell "<< i << "'s neighbor: cell "<<cell_graph[cell_graph[i].neighbor_indices[j]].cellIndex<<std::endl;
+            cv::circle(map, contours_[i][j], robot_radius, cv::Scalar(255, 255, 255), -1);
         }
     }
 
-    int repeat_times = 30;
-    InitializeColorMap(repeat_times);
-
-    cv::circle(map, cv::Point(start_point.x, start_point.y), 3, cv::Scalar(0, 0, 255), -1);
-
-    cv::namedWindow("trajectory", cv::WINDOW_NORMAL);
-    cv::imshow("trajectory", map);
-//    cv::waitKey(0);
-
-    for(int i = 0; i < cell_graph.size(); i++)
-    {
-        DrawCells(cell_graph[i]);
-        cv::imshow("trajectory", map);
-        cv::waitKey(500);
-    }
-
-
-    for(int i = 0; i < first_steps.size(); i++)
-    {
-        map.at<cv::Vec3b>(first_steps[i].y, first_steps[i].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
-        UpdateColorMap();
-        cv::imshow("trajectory", map);
-        cv::waitKey(1);
-    }
-
-    std::deque<Point2D> sub_path;
-    int corner_indicator = TOPLEFT;
-
-    for(int i = path.size()-1; i >= 0; i--)
-    {
-        sub_path = GetBoustrophedonPath(path[i], corner_indicator, robot_radius);
-        for(int j = 0; j < sub_path.size(); j++)
-        {
-            map.at<cv::Vec3b>(sub_path[j].y, sub_path[j].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
-            UpdateColorMap();
-            cv::imshow("trajectory", map);
-            cv::waitKey(1);
-        }
-
-        cell_graph[path[i].cellIndex].isCleaned = true;
-
-        if((i-1)>=0)
-        {
-            Point2D curr_exit = sub_path.back();
-            Point2D next_entrance = FindNextEntrance(curr_exit, path[i - 1], corner_indicator, robot_radius);
-            std::deque<Point2D> link_path = FindLinkingPath(curr_exit, next_entrance, corner_indicator, path[i], path[i-1], robot_radius);
-            for(int k = 0; k < link_path.size(); k++)
-            {
-                map.at<cv::Vec3b>(link_path[k].y, link_path[k].x)=cv::Vec3b(0,0,255);
-//                map.at<cv::Vec3b>(link_path[k].y, link_path[k].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
-//                UpdateColorMap();
-                cv::imshow("trajectory", map);
-                cv::waitKey(10);
-            }
-        }
-    }
-
-    end_point = sub_path.back();
-    std::deque<int> return_cell_path = FindShortestPath(end_point, start_point);
-    std::deque<Point2D> return_path = WalkingCrossCells(return_cell_path, end_point, start_point, robot_radius);
-    for(int i = 0; i < return_path.size(); i++)
-    {
-        map.at<cv::Vec3b>(return_path[i].y, return_path[i].x)=cv::Vec3b(255, 255, 255);
-//        UpdateColorMap();
-        cv::imshow("trajectory", map);
-        cv::waitKey(10);
-    }
-
+    cv::namedWindow("dilated", cv::WINDOW_NORMAL);
+    cv::imshow("dilated", map);
     cv::waitKey(0);
+
+
+
+
+    std::vector<std::vector<cv::Point>> dilated_contours;
+    std::vector<cv::Vec4i> hierarcy;
+
+
+    cv::Mat map_;
+    map.convertTo(map_, CV_8UC1);
+    cv::cvtColor(map_, map_, cv::COLOR_BGR2GRAY);
+    cv::threshold(map_, map_, 200, 255, cv::THRESH_BINARY);
+
+    cv::findContours(map_, dilated_contours, hierarcy, 0, cv::CHAIN_APPROX_NONE);
+    std::vector<std::vector<cv::Point>> polygon_contours(dilated_contours.size());
+
+    for(int i = 0; i < dilated_contours.size(); i++)
+    {
+        cv::approxPolyDP(cv::Mat(dilated_contours[i]), polygon_contours[i], 1, true);
+    }
+
+    for(int i = 0; i < polygon_contours.size(); i++)
+    {
+        cv::drawContours(map, polygon_contours, i, cv::Scalar(0, 0, 255));
+    }
+
+    cv::namedWindow("polygoncontour", cv::WINDOW_NORMAL);
+    cv::imshow("polygoncontour", map);
+    cv::waitKey(0);
+
+
+
+
+
+
+
+
+//    for(int i = 0; i < contour.size()-1; i++)
+//    {
+//        cv::LineIterator line(map, contour[i], contour[i+1]);
+//        for(int j = 0; j < line.count-1; j++)
+//        {
+//            polygon.emplace_back(Point2D(line.pos().x, line.pos().y));
+//            line++;
+//        }
+//    }
+//    cv::LineIterator line(map, contour[contour.size()-1], contour[0]);
+//    for(int i = 0; i < line.count-1; i++)
+//    {
+//        polygon.emplace_back(Point2D(line.pos().x, line.pos().y));
+//        line++;
+//    }
+//
+//    PolygonList polygons = {polygon};
+//
+//
+//    std::vector<Event> event_list = EventListGenerator(polygons);
+//
+//    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
+//    InitializeCellDecomposition(Point2D(slice_list.front().front().x, slice_list.front().front().y));
+//    ExecuteCellDecomposition(slice_list);
+//    FinishCellDecomposition(Point2D(slice_list.back().back().x, slice_list.back().back().y));
+//
+//    Point2D start_point = Point2D(10, 10);
+//    Point2D end_point;
+//    int start_cell_index = 0;
+//    int robot_radius = 5;
+//    std::deque<Point2D> first_steps = PathIninitialization(start_point, cell_graph[start_cell_index], robot_radius);
+//    WalkingThroughGraph(start_cell_index);
+//
+//
+//    for(int i = 0; i < cell_graph.size(); i++)
+//    {
+//        std::cout<<"cell "<<i<<" 's ceiling points number:" << cell_graph[i].ceiling.size()<<std::endl;
+//        std::cout<<"cell "<<i<<" 's floor points number:" << cell_graph[i].floor.size()<<std::endl;
+//    }
+//
+//    std::cout<<cell_graph.size()<<std::endl;
+//
+//
+//    for(int i = 0; i < cell_graph.size(); i++)
+//    {
+//        for(int j = 0; j < cell_graph[i].neighbor_indices.size(); j++)
+//        {
+//            std::cout<<"cell "<< i << "'s neighbor: cell "<<cell_graph[cell_graph[i].neighbor_indices[j]].cellIndex<<std::endl;
+//        }
+//    }
+//
+//    int repeat_times = 30;
+//    InitializeColorMap(repeat_times);
+//
+//    cv::circle(map, cv::Point(start_point.x, start_point.y), 3, cv::Scalar(0, 0, 255), -1);
+//
+//    cv::namedWindow("trajectory", cv::WINDOW_NORMAL);
+//    cv::imshow("trajectory", map);
+////    cv::waitKey(0);
+//
+//    for(int i = 0; i < cell_graph.size(); i++)
+//    {
+//        DrawCells(cell_graph[i]);
+//        cv::imshow("trajectory", map);
+//        cv::waitKey(500);
+//    }
+//
+//
+//    for(int i = 0; i < first_steps.size(); i++)
+//    {
+//        map.at<cv::Vec3b>(first_steps[i].y, first_steps[i].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+//        UpdateColorMap();
+//        cv::imshow("trajectory", map);
+//        cv::waitKey(1);
+//    }
+//
+//    std::deque<Point2D> sub_path;
+//    int corner_indicator = TOPLEFT;
+//
+//    for(int i = path.size()-1; i >= 0; i--)
+//    {
+//        sub_path = GetBoustrophedonPath(path[i], corner_indicator, robot_radius);
+//        for(int j = 0; j < sub_path.size(); j++)
+//        {
+//            map.at<cv::Vec3b>(sub_path[j].y, sub_path[j].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+//            UpdateColorMap();
+//            cv::imshow("trajectory", map);
+//            cv::waitKey(1);
+//        }
+//
+//        cell_graph[path[i].cellIndex].isCleaned = true;
+//
+//        if((i-1)>=0)
+//        {
+//            Point2D curr_exit = sub_path.back();
+//            Point2D next_entrance = FindNextEntrance(curr_exit, path[i - 1], corner_indicator, robot_radius);
+//            std::deque<Point2D> link_path = FindLinkingPath(curr_exit, next_entrance, corner_indicator, path[i], path[i-1], robot_radius);
+//            for(int k = 0; k < link_path.size(); k++)
+//            {
+//                map.at<cv::Vec3b>(link_path[k].y, link_path[k].x)=cv::Vec3b(0,0,255);
+////                map.at<cv::Vec3b>(link_path[k].y, link_path[k].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+////                UpdateColorMap();
+//                cv::imshow("trajectory", map);
+//                cv::waitKey(10);
+//            }
+//        }
+//    }
+//
+//    end_point = sub_path.back();
+//    std::deque<int> return_cell_path = FindShortestPath(end_point, start_point);
+//    std::deque<Point2D> return_path = WalkingCrossCells(return_cell_path, end_point, start_point, robot_radius);
+//    for(int i = 0; i < return_path.size(); i++)
+//    {
+//        map.at<cv::Vec3b>(return_path[i].y, return_path[i].x)=cv::Vec3b(255, 255, 255);
+////        UpdateColorMap();
+//        cv::imshow("trajectory", map);
+//        cv::waitKey(10);
+//    }
+//
+//    cv::waitKey(0);
 
 
 
