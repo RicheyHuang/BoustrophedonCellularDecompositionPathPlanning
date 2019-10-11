@@ -2992,6 +2992,9 @@ Polygon GetNewObstacle(Point2D origin, int front_direction, int robot_radius=0)
     int right_direction = GetRightDirection(front_direction);
     int back_direction = GetBackDirection(front_direction);
 
+    obstacle_point = GetNextPosition(origin, front_direction, robot_radius+1);
+    new_obstacle.emplace_back(obstacle_point);
+
     direction_candidates = GetRightDirectionCandidates(front_direction);
     bool turning = false;
     last_curr_pos = curr_pos;
