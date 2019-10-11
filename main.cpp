@@ -2712,7 +2712,7 @@ std::deque<Point2D> WalkingCrossCells(std::deque<int> cell_path, Point2D start, 
 const int UP = 0, UPRIGHT = 1, RIGHT = 2, DOWNRIGHT = 3, DOWN = 4, DOWNLEFT = 5, LEFT = 6, UPLEFT = 7, CENTER = 8;
 std::vector<int> map_directions = {UP, UPRIGHT, RIGHT, DOWNRIGHT, DOWN, DOWNLEFT, LEFT, UPLEFT};
 
-int getFrontDirection(Point2D prev_pos, Point2D curr_pos)
+int GetFrontDirection(Point2D prev_pos, Point2D curr_pos)
 {
     int delta_x = curr_pos.x - prev_pos.x;
     int delta_y = curr_pos.y - prev_pos.y;
@@ -2766,7 +2766,7 @@ int getFrontDirection(Point2D prev_pos, Point2D curr_pos)
     }
 }
 
-int getBackDirection(int front_direction)
+int GetBackDirection(int front_direction)
 {
     if(front_direction + 4 > map_directions.size()-1)
     {
@@ -2779,7 +2779,7 @@ int getBackDirection(int front_direction)
     }
 }
 
-int getLeftDirection(int front_direction)
+int GetLeftDirection(int front_direction)
 {
     if(front_direction - 2 < 0)
     {
@@ -2792,7 +2792,7 @@ int getLeftDirection(int front_direction)
     }
 }
 
-int getRightDirection(int front_direction)
+int GetRightDirection(int front_direction)
 {
     if(front_direction + 2 > map_directions.size()-1)
     {
@@ -2806,7 +2806,7 @@ int getRightDirection(int front_direction)
 }
 
 // 都是顺时针排列
-std::vector<int> getFrontDirectionCandidates(int front_direction)
+std::vector<int> GetFrontDirectionCandidates(int front_direction)
 {
     std::vector<int> front_directions;
 
@@ -2856,10 +2856,10 @@ std::vector<int> getFrontDirectionCandidates(int front_direction)
     return front_directions;
 }
 
-std::vector<int> getBackDirectionCandidates(int front_direction)
+std::vector<int> GetBackDirectionCandidates(int front_direction)
 {
     std::vector<int> back_directions;
-    int first_direction = getRightDirection(front_direction);
+    int first_direction = GetRightDirection(front_direction);
 
     for(int i = 0; i <= 4; i++)
     {
@@ -2877,7 +2877,7 @@ std::vector<int> getBackDirectionCandidates(int front_direction)
     return back_directions;
 }
 
-std::vector<int> getLeftDirectionCandidates(int front_direction)
+std::vector<int> GetLeftDirectionCandidates(int front_direction)
 {
     std::vector<int> left_directions;
 
@@ -2897,7 +2897,7 @@ std::vector<int> getLeftDirectionCandidates(int front_direction)
     return left_directions;
 }
 
-std::vector<int> getRightDirectionCandidates(int front_direction)
+std::vector<int> GetRightDirectionCandidates(int front_direction)
 {
     std::vector<int> right_directions;
 
@@ -2917,7 +2917,7 @@ std::vector<int> getRightDirectionCandidates(int front_direction)
     return right_directions;
 }
 
-Point2D getNextPosition(Point2D curr_pos, int direction, int steps)
+Point2D GetNextPosition(Point2D curr_pos, int direction, int steps)
 {
     Point2D next_position;
 
@@ -2958,14 +2958,14 @@ Point2D getNextPosition(Point2D curr_pos, int direction, int steps)
     }
 }
 
-bool collisionOccurs(Point2D curr_pos, int detect_direction, int robot_radius=0)
+bool CollisionOccurs(Point2D curr_pos, int detect_direction, int robot_radius=0)
 {
     int obstacle_dist = INT_MAX;
     Point2D ray_pos;
 
     for(int i = 1; i <= (robot_radius+1); i++)
     {
-        ray_pos = getNextPosition(curr_pos, detect_direction, i);
+        ray_pos = GetNextPosition(curr_pos, detect_direction, i);
         if(map.at<cv::Vec3b>(ray_pos.y, ray_pos.x) == cv::Vec3b(255,255,255))
         {
             obstacle_dist = i;
@@ -2975,6 +2975,185 @@ bool collisionOccurs(Point2D curr_pos, int detect_direction, int robot_radius=0)
 
     return (obstacle_dist == (robot_radius+1));
 }
+
+std::deque<Point2D> contouring_path;
+
+Polygon GetNewObstacle(Point2D origin, int front_direction, int robot_radius=0)
+{
+    Point2D curr_pos = origin;
+    Point2D last_curr_pos;
+    Point2D next_pos;
+    std::vector<int> direction_candidates;
+
+    Point2D obstacle_point;
+    Polygon new_obstacle;
+
+    int left_direction = GetLeftDirection(front_direction);
+    int right_direction = GetRightDirection(front_direction);
+    int back_direction = GetBackDirection(front_direction);
+
+    direction_candidates = GetRightDirectionCandidates(front_direction);
+    bool turning = false;
+    last_curr_pos = curr_pos;
+    while(!turning)
+    {
+        for (int i = 0; i < direction_candidates.size(); i++) {
+            next_pos = GetNextPosition(curr_pos, direction_candidates[i], 1);
+            if (CollisionOccurs(next_pos, front_direction, robot_radius))
+            {
+                contouring_path.emplace_back(next_pos);
+                curr_pos = next_pos;
+                obstacle_point = GetNextPosition(next_pos, front_direction, robot_radius+1);
+                new_obstacle.emplace_back(obstacle_point);
+                break;
+            }
+        }
+        if(curr_pos.x==last_curr_pos.x&&curr_pos.y==last_curr_pos.y)
+        {
+            turning = true;
+        }
+        else
+        {
+            last_curr_pos = curr_pos;
+        }
+    }
+    for(int i = 1; i <= (robot_radius+1); i++)
+    {
+        next_pos = GetNextPosition(curr_pos, right_direction, 1);
+        contouring_path.emplace_back(next_pos);
+        curr_pos = next_pos;
+    }
+    for(int i = 1; i <= (robot_radius+1); i++)
+    {
+        next_pos = GetNextPosition(curr_pos, front_direction, 1);
+        contouring_path.emplace_back(next_pos);
+        curr_pos = next_pos;
+    }
+
+
+    direction_candidates = GetFrontDirectionCandidates(front_direction);
+    turning = false;
+    last_curr_pos = curr_pos;
+    while(!turning)
+    {
+        for (int i = 0; i < direction_candidates.size(); i++) {
+            next_pos = GetNextPosition(curr_pos, direction_candidates[i], 1);
+            if (CollisionOccurs(next_pos, left_direction, robot_radius))
+            {
+                contouring_path.emplace_back(next_pos);
+                curr_pos = next_pos;
+                obstacle_point = GetNextPosition(next_pos, left_direction, robot_radius+1);
+                new_obstacle.emplace_back(obstacle_point);
+                break;
+            }
+        }
+        if(curr_pos.x==last_curr_pos.x&&curr_pos.y==last_curr_pos.y)
+        {
+            turning = true;
+        }
+        else
+        {
+            last_curr_pos = curr_pos;
+        }
+    }
+    for(int i = 1; i <= (robot_radius+1); i++)
+    {
+        next_pos = GetNextPosition(curr_pos, front_direction, 1);
+        contouring_path.emplace_back(next_pos);
+        curr_pos = next_pos;
+    }
+    for(int i = 1; i <= (robot_radius+1); i++)
+    {
+        next_pos = GetNextPosition(curr_pos, left_direction, 1);
+        contouring_path.emplace_back(next_pos);
+        curr_pos = next_pos;
+    }
+
+
+    direction_candidates = GetLeftDirectionCandidates(front_direction);
+    turning = false;
+    last_curr_pos = curr_pos;
+    while(!turning)
+    {
+        for (int i = 0; i < direction_candidates.size(); i++) {
+            next_pos = GetNextPosition(curr_pos, direction_candidates[i], 1);
+            if (CollisionOccurs(next_pos, back_direction, robot_radius))
+            {
+                contouring_path.emplace_back(next_pos);
+                curr_pos = next_pos;
+                obstacle_point = GetNextPosition(next_pos, back_direction, robot_radius+1);
+                new_obstacle.emplace_back(obstacle_point);
+                break;
+            }
+        }
+        if(curr_pos.x==last_curr_pos.x&&curr_pos.y==last_curr_pos.y)
+        {
+            turning = true;
+        }
+        else
+        {
+            last_curr_pos = curr_pos;
+        }
+    }
+    for(int i = 1; i <= (robot_radius+1); i++)
+    {
+        next_pos = GetNextPosition(curr_pos, left_direction, 1);
+        contouring_path.emplace_back(next_pos);
+        curr_pos = next_pos;
+    }
+    for(int i = 1; i <= (robot_radius+1); i++)
+    {
+        next_pos = GetNextPosition(curr_pos, back_direction, 1);
+        contouring_path.emplace_back(next_pos);
+        curr_pos = next_pos;
+    }
+
+
+    direction_candidates = GetBackDirectionCandidates(front_direction);
+    turning = false;
+    last_curr_pos = curr_pos;
+    while(!turning)
+    {
+        for (int i = 0; i < direction_candidates.size(); i++) {
+            next_pos = GetNextPosition(curr_pos, direction_candidates[i], 1);
+            if (CollisionOccurs(next_pos, right_direction, robot_radius))
+            {
+                contouring_path.emplace_back(next_pos);
+                curr_pos = next_pos;
+                obstacle_point = GetNextPosition(next_pos, right_direction, robot_radius+1);
+                new_obstacle.emplace_back(obstacle_point);
+                break;
+            }
+        }
+        if(curr_pos.x==last_curr_pos.x&&curr_pos.y==last_curr_pos.y)
+        {
+            turning = true;
+        }
+        else
+        {
+            last_curr_pos = curr_pos;
+        }
+    }
+    for(int i = 1; i <= (robot_radius+1); i++)
+    {
+        next_pos = GetNextPosition(curr_pos, back_direction, 1);
+        contouring_path.emplace_back(next_pos);
+        curr_pos = next_pos;
+    }
+    for(int i = 1; i <= (robot_radius+1); i++)
+    {
+        next_pos = GetNextPosition(curr_pos, right_direction, 1);
+        contouring_path.emplace_back(next_pos);
+        curr_pos = next_pos;
+    }
+
+    return new_obstacle;
+}
+
+
+
+
+
 
 
 
