@@ -35,7 +35,6 @@ const int BOTTOMLEFT = 1;
 const int BOTTOMRIGHT = 2;
 const int TOPRIGHT = 3;
 
-
 class Point2D
 {
 public:
@@ -155,6 +154,7 @@ std::deque<CellNode> GetVisittingPath(std::vector<CellNode>& cell_graph, int fir
     int unvisited_counter = cell_graph.size();
     std::deque<CellNode> visitting_path;
     WalkingThroughGraph(cell_graph, first_cell_index, unvisited_counter, visitting_path);
+    std::reverse(visitting_path.begin(), visitting_path.end());
     return visitting_path;
 }
 
@@ -1348,10 +1348,7 @@ void ExecuteInnerCloseOperation(std::vector<CellNode>& cell_graph, int curr_cell
     cell_graph[curr_cell_idx].floor.emplace_back(inner_out_bottom);
 }
 
-std::vector<int> cell_index_slice; // 按y从小到大排列
-std::vector<int> original_cell_index_slice;
-
-void InitializeCellDecomposition(std::vector<CellNode>& cell_graph, Point2D first_in_pos)
+void InitializeCellDecomposition(std::vector<CellNode>& cell_graph, std::vector<int>& cell_index_slice, Point2D first_in_pos)
 {
     CellNode cell_0;
 
@@ -1368,7 +1365,7 @@ void InitializeCellDecomposition(std::vector<CellNode>& cell_graph, Point2D firs
     cell_index_slice.emplace_back(0);
 }
 
-void InitializeCellDecomposition2(std::vector<CellNode>& cell_graph, Point2D first_in_pos, CellNode outermost_cell)
+void InitializeCellDecomposition2(std::vector<CellNode>& cell_graph, std::vector<int>& cell_index_slice, Point2D first_in_pos, CellNode outermost_cell)
 {
     CellNode cell_0;
 
@@ -1462,7 +1459,7 @@ std::deque<Event> FilterSlice(std::deque<Event> slice)
     return filtered_slice;
 }
 
-void ExecuteCellDecomposition(std::vector<CellNode>& cell_graph, std::deque<std::deque<Event>> slice_list)
+void ExecuteCellDecomposition(std::vector<CellNode>& cell_graph, std::vector<int>& cell_index_slice, std::vector<int>& original_cell_index_slice, std::deque<std::deque<Event>> slice_list)
 {
     int curr_cell_idx = INT_MAX;
     int top_cell_idx = INT_MAX;
@@ -1837,7 +1834,7 @@ void ExecuteCellDecomposition(std::vector<CellNode>& cell_graph, std::deque<std:
     }
 }
 
-void ExecuteCellDecomposition2(std::vector<CellNode>& cell_graph, std::deque<std::deque<Event>> slice_list, CellNode outermost_cell)
+void ExecuteCellDecomposition2(std::vector<CellNode>& cell_graph, std::vector<int>& cell_index_slice, std::vector<int>& original_cell_index_slice, std::deque<std::deque<Event>> slice_list, CellNode outermost_cell)
 {
     int curr_cell_idx = INT_MAX;
     int top_cell_idx = INT_MAX;
@@ -3083,6 +3080,149 @@ std::deque<Point2D> WalkingCrossCells(std::vector<CellNode>& cell_graph, std::de
     return overall_path;
 }
 
+std::vector<CellNode> GenerateCells(PolygonList obstacles)
+{
+    std::vector<Event> event_list = EventListGenerator(obstacles);
+    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
+
+    std::vector<CellNode> cell_graph;
+    std::vector<int> cell_index_slice;
+    std::vector<int> original_cell_index_slice;
+    InitializeCellDecomposition(cell_graph, cell_index_slice, Point2D(slice_list.front().front().x, slice_list.front().front().y));
+    ExecuteCellDecomposition(cell_graph, cell_index_slice, original_cell_index_slice, slice_list);
+    FinishCellDecomposition(cell_graph, Point2D(slice_list.back().back().x, slice_list.back().back().y));
+
+    return cell_graph;
+}
+
+std::deque<Point2D> GlobalPathPlanning(std::vector<CellNode>& cell_graph, Point2D start_point, int robot_radius=0, bool visualize_cells=true, bool visualize_path=true, int color_repeats=10)
+{
+    std::deque<Point2D> global_path;
+
+    int start_cell_index = DetermineCellIndex(cell_graph, start_point);
+
+    std::deque<Point2D> init_path = PathIninitialization(start_point, cell_graph[start_cell_index], robot_radius);
+    global_path.insert(global_path.end(), init_path.begin(), init_path.end());
+
+    std::deque<CellNode> cell_path = GetVisittingPath(cell_graph, start_cell_index);
+
+
+    cv::namedWindow("map", cv::WINDOW_NORMAL);
+    cv::imshow("map", map);
+
+    if(visualize_cells)
+    {
+        for(int i = 0; i < cell_graph.size(); i++)
+        {
+            std::cout<<"cell "<<i<<" 's ceiling points number:" << cell_graph[i].ceiling.size()<<std::endl;
+            std::cout<<"cell "<<i<<" 's floor points number:" << cell_graph[i].floor.size()<<std::endl;
+        }
+        std::cout<<"cell graph has "<<cell_graph.size()<<" cells."<<std::endl;
+        for(int i = 0; i < cell_graph.size(); i++)
+        {
+            for(int j = 0; j < cell_graph[i].neighbor_indices.size(); j++)
+            {
+                std::cout<<"cell "<< i << "'s neighbor: cell "<<cell_graph[cell_graph[i].neighbor_indices[j]].cellIndex<<std::endl;
+            }
+        }
+        for(int i = 0; i < cell_graph.size(); i++)
+        {
+            DrawCells(cell_graph[i]);
+            cv::imshow("map", map);
+            cv::waitKey(500);
+        }
+    }
+
+    std::deque<cv::Scalar> JetColorMap;
+    InitializeColorMap(JetColorMap, color_repeats);
+
+    if(visualize_path)
+    {
+        cv::circle(map, cv::Point(start_point.x, start_point.y), 1, cv::Scalar(0, 0, 255), -1);
+        for(int i = 0; i < init_path.size(); i++)
+        {
+            map.at<cv::Vec3b>(init_path[i].y, init_path[i].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+            UpdateColorMap(JetColorMap);
+            cv::imshow("map", map);
+            cv::waitKey(1);
+        }
+    }
+
+    std::deque<Point2D> sub_path;
+    std::deque<Point2D> link_path;
+    Point2D curr_exit;
+    Point2D next_entrance;
+
+    Point2D end_point;
+    std::deque<int> return_cell_path;
+    std::deque<Point2D> return_path;
+
+    int corner_indicator = TOPLEFT;
+
+    for(int i = 0; i < cell_path.size(); i++)
+    {
+        sub_path = GetBoustrophedonPath(cell_graph, cell_path[i], corner_indicator, robot_radius);
+        global_path.insert(global_path.end(), sub_path.begin(), sub_path.end());
+        if(visualize_path)
+        {
+            for(int j = 0; j < sub_path.size(); j++)
+            {
+                map.at<cv::Vec3b>(sub_path[j].y, sub_path[j].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+                UpdateColorMap(JetColorMap);
+                cv::imshow("map", map);
+                cv::waitKey(1);
+            }
+        }
+
+        cell_graph[cell_path[i].cellIndex].isCleaned = true;
+
+        if(i < (cell_path.size()-1))
+        {
+            curr_exit = sub_path.back();
+            next_entrance = FindNextEntrance(curr_exit, cell_path[i+1], corner_indicator, robot_radius);
+            link_path = FindLinkingPath(curr_exit, next_entrance, corner_indicator, cell_path[i], cell_path[i+1], robot_radius);
+            global_path.insert(global_path.end(), link_path.begin(), link_path.end());
+            if(visualize_path)
+            {
+                for(int k = 0; k < link_path.size(); k++)
+                {
+                    map.at<cv::Vec3b>(link_path[k].y, link_path[k].x)=cv::Vec3b(0,0,255);
+                    cv::imshow("map", map);
+                    cv::waitKey(10);
+                }
+            }
+        }
+    }
+
+
+    end_point = sub_path.back();
+    return_cell_path = FindShortestPath(cell_graph, end_point, start_point);
+    return_path = WalkingCrossCells(cell_graph, return_cell_path, end_point, start_point, robot_radius);
+    global_path.insert(global_path.end(), return_path.begin(), return_path.end());
+    if(visualize_path)
+    {
+        for(int i = 0; i < return_path.size(); i++)
+        {
+            map.at<cv::Vec3b>(return_path[i].y, return_path[i].x)=cv::Vec3b(255, 255, 255);
+            cv::imshow("map", map);
+            cv::waitKey(10);
+        }
+    }
+
+    if(visualize_cells||visualize_path)
+    {
+        cv::waitKey(0);
+    }
+
+    return global_path;
+}
+
+void InitializeMap()
+{
+
+}
+
+
 
 
 
@@ -3785,8 +3925,11 @@ int main() {
 
     std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
     std::vector<CellNode> cell_graph;
-    InitializeCellDecomposition(cell_graph, Point2D(slice_list.front().front().x, slice_list.front().front().y));
-    ExecuteCellDecomposition(cell_graph, slice_list);
+    std::vector<int> cell_index_slice; // 按y从小到大排列
+    std::vector<int> original_cell_index_slice;
+
+    InitializeCellDecomposition(cell_graph, cell_index_slice, Point2D(slice_list.front().front().x, slice_list.front().front().y));
+    ExecuteCellDecomposition(cell_graph, cell_index_slice, original_cell_index_slice, slice_list);
     FinishCellDecomposition(cell_graph, Point2D(slice_list.back().back().x, slice_list.back().back().y));
 
     Point2D start_point = Point2D(10, 10);
