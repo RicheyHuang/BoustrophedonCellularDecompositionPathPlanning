@@ -104,11 +104,7 @@ public:
     int cellIndex;
 };
 
-std::vector<CellNode> cell_graph;
-
-int unvisited_counter = INT_MAX;
-
-void WalkingThroughGraph(int cell_index, std::deque<CellNode>& path)  // Depth First Search Method
+void WalkingThroughGraph(std::vector<CellNode>& cell_graph, int cell_index, int& unvisited_counter, std::deque<CellNode>& path)  // Depth First Search Method
 {
     if(!cell_graph[cell_index].isVisited)
     {
@@ -134,7 +130,7 @@ void WalkingThroughGraph(int cell_index, std::deque<CellNode>& path)  // Depth F
     if(!neighbor.isVisited) // unvisited neighbor found
     {
         cell_graph[neighbor_idx].parentIndex = cell_graph[cell_index].cellIndex;
-        WalkingThroughGraph(neighbor_idx, path);
+        WalkingThroughGraph(cell_graph, neighbor_idx, unvisited_counter, path);
     }
     else  // unvisited neighbor not found
     {
@@ -149,15 +145,16 @@ void WalkingThroughGraph(int cell_index, std::deque<CellNode>& path)  // Depth F
         }
         else
         {
-            WalkingThroughGraph(cell_graph[cell_index].parentIndex, path);
+            WalkingThroughGraph(cell_graph, cell_graph[cell_index].parentIndex, unvisited_counter, path);
         }
     }
 }
 
-std::deque<CellNode> GetVisittingPath(int first_cell_index)
+std::deque<CellNode> GetVisittingPath(std::vector<CellNode>& cell_graph, int first_cell_index)
 {
+    int unvisited_counter = cell_graph.size();
     std::deque<CellNode> visitting_path;
-    WalkingThroughGraph(first_cell_index, visitting_path);
+    WalkingThroughGraph(cell_graph, first_cell_index, unvisited_counter, visitting_path);
     return visitting_path;
 }
 
@@ -186,7 +183,7 @@ std::vector<Point2D> ComputeCellCornerPoints(CellNode cell, int robot_radius=0)
     return corner_points;
 }
 
-std::deque<Point2D> GetBoustrophedonPath(CellNode cell, int corner_indicator, int robot_radius=0)
+std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, CellNode cell, int corner_indicator, int robot_radius=0)
 {
 
     std::deque<Point2D> path;
@@ -1152,7 +1149,7 @@ std::deque<std::deque<Event>> SliceListGenerator(std::vector<Event> event_list)
     return slice_list;
 }
 
-void ExecuteOpenOperation(int curr_cell_idx, Point2D in, Point2D c, Point2D f, bool rewrite = false) // in event  add two new node
+void ExecuteOpenOperation(std::vector<CellNode>& cell_graph, int curr_cell_idx, Point2D in, Point2D c, Point2D f, bool rewrite = false) // in event  add two new node
 {
 
     CellNode top_cell, bottom_cell;
@@ -1195,7 +1192,7 @@ void ExecuteOpenOperation(int curr_cell_idx, Point2D in, Point2D c, Point2D f, b
     }
 }
 
-void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out, Point2D c, Point2D f, bool rewrite = false) // out event  add one new node
+void ExecuteCloseOperation(std::vector<CellNode>& cell_graph, int top_cell_idx, int bottom_cell_idx, Point2D out, Point2D c, Point2D f, bool rewrite = false) // out event  add one new node
 {
     CellNode new_cell;
 
@@ -1227,17 +1224,17 @@ void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out, P
 
 }
 
-void ExecuteCeilOperation(int curr_cell_idx, const Point2D& ceil_point) // finish constructing last ceiling edge
+void ExecuteCeilOperation(std::vector<CellNode>& cell_graph, int curr_cell_idx, const Point2D& ceil_point) // finish constructing last ceiling edge
 {
     cell_graph[curr_cell_idx].ceiling.emplace_back(ceil_point);
 }
 
-void ExecuteFloorOperation(int curr_cell_idx, const Point2D& floor_point) // finish constructing last floor edge
+void ExecuteFloorOperation(std::vector<CellNode>& cell_graph, int curr_cell_idx, const Point2D& floor_point) // finish constructing last floor edge
 {
     cell_graph[curr_cell_idx].floor.emplace_back(floor_point);
 }
 
-void ExecuteOpenOperation(int curr_cell_idx, Point2D in_top, Point2D in_bottom, Point2D c, Point2D f, bool rewrite = false) // in event  add two new node
+void ExecuteOpenOperation(std::vector<CellNode>& cell_graph, int curr_cell_idx, Point2D in_top, Point2D in_bottom, Point2D c, Point2D f, bool rewrite = false) // in event  add two new node
 {
 
     CellNode top_cell, bottom_cell;
@@ -1281,7 +1278,7 @@ void ExecuteOpenOperation(int curr_cell_idx, Point2D in_top, Point2D in_bottom, 
 
 }
 
-void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out_top, Point2D out_bottom, Point2D c, Point2D f, bool rewrite = false) // out event  add one new node
+void ExecuteCloseOperation(std::vector<CellNode>& cell_graph, int top_cell_idx, int bottom_cell_idx, Point2D out_top, Point2D out_bottom, Point2D c, Point2D f, bool rewrite = false) // out event  add one new node
 {
     CellNode new_cell;
 
@@ -1313,7 +1310,7 @@ void ExecuteCloseOperation(int top_cell_idx, int bottom_cell_idx, Point2D out_to
 
 }
 
-void ExecuteInnerOpenOperation(Point2D inner_in)
+void ExecuteInnerOpenOperation(std::vector<CellNode>& cell_graph, Point2D inner_in)
 {
     CellNode new_cell;
 
@@ -1326,7 +1323,7 @@ void ExecuteInnerOpenOperation(Point2D inner_in)
     cell_graph.emplace_back(new_cell);
 }
 
-void ExecuteInnerOpenOperation(Point2D inner_in_top, Point2D inner_in_bottom)
+void ExecuteInnerOpenOperation(std::vector<CellNode>& cell_graph, Point2D inner_in_top, Point2D inner_in_bottom)
 {
     CellNode new_cell;
 
@@ -1339,13 +1336,13 @@ void ExecuteInnerOpenOperation(Point2D inner_in_top, Point2D inner_in_bottom)
     cell_graph.emplace_back(new_cell);
 }
 
-void ExecuteInnerCloseOperation(int curr_cell_idx, Point2D inner_out)
+void ExecuteInnerCloseOperation(std::vector<CellNode>& cell_graph, int curr_cell_idx, Point2D inner_out)
 {
     cell_graph[curr_cell_idx].ceiling.emplace_back(inner_out);
     cell_graph[curr_cell_idx].floor.emplace_back(inner_out);
 }
 
-void ExecuteInnerCloseOperation(int curr_cell_idx, Point2D inner_out_top, Point2D inner_out_bottom)
+void ExecuteInnerCloseOperation(std::vector<CellNode>& cell_graph, int curr_cell_idx, Point2D inner_out_top, Point2D inner_out_bottom)
 {
     cell_graph[curr_cell_idx].ceiling.emplace_back(inner_out_top);
     cell_graph[curr_cell_idx].floor.emplace_back(inner_out_bottom);
@@ -1354,7 +1351,7 @@ void ExecuteInnerCloseOperation(int curr_cell_idx, Point2D inner_out_top, Point2
 std::vector<int> cell_index_slice; // 按y从小到大排列
 std::vector<int> original_cell_index_slice;
 
-void InitializeCellDecomposition(Point2D first_in_pos)
+void InitializeCellDecomposition(std::vector<CellNode>& cell_graph, Point2D first_in_pos)
 {
     CellNode cell_0;
 
@@ -1371,7 +1368,7 @@ void InitializeCellDecomposition(Point2D first_in_pos)
     cell_index_slice.emplace_back(0);
 }
 
-void InitializeCellDecomposition2(Point2D first_in_pos, CellNode outermost_cell)
+void InitializeCellDecomposition2(std::vector<CellNode>& cell_graph, Point2D first_in_pos, CellNode outermost_cell)
 {
     CellNode cell_0;
 
@@ -1390,7 +1387,7 @@ void InitializeCellDecomposition2(Point2D first_in_pos, CellNode outermost_cell)
     cell_index_slice.emplace_back(0);
 }
 
-void FinishCellDecomposition(Point2D last_out_pos)
+void FinishCellDecomposition(std::vector<CellNode>& cell_graph, Point2D last_out_pos)
 {
     int last_cell_idx = cell_graph.size()-1;
 
@@ -1400,11 +1397,9 @@ void FinishCellDecomposition(Point2D last_out_pos)
         cell_graph[last_cell_idx].ceiling.emplace_back(Point2D(i, 0));
         cell_graph[last_cell_idx].floor.emplace_back(Point2D(i, map.rows-1));
     }
-
-    unvisited_counter = cell_graph.size();
 }
 
-void FinishCellDecomposition2(Point2D last_out_pos, CellNode outermost_cell)
+void FinishCellDecomposition2(std::vector<CellNode>& cell_graph, Point2D last_out_pos, CellNode outermost_cell)
 {
     int last_cell_idx = cell_graph.size()-1;
 
@@ -1416,8 +1411,6 @@ void FinishCellDecomposition2(Point2D last_out_pos, CellNode outermost_cell)
         cell_graph[last_cell_idx].floor.emplace_front(outermost_cell.floor[index]);
         index--;
     }
-
-    unvisited_counter = cell_graph.size();
 }
 
 void DrawCells(const CellNode& cell)
@@ -1469,7 +1462,7 @@ std::deque<Event> FilterSlice(std::deque<Event> slice)
     return filtered_slice;
 }
 
-void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
+void ExecuteCellDecomposition(std::vector<CellNode>& cell_graph, std::deque<std::deque<Event>> slice_list)
 {
     int curr_cell_idx = INT_MAX;
     int top_cell_idx = INT_MAX;
@@ -1536,7 +1529,7 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                         curr_slice[f_index].isUsed = true;
 
                         curr_cell_idx = cell_index_slice[k];
-                        ExecuteOpenOperation(curr_cell_idx,
+                        ExecuteOpenOperation(cell_graph, curr_cell_idx,
                                              Point2D(curr_slice[j].x, curr_slice[j].y),
                                              c,
                                              f,
@@ -1596,7 +1589,7 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                         top_cell_idx = cell_index_slice[k-1];
                         bottom_cell_idx = cell_index_slice[k];
 
-                        ExecuteCloseOperation(top_cell_idx, bottom_cell_idx,
+                        ExecuteCloseOperation(cell_graph, top_cell_idx, bottom_cell_idx,
                                               Point2D(curr_slice[j].x, curr_slice[j].y),
                                               c,
                                               f,
@@ -1655,7 +1648,7 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                         curr_slice[f_index].isUsed = true;
 
                         curr_cell_idx = cell_index_slice[k];
-                        ExecuteOpenOperation(curr_cell_idx,
+                        ExecuteOpenOperation(cell_graph, curr_cell_idx,
                                              Point2D(curr_slice[j-1].x, curr_slice[j-1].y),  // in top
                                              Point2D(curr_slice[j].x, curr_slice[j].y),      // in bottom
                                              c,
@@ -1720,7 +1713,7 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
 
                         top_cell_idx = cell_index_slice[k-1];
                         bottom_cell_idx = cell_index_slice[k];
-                        ExecuteCloseOperation(top_cell_idx, bottom_cell_idx,
+                        ExecuteCloseOperation(cell_graph, top_cell_idx, bottom_cell_idx,
                                               Point2D(curr_slice[j-1].x, curr_slice[j-1].y),   // out top
                                               Point2D(curr_slice[j].x, curr_slice[j].y),       // out bottom
 
@@ -1755,7 +1748,7 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                 {
                     if(event_y >= cell_graph[cell_index_slice[k-1]].floor.back().y && event_y <= cell_graph[cell_index_slice[k]].ceiling.back().y)
                     {
-                        ExecuteInnerOpenOperation(Point2D(curr_slice[j].x, curr_slice[j].y));  // inner_in
+                        ExecuteInnerOpenOperation(cell_graph, Point2D(curr_slice[j].x, curr_slice[j].y));  // inner_in
                         cell_index_slice.insert(cell_index_slice.begin()+k, int(cell_graph.size()-1));
                         curr_slice[j].isUsed = true;
                         break;
@@ -1771,7 +1764,7 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                     if(event_y >= cell_graph[cell_index_slice[k-1]].floor.back().y && event_y <= cell_graph[cell_index_slice[k]].ceiling.back().y)
                     {
 
-                        ExecuteInnerOpenOperation(Point2D(curr_slice[j-1].x, curr_slice[j-1].y), // inner_in_top,
+                        ExecuteInnerOpenOperation(cell_graph, Point2D(curr_slice[j-1].x, curr_slice[j-1].y), // inner_in_top,
                                                   Point2D(curr_slice[j].x, curr_slice[j].y));    // inner_in_bottom
 
                         cell_index_slice.insert(cell_index_slice.begin()+k, int(cell_graph.size()-1));
@@ -1793,7 +1786,7 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                     if(event_y >= cell_graph[cell_index_slice[k]].ceiling.back().y && event_y <= cell_graph[cell_index_slice[k]].floor.back().y)
                     {
                         curr_cell_idx = cell_index_slice[k];
-                        ExecuteInnerCloseOperation(curr_cell_idx, Point2D(curr_slice[j].x, curr_slice[j].y));  // inner_out
+                        ExecuteInnerCloseOperation(cell_graph, curr_cell_idx, Point2D(curr_slice[j].x, curr_slice[j].y));  // inner_out
                         cell_index_slice.erase(cell_index_slice.begin()+k);
                         curr_slice[j].isUsed = true;
                         break;
@@ -1809,7 +1802,7 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                     if(event_y >= cell_graph[cell_index_slice[k]].ceiling.back().y && event_y <= cell_graph[cell_index_slice[k]].floor.back().y)
                     {
                         curr_cell_idx = cell_index_slice[k];
-                        ExecuteInnerCloseOperation(curr_cell_idx, Point2D(curr_slice[j-1].x, curr_slice[j-1].y), Point2D(curr_slice[j].x, curr_slice[j].y));  // inner_out_top, inner_out_bottom
+                        ExecuteInnerCloseOperation(cell_graph, curr_cell_idx, Point2D(curr_slice[j-1].x, curr_slice[j-1].y), Point2D(curr_slice[j].x, curr_slice[j].y));  // inner_out_top, inner_out_bottom
                         cell_index_slice.erase(cell_index_slice.begin()+k);
                         curr_slice[j-1].isUsed = true;
                         curr_slice[j].isUsed = true;
@@ -1828,7 +1821,7 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                 curr_cell_idx = cell_index_slice[cell_counter];
                 if(!curr_slice[j].isUsed)
                 {
-                    ExecuteCeilOperation(curr_cell_idx, Point2D(curr_slice[j].x, curr_slice[j].y));
+                    ExecuteCeilOperation(cell_graph, curr_cell_idx, Point2D(curr_slice[j].x, curr_slice[j].y));
                 }
             }
             if(curr_slice[j].event_type == FLOOR)
@@ -1837,14 +1830,14 @@ void ExecuteCellDecomposition(std::deque<std::deque<Event>> slice_list)
                 curr_cell_idx = cell_index_slice[cell_counter];
                 if(!curr_slice[j].isUsed)
                 {
-                    ExecuteFloorOperation(curr_cell_idx, Point2D(curr_slice[j].x, curr_slice[j].y));
+                    ExecuteFloorOperation(cell_graph, curr_cell_idx, Point2D(curr_slice[j].x, curr_slice[j].y));
                 }
             }
         }
     }
 }
 
-void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list, CellNode outermost_cell)
+void ExecuteCellDecomposition2(std::vector<CellNode>& cell_graph, std::deque<std::deque<Event>> slice_list, CellNode outermost_cell)
 {
     int curr_cell_idx = INT_MAX;
     int top_cell_idx = INT_MAX;
@@ -1914,7 +1907,7 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list, CellNod
                         curr_slice[f_index].isUsed = true;
 
                         curr_cell_idx = cell_index_slice[k];
-                        ExecuteOpenOperation(curr_cell_idx,
+                        ExecuteOpenOperation(cell_graph, curr_cell_idx,
                                              Point2D(curr_slice[j].x, curr_slice[j].y),
                                              c,
                                              f,
@@ -1974,7 +1967,7 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list, CellNod
                         top_cell_idx = cell_index_slice[k-1];
                         bottom_cell_idx = cell_index_slice[k];
 
-                        ExecuteCloseOperation(top_cell_idx, bottom_cell_idx,
+                        ExecuteCloseOperation(cell_graph, top_cell_idx, bottom_cell_idx,
                                               Point2D(curr_slice[j].x, curr_slice[j].y),
                                               c,
                                               f,
@@ -2033,7 +2026,7 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list, CellNod
                         curr_slice[f_index].isUsed = true;
 
                         curr_cell_idx = cell_index_slice[k];
-                        ExecuteOpenOperation(curr_cell_idx,
+                        ExecuteOpenOperation(cell_graph, curr_cell_idx,
                                              Point2D(curr_slice[j-1].x, curr_slice[j-1].y),  // in top
                                              Point2D(curr_slice[j].x, curr_slice[j].y),      // in bottom
                                              c,
@@ -2098,7 +2091,7 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list, CellNod
 
                         top_cell_idx = cell_index_slice[k-1];
                         bottom_cell_idx = cell_index_slice[k];
-                        ExecuteCloseOperation(top_cell_idx, bottom_cell_idx,
+                        ExecuteCloseOperation(cell_graph, top_cell_idx, bottom_cell_idx,
                                               Point2D(curr_slice[j-1].x, curr_slice[j-1].y),   // out top
                                               Point2D(curr_slice[j].x, curr_slice[j].y),       // out bottom
 
@@ -2133,7 +2126,7 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list, CellNod
                 {
                     if(event_y >= cell_graph[cell_index_slice[k-1]].floor.back().y && event_y <= cell_graph[cell_index_slice[k]].ceiling.back().y)
                     {
-                        ExecuteInnerOpenOperation(Point2D(curr_slice[j].x, curr_slice[j].y));  // inner_in
+                        ExecuteInnerOpenOperation(cell_graph, Point2D(curr_slice[j].x, curr_slice[j].y));  // inner_in
                         cell_index_slice.insert(cell_index_slice.begin()+k, int(cell_graph.size()-1));
                         curr_slice[j].isUsed = true;
                         break;
@@ -2149,7 +2142,7 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list, CellNod
                     if(event_y >= cell_graph[cell_index_slice[k-1]].floor.back().y && event_y <= cell_graph[cell_index_slice[k]].ceiling.back().y)
                     {
 
-                        ExecuteInnerOpenOperation(Point2D(curr_slice[j-1].x, curr_slice[j-1].y), // inner_in_top,
+                        ExecuteInnerOpenOperation(cell_graph, Point2D(curr_slice[j-1].x, curr_slice[j-1].y), // inner_in_top,
                                                   Point2D(curr_slice[j].x, curr_slice[j].y));    // inner_in_bottom
 
                         cell_index_slice.insert(cell_index_slice.begin()+k, int(cell_graph.size()-1));
@@ -2171,7 +2164,7 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list, CellNod
                     if(event_y >= cell_graph[cell_index_slice[k]].ceiling.back().y && event_y <= cell_graph[cell_index_slice[k]].floor.back().y)
                     {
                         curr_cell_idx = cell_index_slice[k];
-                        ExecuteInnerCloseOperation(curr_cell_idx, Point2D(curr_slice[j].x, curr_slice[j].y));  // inner_out
+                        ExecuteInnerCloseOperation(cell_graph, curr_cell_idx, Point2D(curr_slice[j].x, curr_slice[j].y));  // inner_out
                         cell_index_slice.erase(cell_index_slice.begin()+k);
                         curr_slice[j].isUsed = true;
                         break;
@@ -2187,7 +2180,7 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list, CellNod
                     if(event_y >= cell_graph[cell_index_slice[k]].ceiling.back().y && event_y <= cell_graph[cell_index_slice[k]].floor.back().y)
                     {
                         curr_cell_idx = cell_index_slice[k];
-                        ExecuteInnerCloseOperation(curr_cell_idx, Point2D(curr_slice[j-1].x, curr_slice[j-1].y), Point2D(curr_slice[j].x, curr_slice[j].y));  // inner_out_top, inner_out_bottom
+                        ExecuteInnerCloseOperation(cell_graph, curr_cell_idx, Point2D(curr_slice[j-1].x, curr_slice[j-1].y), Point2D(curr_slice[j].x, curr_slice[j].y));  // inner_out_top, inner_out_bottom
                         cell_index_slice.erase(cell_index_slice.begin()+k);
                         curr_slice[j-1].isUsed = true;
                         curr_slice[j].isUsed = true;
@@ -2206,7 +2199,7 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list, CellNod
                 curr_cell_idx = cell_index_slice[cell_counter];
                 if(!curr_slice[j].isUsed)
                 {
-                    ExecuteCeilOperation(curr_cell_idx, Point2D(curr_slice[j].x, curr_slice[j].y));
+                    ExecuteCeilOperation(cell_graph, curr_cell_idx, Point2D(curr_slice[j].x, curr_slice[j].y));
                 }
             }
             if(curr_slice[j].event_type == FLOOR)
@@ -2215,7 +2208,7 @@ void ExecuteCellDecomposition2(std::deque<std::deque<Event>> slice_list, CellNod
                 curr_cell_idx = cell_index_slice[cell_counter];
                 if(!curr_slice[j].isUsed)
                 {
-                    ExecuteFloorOperation(curr_cell_idx, Point2D(curr_slice[j].x, curr_slice[j].y));
+                    ExecuteFloorOperation(cell_graph, curr_cell_idx, Point2D(curr_slice[j].x, curr_slice[j].y));
                 }
             }
         }
@@ -2807,7 +2800,7 @@ void UpdateColorMap(std::deque<cv::Scalar>& JetColorMap)
     JetColorMap.emplace_back(color);
 }
 
-int DetermineCellIndex(Point2D point)
+int DetermineCellIndex(std::vector<CellNode>& cell_graph, Point2D point)
 {
     int cell_index;
 
@@ -2825,10 +2818,10 @@ int DetermineCellIndex(Point2D point)
     }
 }
 
-std::deque<int> FindShortestPath(Point2D start, Point2D end)
+std::deque<int> FindShortestPath(std::vector<CellNode>& cell_graph, Point2D start, Point2D end)
 {
-    int start_cell_index = DetermineCellIndex(start);
-    int end_cell_index = DetermineCellIndex(end);
+    int start_cell_index = DetermineCellIndex(cell_graph, start);
+    int end_cell_index = DetermineCellIndex(cell_graph, end);
 
     std::deque<int> cell_path = {end_cell_index};
     std::vector<CellNode> cells;
@@ -3038,7 +3031,7 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end,
     return inner_path;
 }
 
-std::deque<Point2D> WalkingCrossCells(std::deque<int> cell_path, Point2D start, Point2D end, int robot_radius=0)
+std::deque<Point2D> WalkingCrossCells(std::vector<CellNode>& cell_graph, std::deque<int> cell_path, Point2D start, Point2D end, int robot_radius=0)
 {
     std::deque<Point2D> overall_path;
     std::deque<Point2D> sub_path;
@@ -3068,7 +3061,7 @@ std::deque<Point2D> WalkingCrossCells(std::deque<int> cell_path, Point2D start, 
 
     for(int i = 1; i < cell_path.size()-1; i++)
     {
-        sub_path = GetBoustrophedonPath(cells[cell_path[i]], curr_corner_indicator, robot_radius);
+        sub_path = GetBoustrophedonPath(cell_graph, cells[cell_path[i]], curr_corner_indicator, robot_radius);
         overall_path.insert(overall_path.end(), sub_path.begin(), sub_path.end());
         sub_path.clear();
 
@@ -3791,9 +3784,10 @@ int main() {
     std::vector<Event> event_list = EventListGenerator(polygons);
 
     std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
-    InitializeCellDecomposition(Point2D(slice_list.front().front().x, slice_list.front().front().y));
-    ExecuteCellDecomposition(slice_list);
-    FinishCellDecomposition(Point2D(slice_list.back().back().x, slice_list.back().back().y));
+    std::vector<CellNode> cell_graph;
+    InitializeCellDecomposition(cell_graph, Point2D(slice_list.front().front().x, slice_list.front().front().y));
+    ExecuteCellDecomposition(cell_graph, slice_list);
+    FinishCellDecomposition(cell_graph, Point2D(slice_list.back().back().x, slice_list.back().back().y));
 
     Point2D start_point = Point2D(10, 10);
     Point2D end_point;
@@ -3801,7 +3795,7 @@ int main() {
     int robot_radius = 5;
     std::deque<Point2D> first_steps = PathIninitialization(start_point, cell_graph[start_cell_index], robot_radius);
 
-    std::deque<CellNode> path = GetVisittingPath(start_cell_index);
+    std::deque<CellNode> path = GetVisittingPath(cell_graph, start_cell_index);
 
     for(int i = 0; i < cell_graph.size(); i++)
     {
@@ -3851,7 +3845,7 @@ int main() {
 
     for(int i = path.size()-1; i >= 0; i--)
     {
-        sub_path = GetBoustrophedonPath(path[i], corner_indicator, robot_radius);
+        sub_path = GetBoustrophedonPath(cell_graph, path[i], corner_indicator, robot_radius);
         for(int j = 0; j < sub_path.size(); j++)
         {
             map.at<cv::Vec3b>(sub_path[j].y, sub_path[j].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
@@ -3879,8 +3873,8 @@ int main() {
     }
 
     end_point = sub_path.back();
-    std::deque<int> return_cell_path = FindShortestPath(end_point, start_point);
-    std::deque<Point2D> return_path = WalkingCrossCells(return_cell_path, end_point, start_point, robot_radius);
+    std::deque<int> return_cell_path = FindShortestPath(cell_graph, end_point, start_point);
+    std::deque<Point2D> return_path = WalkingCrossCells(cell_graph, return_cell_path, end_point, start_point, robot_radius);
     for(int i = 0; i < return_path.size(); i++)
     {
         map.at<cv::Vec3b>(return_path[i].y, return_path[i].x)=cv::Vec3b(255, 255, 255);
