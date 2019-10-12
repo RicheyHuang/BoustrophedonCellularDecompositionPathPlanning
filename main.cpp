@@ -3132,15 +3132,30 @@ std::vector<CellNode> GenerateCells2(cv::Mat map, Polygon map_border, PolygonLis
 
     return cell_graph;
 }
-
-std::deque<Point2D> GlobalPathPlanning(cv::Mat map, std::vector<CellNode>& cell_graph, Point2D start_point, int robot_radius=0, bool visualize_cells=true, bool visualize_path=true, int color_repeats=10)
+std::vector<CellNode> GenerateCells2(cv::Mat map, CellNode outermost_cell, PolygonList obstacles)
 {
-    std::deque<Point2D> global_path;
+    std::vector<Event> event_list = EventListGenerator(map, obstacles);
+    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
+
+    std::vector<CellNode> cell_graph;
+    std::vector<int> cell_index_slice;
+    std::vector<int> original_cell_index_slice;
+    InitializeCellDecomposition2(cell_graph, cell_index_slice, Point2D(slice_list.front().front().x, slice_list.front().front().y), outermost_cell);
+    ExecuteCellDecomposition2(cell_graph, cell_index_slice, original_cell_index_slice, slice_list, outermost_cell);
+    FinishCellDecomposition2(cell_graph, Point2D(slice_list.back().back().x, slice_list.back().back().y), outermost_cell);
+
+    return cell_graph;
+}
+
+std::deque<std::deque<Point2D>> GlobalPathPlanning(cv::Mat map, std::vector<CellNode>& cell_graph, Point2D start_point, int robot_radius=0, bool visualize_cells=true, bool visualize_path=true, int color_repeats=10)
+{
+    std::deque<std::deque<Point2D>> global_path;
+    std::deque<Point2D> local_path;
 
     int start_cell_index = DetermineCellIndex(cell_graph, start_point);
 
     std::deque<Point2D> init_path = PathIninitialization(start_point, cell_graph[start_cell_index], robot_radius);
-    global_path.insert(global_path.end(), init_path.begin(), init_path.end());
+    local_path.assign(init_path.begin(), init_path.end());
 
     std::deque<CellNode> cell_path = GetVisittingPath(cell_graph, start_cell_index);
 
@@ -3186,7 +3201,7 @@ std::deque<Point2D> GlobalPathPlanning(cv::Mat map, std::vector<CellNode>& cell_
         }
     }
 
-    std::deque<Point2D> sub_path;
+    std::deque<Point2D> inner_path;
     std::deque<Point2D> link_path;
     Point2D curr_exit;
     Point2D next_entrance;
@@ -3199,13 +3214,15 @@ std::deque<Point2D> GlobalPathPlanning(cv::Mat map, std::vector<CellNode>& cell_
 
     for(int i = 0; i < cell_path.size(); i++)
     {
-        sub_path = GetBoustrophedonPath(cell_graph, cell_path[i], corner_indicator, robot_radius);
-        global_path.insert(global_path.end(), sub_path.begin(), sub_path.end());
+        inner_path = GetBoustrophedonPath(cell_graph, cell_path[i], corner_indicator, robot_radius);
+        local_path.insert(local_path.end(), inner_path.begin(), inner_path.end());
+        global_path.emplace_back(local_path);
+        local_path.clear();
         if(visualize_path)
         {
-            for(int j = 0; j < sub_path.size(); j++)
+            for(int j = 0; j < inner_path.size(); j++)
             {
-                map.at<cv::Vec3b>(sub_path[j].y, sub_path[j].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+                map.at<cv::Vec3b>(inner_path[j].y, inner_path[j].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
                 UpdateColorMap(JetColorMap);
                 cv::imshow("map", map);
                 cv::waitKey(1);
@@ -3216,10 +3233,10 @@ std::deque<Point2D> GlobalPathPlanning(cv::Mat map, std::vector<CellNode>& cell_
 
         if(i < (cell_path.size()-1))
         {
-            curr_exit = sub_path.back();
+            curr_exit = inner_path.back();
             next_entrance = FindNextEntrance(curr_exit, cell_path[i+1], corner_indicator, robot_radius);
             link_path = FindLinkingPath(curr_exit, next_entrance, corner_indicator, cell_path[i], cell_path[i+1], robot_radius);
-            global_path.insert(global_path.end(), link_path.begin(), link_path.end());
+            local_path.insert(local_path.end(), link_path.begin(), link_path.end());
             if(visualize_path)
             {
                 for(int k = 0; k < link_path.size(); k++)
@@ -3232,27 +3249,32 @@ std::deque<Point2D> GlobalPathPlanning(cv::Mat map, std::vector<CellNode>& cell_
         }
     }
 
-
-    end_point = sub_path.back();
-    return_cell_path = FindShortestPath(cell_graph, end_point, start_point);
-    return_path = WalkingCrossCells(cell_graph, return_cell_path, end_point, start_point, robot_radius);
-    global_path.insert(global_path.end(), return_path.begin(), return_path.end());
-    if(visualize_path)
-    {
-        for(int i = 0; i < return_path.size(); i++)
-        {
-            map.at<cv::Vec3b>(return_path[i].y, return_path[i].x)=cv::Vec3b(255, 255, 255);
-            cv::imshow("map", map);
-            cv::waitKey(10);
-        }
-    }
-
     if(visualize_cells||visualize_path)
     {
         cv::waitKey(0);
     }
 
     return global_path;
+}
+
+// 动态规划时，若是有新的障碍物产生，要先用更新后的障碍物队列来重新更新cell_graph再规划
+std::deque<Point2D> ReturningPathPlanning(cv::Mat map, std::vector<CellNode>& cell_graph, Point2D curr_pos, Point2D original_pos, int robot_radius=0, bool visualize_path=true)
+{
+
+    std::deque<int> return_cell_path = FindShortestPath(cell_graph, curr_pos, original_pos);
+    std::deque<Point2D> returning_path = WalkingCrossCells(cell_graph, return_cell_path, curr_pos, original_pos, robot_radius);
+
+    if(visualize_path)
+    {
+        for(int i = 0; i < returning_path.size(); i++)
+        {
+            map.at<cv::Vec3b>(returning_path[i].y, returning_path[i].x)=cv::Vec3b(255, 255, 255);
+            cv::imshow("map", map);
+            cv::waitKey(10);
+        }
+    }
+
+    return returning_path;
 }
 
 void InitializeMap(cv::Mat& map)
@@ -3342,15 +3364,21 @@ Polygon GetMapBorder(cv::Mat map)
 }
 
 
+
+
+
+
 // dynamic complete coverage path planning
+// 没有最新的全局地图，只有历史全局地图和当前的碰撞信号
+// 目前只适用cell中出现孤立障碍物的情况
 
 const int UP = 0, UPRIGHT = 1, RIGHT = 2, DOWNRIGHT = 3, DOWN = 4, DOWNLEFT = 5, LEFT = 6, UPLEFT = 7, CENTER = 8;
 std::vector<int> map_directions = {UP, UPRIGHT, RIGHT, DOWNRIGHT, DOWN, DOWNLEFT, LEFT, UPLEFT};
 
-int GetFrontDirection(Point2D prev_pos, Point2D curr_pos)
+int GetFrontDirection(Point2D curr_pos, Point2D next_pos)
 {
-    int delta_x = curr_pos.x - prev_pos.x;
-    int delta_y = curr_pos.y - prev_pos.y;
+    int delta_x = next_pos.x - curr_pos.x;
+    int delta_y = next_pos.y - curr_pos.y;
 
     if(delta_y < 0)
     {
@@ -3613,9 +3641,8 @@ bool CollisionOccurs(cv::Mat map, Point2D curr_pos, int detect_direction, int ro
     return (obstacle_dist == (robot_radius+1));
 }
 
-std::deque<Point2D> contouring_paths;
-
-Polygon GetNewObstacle(cv::Mat map, Point2D origin, int front_direction, int robot_radius=0)
+// TODO：解决障碍物横跨cell的情况，即边界情况
+Polygon GetNewObstacle(cv::Mat map, Point2D origin, int front_direction, std::deque<Point2D>& contouring_path, int robot_radius=0)
 {
     Point2D curr_pos = origin;
     Point2D last_curr_pos;
@@ -3624,8 +3651,6 @@ Polygon GetNewObstacle(cv::Mat map, Point2D origin, int front_direction, int rob
 
     Point2D obstacle_point;
     Polygon new_obstacle;
-
-    std::deque<Point2D> contouring_path;
 
     int left_direction = GetLeftDirection(front_direction);
     int right_direction = GetRightDirection(front_direction);
@@ -3789,39 +3814,135 @@ Polygon GetNewObstacle(cv::Mat map, Point2D origin, int front_direction, int rob
         curr_pos = next_pos;
     }
 
-    contouring_paths.insert(contouring_paths.end(), contouring_path.begin(), contouring_path.end());
-
     return new_obstacle;
 }
 
-std::deque<Point2D> replanning_paths;
+int GetCleaningDirection(CellNode cell, Point2D exit, int robot_radius=0)
+{
+    std::vector<Point2D> corner_points = ComputeCellCornerPoints(cell, robot_radius);
+
+    if(exit.x == corner_points[TOPLEFT].x && exit.y == corner_points[TOPLEFT].y)
+    {
+        return LEFT;
+    }
+    if(exit.x == corner_points[BOTTOMLEFT].x && exit.y == corner_points[BOTTOMLEFT].y)
+    {
+        return LEFT;
+    }
+    if(exit.x == corner_points[TOPRIGHT].x && exit.y == corner_points[TOPRIGHT].y)
+    {
+        return RIGHT;
+    }
+    if(exit.x == corner_points[BOTTOMRIGHT].x && exit.y == corner_points[BOTTOMRIGHT].y)
+    {
+        return RIGHT;
+    }
+}
 
 // 清扫方向只分向左和向右
-void LocalReplanning(CellNode outer_cell, PolygonList obstacles, Point2D curr_pos, int clean_direction, int robot_radius=0)
+// 该cell未清扫过才重新规划
+std::deque<std::deque<Point2D>> LocalReplanning(cv::Mat map, CellNode outer_cell, PolygonList obstacles, Point2D curr_pos, std::vector<CellNode>& curr_cell_graph, int cleaning_direction, int robot_radius=0)
 {
+    //TODO: 边界判断
     int start_x;
-    if(clean_direction == LEFT)
+    if(cleaning_direction == LEFT)
     {
         start_x =  curr_pos.x + 3 * (robot_radius + 1);
     }
-    if(clean_direction == RIGHT)
+    if(cleaning_direction == RIGHT)
     {
         start_x = curr_pos.x - 3 * (robot_radius + 1);
     }
     int outer_cell_index_offset = start_x - outer_cell.ceiling.front().x;
 
-    CellNode cell;
+    CellNode inner_cell;
     for(int i = outer_cell_index_offset; i < outer_cell.ceiling.size(); i++)
     {
-        cell.ceiling.emplace_back(outer_cell.ceiling[i]);
-        cell.floor.emplace_back(outer_cell.floor[i]);
+        inner_cell.ceiling.emplace_back(outer_cell.ceiling[i]);
+        inner_cell.floor.emplace_back(outer_cell.floor[i]);
+    }
+
+    curr_cell_graph = GenerateCells2(map, inner_cell, obstacles);
+    std::deque<std::deque<Point2D>> replanning_path = GlobalPathPlanning(map, curr_cell_graph, curr_pos, robot_radius);
+
+    return replanning_path;
+}
+
+std::deque<Point2D> DynamicPathPlanning(cv::Mat map, std::vector<CellNode> global_cell_graph, PolygonList global_obstacles, std::deque<std::deque<Point2D>> global_path, int robot_radius=0)
+{
+    std::deque<Point2D> dynamic_path;
+    std::deque<Point2D> curr_sub_path;
+    std::deque<Point2D> contouring_path;
+
+    std::deque<std::deque<Point2D>> replanning_path;
+    std::deque<std::deque<Point2D>> remaining_global_path;
+
+    Point2D curr_pos;
+    Point2D next_pos;
+    Point2D curr_exit;
+
+    int front_direction;
+    int cleaning_direction;
+
+    Polygon new_obstacle;
+
+    int curr_cell_index;
+    CellNode curr_cell;
+
+    std::vector<CellNode> overall_cell_graph;
+    std::vector<CellNode> curr_cell_graph;
+
+    PolygonList overall_obstacles;
+    PolygonList curr_obstacles;
+
+    curr_cell_graph.assign(global_cell_graph.begin(), global_cell_graph.end());
+
+    std::vector<std::deque<std::deque<Point2D>>> unvisited_paths = {global_path}; // 本质上也是个stack
+    std::vector<std::vector<CellNode>> cell_graph_stack;
+
+    while()
+    {
+        for(int i = 0; i < global_path.size(); i++)
+        {
+            curr_sub_path.assign(global_path[i].begin(), global_path[i].end());
+
+            for(int j = 0; j < curr_sub_path.size()-1; j++)
+            {
+                curr_pos = curr_sub_path[j];
+                next_pos = curr_sub_path[j+1];
+                dynamic_path.emplace_back(curr_pos);
+
+                front_direction = GetFrontDirection(curr_pos, next_pos);
+                if(CollisionOccurs(map, curr_pos, front_direction, robot_radius))
+                {
+                    new_obstacle = GetNewObstacle(map, curr_pos, front_direction, contouring_path, robot_radius);
+                    dynamic_path.insert(dynamic_path.end(), contouring_path.begin(), contouring_path.end());
+                    contouring_path.clear();
+
+                    curr_cell_index = DetermineCellIndex(curr_cell_graph, curr_pos);
+                    curr_cell = curr_cell_graph[curr_cell_index];
+                    curr_obstacles={new_obstacle};
+                    curr_exit = curr_sub_path.back();
+                    cleaning_direction = GetCleaningDirection(curr_cell, curr_exit, robot_radius);
+
+                    cell_graph_stack.emplace_back(curr_cell_graph);
+                    replanning_path = LocalReplanning(map, curr_cell, curr_obstacles, curr_pos, curr_cell_graph, cleaning_direction, robot_radius);
+
+                    remaining_global_path.insert(remaining_global_path.begin(), global_path.begin()+i+1, global_path.end());
+                    remaining_global_path.insert(remaining_global_path.begin(), replanning_path.begin(), replanning_path.end());
+
+                    goto UPDATING_REMAINING_PATH;
+                }
+            }
+        }
+
+        UPDATING_REMAINING_PATH:
+        global_path.assign(remaining_global_path.begin(), remaining_global_path.end());
+        remaining_global_path.clear();
     }
 
 
-
-
 }
-
 
 
 
