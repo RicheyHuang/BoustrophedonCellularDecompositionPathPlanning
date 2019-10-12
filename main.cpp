@@ -3095,6 +3095,44 @@ std::vector<CellNode> GenerateCells(cv::Mat map, PolygonList obstacles)
     return cell_graph;
 }
 
+CellNode ContourToCell(cv::Mat map, Polygon contour)
+{
+    std::vector<Event> event_list = InitializeEventList(contour, -1);
+    EventTypeAllocator(map, event_list);
+    std::sort(event_list.begin(), event_list.end());
+
+    CellNode cell;
+    for(int i = 0; i < event_list.size(); i++)
+    {
+        if(event_list[i].event_type == CEILING)
+        {
+            cell.ceiling.emplace_back(Point2D(event_list[i].x, event_list[i].y));
+        }
+        if(event_list[i].event_type == FLOOR)
+        {
+            cell.floor.emplace_back(Point2D(event_list[i].x, event_list[i].y));
+        }
+    }
+    return cell;
+}
+
+std::vector<CellNode> GenerateCells2(cv::Mat map, Polygon map_border, PolygonList obstacles)
+{
+    CellNode outermost_cell = ContourToCell(map, map_border);
+
+    std::vector<Event> event_list = EventListGenerator(map, obstacles);
+    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
+
+    std::vector<CellNode> cell_graph;
+    std::vector<int> cell_index_slice;
+    std::vector<int> original_cell_index_slice;
+    InitializeCellDecomposition2(cell_graph, cell_index_slice, Point2D(slice_list.front().front().x, slice_list.front().front().y), outermost_cell);
+    ExecuteCellDecomposition2(cell_graph, cell_index_slice, original_cell_index_slice, slice_list, outermost_cell);
+    FinishCellDecomposition2(cell_graph, Point2D(slice_list.back().back().x, slice_list.back().back().y), outermost_cell);
+
+    return cell_graph;
+}
+
 std::deque<Point2D> GlobalPathPlanning(cv::Mat map, std::vector<CellNode>& cell_graph, Point2D start_point, int robot_radius=0, bool visualize_cells=true, bool visualize_path=true, int color_repeats=10)
 {
     std::deque<Point2D> global_path;
@@ -3219,6 +3257,7 @@ std::deque<Point2D> GlobalPathPlanning(cv::Mat map, std::vector<CellNode>& cell_
 
 void InitializeMap(cv::Mat& map)
 {
+    // TODO
     /**
     读取图片
     二值化
@@ -3229,7 +3268,7 @@ void InitializeMap(cv::Mat& map)
 
 PolygonList GetObstacles(cv::Mat original_map, int safe_dist=0) // original_map's type should be 8UC3
 {
-
+    // TODO
     /**
      如果最上层的外轮廓是图像边缘，需要将其剔除，提取下一层的所有外轮廓
     **/
@@ -3292,6 +3331,7 @@ PolygonList GetObstacles(cv::Mat original_map, int safe_dist=0) // original_map'
 
 Polygon GetMapBorder(cv::Mat map)
 {
+    // TODO
     /**
     找最上层的内轮廓，且作为该内轮廓的parent轮廓的外轮廓不是图像的边缘
     找到就返回，找不到就使用图像的边缘
