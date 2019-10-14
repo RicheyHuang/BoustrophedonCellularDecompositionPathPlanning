@@ -3868,14 +3868,19 @@ std::deque<std::deque<Point2D>> LocalReplanning(cv::Mat map, CellNode outer_cell
     return replanning_path;
 }
 
-std::deque<Point2D> DynamicPathPlanning(cv::Mat map, std::vector<CellNode> global_cell_graph, PolygonList global_obstacles, std::deque<std::deque<Point2D>> global_path, int robot_radius=0)
+// 每一段都是包含前面的linking_path和后面的inner_path
+std::deque<Point2D> DynamicPathPlanning(cv::Mat map, std::vector<CellNode> global_cell_graph, std::deque<std::deque<Point2D>> global_path, int robot_radius=0)
 {
     std::deque<Point2D> dynamic_path;
+
+    std::deque<std::deque<Point2D>> curr_path;
     std::deque<Point2D> curr_sub_path;
     std::deque<Point2D> contouring_path;
 
     std::deque<std::deque<Point2D>> replanning_path;
-    std::deque<std::deque<Point2D>> remaining_global_path;
+    std::deque<std::deque<Point2D>> remaining_curr_path;
+
+    std::deque<Point2D> linking_path;
 
     Point2D curr_pos;
     Point2D next_pos;
@@ -3892,19 +3897,20 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat map, std::vector<CellNode> globa
     std::vector<CellNode> overall_cell_graph;
     std::vector<CellNode> curr_cell_graph;
 
-    PolygonList overall_obstacles;
     PolygonList curr_obstacles;
 
-    curr_cell_graph.assign(global_cell_graph.begin(), global_cell_graph.end());
+    std::vector<std::deque<std::deque<Point2D>>> unvisited_paths = {global_path};
+    std::vector<std::vector<CellNode>> cell_graph_list = {global_cell_graph};
+    std::vector<Point2D> exit_list = {global_path.back().back()};
 
-    std::vector<std::deque<std::deque<Point2D>>> unvisited_paths = {global_path}; // 本质上也是个stack
-    std::vector<std::vector<CellNode>> cell_graph_stack;
-
-    while()
+    while(unvisited_paths.empty() && cell_graph_list.empty())
     {
-        for(int i = 0; i < global_path.size(); i++)
+        curr_path = unvisited_paths.back();
+        curr_cell_graph = cell_graph_list.back();
+
+        for(int i = 0; i < curr_path.size(); i++)
         {
-            curr_sub_path.assign(global_path[i].begin(), global_path[i].end());
+            curr_sub_path.assign(curr_path[i].begin(), curr_path[i].end());
 
             for(int j = 0; j < curr_sub_path.size()-1; j++)
             {
@@ -3925,31 +3931,49 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat map, std::vector<CellNode> globa
                     curr_exit = curr_sub_path.back();
                     cleaning_direction = GetCleaningDirection(curr_cell, curr_exit, robot_radius);
 
-                    cell_graph_stack.emplace_back(curr_cell_graph);
-                    replanning_path = LocalReplanning(map, curr_cell, curr_obstacles, curr_pos, curr_cell_graph, cleaning_direction, robot_radius);
+                    if(!curr_cell.isCleaned)
+                    {
+                        replanning_path = LocalReplanning(map, curr_cell, curr_obstacles, curr_pos, curr_cell_graph, cleaning_direction, robot_radius); // 此处会更新curr_cell_graph
+                    }
+                    else
+                    {
+                        curr_cell_graph = GenerateCells2(map, curr_cell, curr_obstacles);
+                        replanning_path = {ReturningPathPlanning(map, curr_cell_graph, dynamic_path.back(), curr_exit, robot_radius, false)};
+                    }
 
-                    remaining_global_path.insert(remaining_global_path.begin(), global_path.begin()+i+1, global_path.end());
-                    remaining_global_path.insert(remaining_global_path.begin(), replanning_path.begin(), replanning_path.end());
+                    remaining_curr_path.assign(curr_path.begin()+i+1, curr_path.end());
 
-                    goto UPDATING_REMAINING_PATH;
+                    goto UPDATING_REMAINING_PATHS;
                 }
             }
         }
 
-        UPDATING_REMAINING_PATH:
-        global_path.assign(remaining_global_path.begin(), remaining_global_path.end());
-        remaining_global_path.clear();
+        if(dynamic_path.back().x != exit_list.back().x && dynamic_path.back().y != exit_list.back().y)
+        {
+            linking_path = ReturningPathPlanning(map, cell_graph_list.back(), dynamic_path.back(), exit_list.back(), robot_radius, false);
+            dynamic_path.insert(dynamic_path.end(), linking_path.begin(), linking_path.end());
+        }
+
+        exit_list.pop_back();
+        unvisited_paths.pop_back();
+        cell_graph_list.pop_back();
+        continue;
+
+        UPDATING_REMAINING_PATHS:
+        exit_list.emplace_back(curr_exit);
+        unvisited_paths.pop_back();
+        unvisited_paths.emplace_back(remaining_curr_path);
+        unvisited_paths.emplace_back(replanning_path);
+        cell_graph_list.emplace_back(curr_cell_graph);
     }
 
-
+    return dynamic_path;
 }
 
 
 
-
-
-int main() {
-
+void StaticPathPlanningTest()
+{
     cv::Mat map;
     map = cv::Mat::zeros(500, 500, CV_8UC3);
 //    map = cv::Mat::zeros(600, 600, CV_8UC3);
@@ -4018,21 +4042,21 @@ int main() {
 // new data
     Polygon polygon;
     cv::Point p1(125,125),
-              p2(125,175),
-              p3(225,175),
-              p4(225,225),
-              p5(175,250),
-              p6(225,300),
-              p7(125,325),
-              p8(125,375),
-              p9(375,375),
-              p10(375,325),
-              p11(275,325),
-              p12(275,275),
-              p13(325,250),
-              p14(275,200),
-              p15(375,175),
-              p16(375,125);
+            p2(125,175),
+            p3(225,175),
+            p4(225,225),
+            p5(175,250),
+            p6(225,300),
+            p7(125,325),
+            p8(125,375),
+            p9(375,375),
+            p10(375,325),
+            p11(275,325),
+            p12(275,275),
+            p13(325,250),
+            p14(275,200),
+            p15(375,175),
+            p16(375,125);
 
 //    cv::Point p1(100,100),
 //            p2(100,500),
@@ -4342,6 +4366,20 @@ int main() {
 //    cv::namedWindow("map", cv::WINDOW_NORMAL);
 //    cv::imshow("map", map);
 //    cv::waitKey(0);
+}
+
+
+
+
+
+int main() {
+
+//    StaticPathPlanningTest();
+
+    cv::Mat map;
+    map = cv::Mat::zeros(500, 500, CV_8UC3);
+
+
 
     return 0;
 }
