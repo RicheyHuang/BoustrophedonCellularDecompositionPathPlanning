@@ -2804,7 +2804,7 @@ std::vector<CellNode> GenerateCells(const cv::Mat& map, CellNode outermost_cell,
     return cell_graph;
 }
 
-std::deque<std::deque<Point2D>> GlobalPathPlanning(cv::Mat map, std::vector<CellNode>& cell_graph, Point2D start_point, int robot_radius, bool visualize_cells=true, bool visualize_path=true, int color_repeats=10)
+std::deque<std::deque<Point2D>> GlobalPathPlanning(cv::Mat& map, std::vector<CellNode>& cell_graph, Point2D start_point, int robot_radius, bool visualize_cells=true, bool visualize_path=true, int color_repeats=10)
 {
     std::deque<std::deque<Point2D>> global_path;
     std::deque<Point2D> local_path;
@@ -3544,7 +3544,7 @@ int GetCleaningDirection(CellNode cell, Point2D exit, int robot_radius)
 
 // 清扫方向只分向左和向右
 // 该cell未清扫过才重新规划
-std::deque<std::deque<Point2D>> LocalReplanning(const cv::Mat& map, CellNode outer_cell, PolygonList obstacles, Point2D curr_pos, std::vector<CellNode>& curr_cell_graph, int cleaning_direction, int robot_radius)
+std::deque<std::deque<Point2D>> LocalReplanning(cv::Mat& map, CellNode outer_cell, PolygonList obstacles, Point2D curr_pos, std::vector<CellNode>& curr_cell_graph, int cleaning_direction, int robot_radius)
 {
     //TODO: 边界判断
     int start_x;
@@ -3580,7 +3580,7 @@ std::deque<std::deque<Point2D>> LocalReplanning(const cv::Mat& map, CellNode out
     }
 
     curr_cell_graph = GenerateCells(map, inner_cell, obstacles, robot_radius);
-    std::deque<std::deque<Point2D>> replanning_path = GlobalPathPlanning(map, curr_cell_graph, curr_pos, robot_radius, true, true);
+    std::deque<std::deque<Point2D>> replanning_path = GlobalPathPlanning(map, curr_cell_graph, curr_pos, robot_radius, true, false);
 
     return replanning_path;
 }
@@ -3621,9 +3621,9 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, std::vector<CellNode> glob
     std::vector<Point2D> exit_list = {global_path.back().back()};
 
     //
-    cv::Mat vismap = map.clone();
-    cv::namedWindow("map", cv::WINDOW_NORMAL);
-    cv::imshow("map", vismap);
+//    cv::Mat vismap = map.clone();
+//    cv::namedWindow("map", cv::WINDOW_NORMAL);
+//    cv::imshow("map", vismap);
     //
 
 
@@ -3643,9 +3643,9 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, std::vector<CellNode> glob
                 next_pos = curr_sub_path[j+1];
                 dynamic_path.emplace_back(curr_pos);
                 //
-                vismap.at<cv::Vec3b>(curr_pos.y, curr_pos.x)=cv::Vec3b(0, 0, 255);
-                cv::imshow("map", vismap);
-                cv::waitKey(1);
+//                vismap.at<cv::Vec3b>(curr_pos.y, curr_pos.x)=cv::Vec3b(0, 0, 255);
+//                cv::imshow("map", vismap);
+//                cv::waitKey(1);
                 //
 
                 front_direction = GetFrontDirection(curr_pos, next_pos);
@@ -3654,12 +3654,12 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, std::vector<CellNode> glob
                     new_obstacle = GetNewObstacle(map, curr_pos, front_direction, contouring_path, robot_radius);
                     dynamic_path.insert(dynamic_path.end(), contouring_path.begin(), contouring_path.end());
                     //
-                    for(int i = 0; i < contouring_path.size(); i++)
-                    {
-                        vismap.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(0, 0, 255);
-                        cv::imshow("map", vismap);
-                        cv::waitKey(1);
-                    }
+//                    for(int i = 0; i < contouring_path.size(); i++)
+//                    {
+//                        vismap.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(0, 0, 255);
+//                        cv::imshow("map", vismap);
+//                        cv::waitKey(1);
+//                    }
                     //
                     contouring_path.clear();
 
@@ -3689,7 +3689,7 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, std::vector<CellNode> glob
 
         if(dynamic_path.back().x != exit_list.back().x && dynamic_path.back().y != exit_list.back().y)
         {
-            linking_path = ReturningPathPlanning(map, cell_graph_list.back(), dynamic_path.back(), exit_list.back(), robot_radius, true);
+            linking_path = ReturningPathPlanning(map, cell_graph_list.back(), dynamic_path.back(), exit_list.back(), robot_radius, false);
             dynamic_path.insert(dynamic_path.end(), linking_path.begin(), linking_path.end());
         }
 
