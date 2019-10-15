@@ -1104,7 +1104,7 @@ std::vector<Event> InitializeEventList(Polygon polygon, int polygon_index)
 //    }
 //} //旧版
 
-void EventTypeAllocator2(cv::Mat map, std::vector<Event>& event_list, int robot_radius)
+void EventTypeAllocator2(const cv::Mat& map, std::vector<Event>& event_list, int robot_radius)
 {
     int half_size = event_list.size()%2==0? event_list.size()/2 : (event_list.size()+1)/2;
     std::vector<Event> header(event_list.begin()+half_size, event_list.end());
@@ -1541,7 +1541,7 @@ void EventTypeAllocator2(cv::Mat map, std::vector<Event>& event_list, int robot_
 }
 
 // 各个多边形按照其左顶点的x值从小到大的顺序进行排列
-std::vector<Event> EventListGenerator(cv::Mat map, PolygonList polygons, int robot_radius)
+std::vector<Event> EventListGenerator(const cv::Mat& map, PolygonList polygons, int robot_radius)
 {
     std::vector<Event> event_list;
     std::vector<Event> event_sublist;
@@ -1784,7 +1784,7 @@ void ExecuteInnerCloseOperation(std::vector<CellNode>& cell_graph, int curr_cell
     cell_graph[curr_cell_idx].floor.emplace_back(inner_out_bottom);
 }
 
-void InitializeCellDecomposition(cv::Mat map, std::vector<CellNode>& cell_graph, std::vector<int>& cell_index_slice, Point2D first_in_pos)
+void InitializeCellDecomposition(const cv::Mat& map, std::vector<CellNode>& cell_graph, std::vector<int>& cell_index_slice, Point2D first_in_pos)
 {
     CellNode cell_0;
 
@@ -1820,7 +1820,7 @@ void InitializeCellDecomposition2(std::vector<CellNode>& cell_graph, std::vector
     cell_index_slice.emplace_back(0);
 }
 
-void FinishCellDecomposition(cv::Mat map, std::vector<CellNode>& cell_graph, Point2D last_out_pos)
+void FinishCellDecomposition(const cv::Mat& map, std::vector<CellNode>& cell_graph, Point2D last_out_pos)
 {
     int last_cell_idx = cell_graph.size()-1;
 
@@ -1846,20 +1846,24 @@ void FinishCellDecomposition2(std::vector<CellNode>& cell_graph, Point2D last_ou
     }
 }
 
-void DrawCells(cv::Mat map, const CellNode& cell)
+void DrawCells(cv::Mat& map, const CellNode& cell)
 {
+    std::cout<<"cell "<<cell.cellIndex<<": "<<std::endl;
+    std::cout<<"cell's ceiling points: "<<cell.ceiling.size()<<std::endl;
+    std::cout<<"cell's floor points: "<<cell.floor.size()<<std::endl;
+
     for(int i = 0; i < cell.ceiling.size(); i++)
     {
-        map.at<cv::Vec3b>(cell.ceiling[i].y, cell.ceiling[i].x) = cv::Vec3b(96, 96, 96); // 96 96 96
+        map.at<cv::Vec3b>(cell.ceiling[i].y, cell.ceiling[i].x) = cv::Vec3b(0, 0, 255); // 96 96 96
     }
 
     for(int i = 0; i < cell.floor.size(); i++)
     {
-        map.at<cv::Vec3b>(cell.floor[i].y, cell.floor[i].x) = cv::Vec3b(96, 96, 96);
+        map.at<cv::Vec3b>(cell.floor[i].y, cell.floor[i].x) = cv::Vec3b(0, 0, 255);
     }
 
-    cv::line(map, cv::Point(cell.ceiling.front().x,cell.ceiling.front().y), cv::Point(cell.floor.front().x,cell.floor.front().y), cv::Scalar(96, 96, 96));
-    cv::line(map, cv::Point(cell.ceiling.back().x,cell.ceiling.back().y), cv::Point(cell.floor.back().x,cell.floor.back().y), cv::Scalar(96, 96, 96));
+    cv::line(map, cv::Point(cell.ceiling.front().x,cell.ceiling.front().y), cv::Point(cell.floor.front().x,cell.floor.front().y), cv::Scalar(0, 0, 255));
+    cv::line(map, cv::Point(cell.ceiling.back().x,cell.ceiling.back().y), cv::Point(cell.floor.back().x,cell.floor.back().y), cv::Scalar(0, 0, 255));
 }
 
 int CountCells(const std::deque<Event>& slice, int curr_idx)
@@ -1895,7 +1899,7 @@ std::deque<Event> FilterSlice(std::deque<Event> slice)
     return filtered_slice;
 }
 
-void ExecuteCellDecomposition(cv::Mat map, std::vector<CellNode>& cell_graph, std::vector<int>& cell_index_slice, std::vector<int>& original_cell_index_slice, std::deque<std::deque<Event>> slice_list)
+void ExecuteCellDecomposition(const cv::Mat& map, std::vector<CellNode>& cell_graph, std::vector<int>& cell_index_slice, std::vector<int>& original_cell_index_slice, std::deque<std::deque<Event>> slice_list)
 {
     int curr_cell_idx = INT_MAX;
     int top_cell_idx = INT_MAX;
@@ -3552,7 +3556,7 @@ CellNode ContourToCell(cv::Mat map, Polygon contour, int robot_radius)
     return cell;
 }
 
-std::vector<CellNode> GenerateCells2(cv::Mat map, Polygon map_border, PolygonList obstacles, int robot_radius)
+std::vector<CellNode> GenerateCells2(const cv::Mat& map, Polygon map_border, PolygonList obstacles, int robot_radius)
 {
     CellNode outermost_cell = ContourToCell(map, map_border, robot_radius);
 
@@ -3566,9 +3570,15 @@ std::vector<CellNode> GenerateCells2(cv::Mat map, Polygon map_border, PolygonLis
     ExecuteCellDecomposition2(cell_graph, cell_index_slice, original_cell_index_slice, slice_list, outermost_cell);
     FinishCellDecomposition2(cell_graph, Point2D(slice_list.back().back().x, slice_list.back().back().y), outermost_cell);
 
+    for(int i = 0; i < cell_graph.size(); i++)
+    {
+        std::sort(cell_graph[i].ceiling.begin(), cell_graph[i].ceiling.end());
+        std::sort(cell_graph[i].floor.begin(), cell_graph[i].floor.end());
+    }
+
     return cell_graph;
 }
-std::vector<CellNode> GenerateCells2(cv::Mat map, CellNode outermost_cell, PolygonList obstacles, int robot_radius)
+std::vector<CellNode> GenerateCells2(const cv::Mat& map, CellNode outermost_cell, PolygonList obstacles, int robot_radius)
 {
     std::vector<Event> event_list = EventListGenerator(map, obstacles, robot_radius);
     std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
@@ -3579,6 +3589,12 @@ std::vector<CellNode> GenerateCells2(cv::Mat map, CellNode outermost_cell, Polyg
     InitializeCellDecomposition2(cell_graph, cell_index_slice, Point2D(slice_list.front().front().x, slice_list.front().front().y), outermost_cell);
     ExecuteCellDecomposition2(cell_graph, cell_index_slice, original_cell_index_slice, slice_list, outermost_cell);
     FinishCellDecomposition2(cell_graph, Point2D(slice_list.back().back().x, slice_list.back().back().y), outermost_cell);
+
+    for(int i = 0; i < cell_graph.size(); i++)
+    {
+        std::sort(cell_graph[i].ceiling.begin(), cell_graph[i].ceiling.end());
+        std::sort(cell_graph[i].floor.begin(), cell_graph[i].floor.end());
+    }
 
     return cell_graph;
 }
@@ -3644,7 +3660,6 @@ std::deque<std::deque<Point2D>> GlobalPathPlanning(cv::Mat map, std::vector<Cell
     Point2D curr_exit;
     Point2D next_entrance;
 
-    Point2D end_point;
     std::deque<int> return_cell_path;
     std::deque<Point2D> return_path;
 
@@ -3689,14 +3704,14 @@ std::deque<std::deque<Point2D>> GlobalPathPlanning(cv::Mat map, std::vector<Cell
 
     if(visualize_cells||visualize_path)
     {
-        cv::waitKey(0);
+        cv::waitKey(1000);
     }
 
     return global_path;
 }
 
 // 动态规划时，若是有新的障碍物产生，要先用更新后的障碍物队列来重新更新cell_graph再规划
-std::deque<Point2D> ReturningPathPlanning(cv::Mat map, std::vector<CellNode>& cell_graph, Point2D curr_pos, Point2D original_pos, int robot_radius, bool visualize_path=true)
+std::deque<Point2D> ReturningPathPlanning(cv::Mat& map, std::vector<CellNode>& cell_graph, Point2D curr_pos, Point2D original_pos, int robot_radius, bool visualize_path=true)
 {
 
     std::deque<int> return_cell_path = FindShortestPath(cell_graph, curr_pos, original_pos);
@@ -4126,7 +4141,7 @@ bool CollisionOccurs(cv::Mat map, Point2D curr_pos, int detect_direction, int ro
 }
 
 // TODO：解决障碍物横跨cell的情况，即边界情况
-Polygon GetNewObstacle(cv::Mat map, Point2D origin, int front_direction, std::deque<Point2D>& contouring_path, int robot_radius)
+Polygon GetNewObstacle(const cv::Mat& map, Point2D origin, int front_direction, std::deque<Point2D>& contouring_path, int robot_radius)
 {
     Point2D curr_pos = origin;
     Point2D last_curr_pos;
@@ -4298,6 +4313,8 @@ Polygon GetNewObstacle(cv::Mat map, Point2D origin, int front_direction, std::de
         curr_pos = next_pos;
     }
 
+    new_obstacle.pop_back();
+
     return new_obstacle;
 }
 
@@ -4325,7 +4342,7 @@ int GetCleaningDirection(CellNode cell, Point2D exit, int robot_radius)
 
 // 清扫方向只分向左和向右
 // 该cell未清扫过才重新规划
-std::deque<std::deque<Point2D>> LocalReplanning(cv::Mat map, CellNode outer_cell, PolygonList obstacles, Point2D curr_pos, std::vector<CellNode>& curr_cell_graph, int cleaning_direction, int robot_radius)
+std::deque<std::deque<Point2D>> LocalReplanning(const cv::Mat& map, CellNode outer_cell, PolygonList obstacles, Point2D curr_pos, std::vector<CellNode>& curr_cell_graph, int cleaning_direction, int robot_radius)
 {
     //TODO: 边界判断
     int start_x;
@@ -4361,13 +4378,13 @@ std::deque<std::deque<Point2D>> LocalReplanning(cv::Mat map, CellNode outer_cell
     }
 
     curr_cell_graph = GenerateCells2(map, inner_cell, obstacles, robot_radius);
-    std::deque<std::deque<Point2D>> replanning_path = GlobalPathPlanning(map, curr_cell_graph, curr_pos, robot_radius);
+    std::deque<std::deque<Point2D>> replanning_path = GlobalPathPlanning(map, curr_cell_graph, curr_pos, robot_radius, true, true);
 
     return replanning_path;
 }
 
 // 每一段都是包含前面的linking_path和后面的inner_path
-std::deque<Point2D> DynamicPathPlanning(cv::Mat map, std::vector<CellNode> global_cell_graph, std::deque<std::deque<Point2D>> global_path, int robot_radius)
+std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, std::vector<CellNode> global_cell_graph, std::deque<std::deque<Point2D>> global_path, int robot_radius)
 {
     std::deque<Point2D> dynamic_path;
 
@@ -4403,8 +4420,8 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat map, std::vector<CellNode> globa
 
     //
     cv::Mat vismap = map.clone();
-    cv::namedWindow("vis", cv::WINDOW_NORMAL);
-    cv::imshow("vis", vismap);
+    cv::namedWindow("map", cv::WINDOW_NORMAL);
+    cv::imshow("map", vismap);
     //
 
 
@@ -4425,7 +4442,7 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat map, std::vector<CellNode> globa
                 dynamic_path.emplace_back(curr_pos);
                 //
                 vismap.at<cv::Vec3b>(curr_pos.y, curr_pos.x)=cv::Vec3b(0, 0, 255);
-                cv::imshow("vismap", vismap);
+                cv::imshow("map", vismap);
                 cv::waitKey(1);
                 //
 
@@ -4438,8 +4455,8 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat map, std::vector<CellNode> globa
                     for(int i = 0; i < contouring_path.size(); i++)
                     {
                         vismap.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(0, 0, 255);
-                        cv::imshow("vismap", vismap);
-                        cv::waitKey(10);
+                        cv::imshow("map", vismap);
+                        cv::waitKey(1);
                     }
                     //
                     contouring_path.clear();
@@ -4450,14 +4467,14 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat map, std::vector<CellNode> globa
                     curr_exit = curr_sub_path.back();
                     cleaning_direction = GetCleaningDirection(curr_cell, curr_exit, robot_radius);
 
-                    replanning_path = LocalReplanning(map, curr_cell, curr_obstacles, curr_pos, curr_cell_graph, cleaning_direction, robot_radius); // 此处会更新curr_cell_graph
+                    replanning_path = LocalReplanning(map, curr_cell, curr_obstacles, dynamic_path.back(), curr_cell_graph, cleaning_direction, robot_radius); // 此处会更新curr_cell_graph
 //                    if(!curr_cell.isCleaned)
 //                    {
 //                        replanning_path = LocalReplanning(map, curr_cell, curr_obstacles, curr_pos, curr_cell_graph, cleaning_direction, robot_radius); // 此处会更新curr_cell_graph
 //                    }
 //                    else
 //                    {
-//                        curr_cell_graph = GenerateCells2(map, curr_cell, curr_obstacles);
+//                        curr_cell_graph = GenerateCells2(map, curr_cell, curr_obstacles, robot_radius);
 //                        replanning_path = {ReturningPathPlanning(map, curr_cell_graph, dynamic_path.back(), curr_exit, robot_radius, false)};
 //                    }
 
@@ -4470,7 +4487,7 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat map, std::vector<CellNode> globa
 
         if(dynamic_path.back().x != exit_list.back().x && dynamic_path.back().y != exit_list.back().y)
         {
-            linking_path = ReturningPathPlanning(map, cell_graph_list.back(), dynamic_path.back(), exit_list.back(), robot_radius, false);
+            linking_path = ReturningPathPlanning(map, cell_graph_list.back(), dynamic_path.back(), exit_list.back(), robot_radius, true);
             dynamic_path.insert(dynamic_path.end(), linking_path.begin(), linking_path.end());
         }
 
@@ -4890,7 +4907,81 @@ void StaticPathPlanningTest()
 //    cv::waitKey(0);
 }
 
+void PointTypeTest(cv::Mat& map, Polygon obstacle, int robot_radius)
+{
+    PolygonList obstacles = {obstacle};
 
+    std::vector<Event> event_list = EventListGenerator(map, obstacles, robot_radius);
+    for(int i = 0; i < event_list.size(); i++)
+    {
+        if(event_list[i].event_type == IN)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN"<<std::endl;
+            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 0, 255), -1);//bright red
+        }
+        if(event_list[i].event_type == IN_TOP)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN_TOP"<<std::endl;
+            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 0, 255), -1);//bright red
+        }
+        if(event_list[i].event_type == IN_BOTTOM)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN_BOTTOM"<<std::endl;
+            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 0, 255), -1);//bright red
+        }
+        if(event_list[i].event_type == OUT)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT"<<std::endl;
+            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 255, 0), -1);//bright green
+        }
+        if(event_list[i].event_type == OUT_TOP)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT_TOP"<<std::endl;
+            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 255, 0), -1);//bright green
+        }
+        if(event_list[i].event_type == OUT_BOTTOM)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT_BOTTOM"<<std::endl;
+            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 255, 0), -1);//bright green
+        }
+        if(event_list[i].event_type == INNER_IN)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN"<<std::endl;
+        }
+        if(event_list[i].event_type == INNER_IN_TOP)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN_TOP"<<std::endl;
+        }
+        if(event_list[i].event_type == INNER_IN_BOTTOM)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN_BOTTOM"<<std::endl;
+        }
+        if(event_list[i].event_type == INNER_OUT)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT"<<std::endl;
+        }
+        if(event_list[i].event_type == INNER_OUT_TOP)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT_TOP"<<std::endl;
+        }
+        if(event_list[i].event_type == INNER_OUT_BOTTOM)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT_BOTTOM"<<std::endl;
+        }
+        if(event_list[i].event_type == MIDDLE)
+        {
+            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(50, 50 ,50);
+        }
+        if(event_list[i].event_type == CEILING)
+        {
+            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(0, 255 ,255);
+        }
+        if(event_list[i].event_type == FLOOR)
+        {
+            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(255, 0 ,0);
+        }
+    }
+}
 
 int main() {
 
@@ -4905,27 +4996,17 @@ int main() {
     Polygon original_map_border = ConstructDefaultMapBorder(history_map);
     std::vector<CellNode> original_cell_graph = GenerateCells2(history_map, original_map_border, original_obstacles, robot_radius);
     Point2D start = Point2D(10, 10);
-
     std::deque<std::deque<Point2D>> original_planning_path = GlobalPathPlanning(history_map, original_cell_graph, start, robot_radius, false, false);
 
 
 
 
-
     cv::Mat curr_map = cv::Mat::zeros(500, 500, CV_8UC3);
-    std::vector<cv::Point> temp_obstacle_contour1 = {cv::Point(80, 300), cv::Point(80, 400), cv::Point(160, 400), cv::Point(140, 350), cv::Point(160, 300)};
+    std::vector<cv::Point> temp_obstacle_contour1 = {cv::Point(80, 300), cv::Point(80, 400), cv::Point(160, 400), cv::Point(160, 300)}; //cv::Point(120, 350),
     std::vector<cv::Point> temp_obstacle_contour2 = {cv::Point(300, 150), cv::Point(300, 250), cv::Point(400, 220), cv::Point(400, 180)};
     std::vector<std::vector<cv::Point>> curr_obstacle_contours = {original_obstacle_contour1, temp_obstacle_contour1, temp_obstacle_contour2};
     cv::fillPoly(curr_map, curr_obstacle_contours, cv::Scalar(255, 255, 255));
     PolygonList curr_obstacles = ConstructObstacles(curr_map, curr_obstacle_contours);
-
-
-
-
-    std::deque<Point2D> dynamic_path = DynamicPathPlanning(curr_map, original_cell_graph, original_planning_path, robot_radius);
-//    Point2D collision_point = Point2D(80, 406);
-//    std::deque<Point2D> contouring_path;
-//    Polygon new_obstacle = GetNewObstacle(curr_map, collision_point, UP, contouring_path, robot_radius);
 
 
 //    for(int i = 0; i < original_planning_path.size(); i++)
@@ -4936,6 +5017,13 @@ int main() {
 //        }
 //    }
 
+    std::deque<Point2D> dynamic_path = DynamicPathPlanning(curr_map, original_cell_graph, original_planning_path, robot_radius);
+
+
+
+//    Point2D collision_point = Point2D(80, 406);
+//    std::deque<Point2D> contouring_path;
+//    Polygon new_obstacle = GetNewObstacle(curr_map, collision_point, UP, contouring_path, robot_radius);
 //    for(int i = 0; i < contouring_path.size(); i++)
 //    {
 //        curr_map.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(0, 0, 255);
@@ -4945,8 +5033,6 @@ int main() {
 //        curr_map.at<cv::Vec3b>(new_obstacle[i].y, new_obstacle[i].x)=cv::Vec3b(0, 255, 0);
 //    }
 //
-//    new_obstacle.pop_back();
-//
 //    for(int i = 0; i < new_obstacle.size(); i++)
 //    {
 //        std::cout<<"x: "<<new_obstacle[i].x<<", y: "<<new_obstacle[i].y<<std::endl;
@@ -4954,78 +5040,6 @@ int main() {
 
 
 
-//    PolygonList obstacles = {new_obstacle};
-//
-//    std::vector<Event> event_list = EventListGenerator(curr_map, obstacles, robot_radius);
-//    for(int i = 0; i < event_list.size(); i++)
-//    {
-//        if(event_list[i].event_type == IN)
-//        {
-//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN"<<std::endl;
-//            cv::circle(curr_map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 0, 255), -1);//bright red
-//        }
-//        if(event_list[i].event_type == IN_TOP)
-//        {
-//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN_TOP"<<std::endl;
-//            cv::circle(curr_map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 0, 255), -1);//bright red
-//        }
-//        if(event_list[i].event_type == IN_BOTTOM)
-//        {
-//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN_BOTTOM"<<std::endl;
-//            cv::circle(curr_map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 0, 255), -1);//bright red
-//        }
-//        if(event_list[i].event_type == OUT)
-//        {
-//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT"<<std::endl;
-//            cv::circle(curr_map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 255, 0), -1);//bright green
-//        }
-//        if(event_list[i].event_type == OUT_TOP)
-//        {
-//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT_TOP"<<std::endl;
-//            cv::circle(curr_map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 255, 0), -1);//bright green
-//        }
-//        if(event_list[i].event_type == OUT_BOTTOM)
-//        {
-//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT_BOTTOM"<<std::endl;
-//            cv::circle(curr_map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 255, 0), -1);//bright green
-//        }
-//        if(event_list[i].event_type == INNER_IN)
-//        {
-//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN"<<std::endl;
-//        }
-//        if(event_list[i].event_type == INNER_IN_TOP)
-//        {
-//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN_TOP"<<std::endl;
-//        }
-//        if(event_list[i].event_type == INNER_IN_BOTTOM)
-//        {
-//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN_BOTTOM"<<std::endl;
-//        }
-//        if(event_list[i].event_type == INNER_OUT)
-//        {
-//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT"<<std::endl;
-//        }
-//        if(event_list[i].event_type == INNER_OUT_TOP)
-//        {
-//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT_TOP"<<std::endl;
-//        }
-//        if(event_list[i].event_type == INNER_OUT_BOTTOM)
-//        {
-//            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT_BOTTOM"<<std::endl;
-//        }
-//        if(event_list[i].event_type == MIDDLE)
-//        {
-//            curr_map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(50, 50 ,50);
-//        }
-//        if(event_list[i].event_type == CEILING)
-//        {
-//            curr_map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(0, 255 ,255);
-//        }
-//        if(event_list[i].event_type == FLOOR)
-//        {
-//            curr_map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(255, 0 ,0);
-//        }
-//    }
 
 
 //    int repeat_times = 30;
@@ -5038,10 +5052,6 @@ int main() {
 //        cv::imshow("curr_map", curr_map);
 //        cv::waitKey(1);
 //    }
-
-    cv::namedWindow("curr_map", cv::WINDOW_NORMAL);
-    cv::imshow("curr_map", curr_map);
-    cv::waitKey(0);
 
     return 0;
 }
