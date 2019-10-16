@@ -4849,9 +4849,9 @@ int main() {
 
 
 
-    Point2D collision_point = Point2D(80, 406); // 80 406; 80, 294
+    Point2D collision_point = Point2D(80, 294); // 80 406; 80, 294; 166, 350; 74, 350
     std::deque<Point2D> contouring_path;
-    Polygon new_obstacle = GetNewObstacle(curr_map, collision_point, UP, contouring_path, robot_radius); // UP ; DOWN
+    Polygon new_obstacle = GetNewObstacle(curr_map, collision_point, DOWN, contouring_path, robot_radius); // UP ; DOWN, LEFT, RIGHT
     for(int i = 0; i < contouring_path.size(); i++)
     {
         curr_map.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(0, 0, 255);
@@ -4865,10 +4865,10 @@ int main() {
 //    std::cout<<"last in contouring path: "<<contouring_path.back().x<<", "<<contouring_path.back().y<<std::endl;
     std::cout<<"contouring path point num: "<<contouring_path.size()<<std::endl;
 
-//    for(int i = 0; i < contouring_path.size(); i++)
-//    {
-//        std::cout<<"x: "<<contouring_path[i].x<<", y: "<<contouring_path[i].y<<std::endl;
-//    }
+    for(int i = 0; i < contouring_path.size(); i++)
+    {
+        std::cout<<"x: "<<contouring_path[i].x<<", y: "<<contouring_path[i].y<<std::endl;
+    }
 
 
 
