@@ -3593,9 +3593,9 @@ int GetFrontDirection(Point2D curr_pos, Point2D next_pos)
 
 int GetBackDirection(int front_direction)
 {
-    if(front_direction + 4 > map_directions.size()-1)
+    if(front_direction + 4 >= map_directions.size())
     {
-        int index_offset = front_direction + 4 - (map_directions.size()-1);
+        int index_offset = front_direction + 4 - map_directions.size();
         return map_directions[index_offset];
     }
     else
@@ -3619,9 +3619,9 @@ int GetLeftDirection(int front_direction)
 
 int GetRightDirection(int front_direction)
 {
-    if(front_direction + 2 > map_directions.size()-1)
+    if(front_direction + 2 >= map_directions.size())
     {
-        int index_offset = front_direction + 2 - (map_directions.size()-1);
+        int index_offset = front_direction + 2 - map_directions.size();
         return map_directions[index_offset];
     }
     else
@@ -3659,9 +3659,9 @@ std::vector<int> GetFrontDirectionCandidates(int front_direction)
     front_directions.emplace_back(map_directions[front_direction]);
 
 
-    if(front_direction + 1 > map_directions.size()-1)
+    if(front_direction + 1 >= map_directions.size())
     {
-        int index_offset = front_direction + 1 - (map_directions.size()-1);
+        int index_offset = front_direction + 1 - map_directions.size();
         front_directions.emplace_back(map_directions[index_offset]);
     }
     else
@@ -3669,9 +3669,9 @@ std::vector<int> GetFrontDirectionCandidates(int front_direction)
         front_directions.emplace_back(map_directions[front_direction+1]);
     }
 
-    if(front_direction + 2 > map_directions.size()-1)
+    if(front_direction + 2 >= map_directions.size())
     {
-        int index_offset = front_direction + 2 - (map_directions.size()-1);
+        int index_offset = front_direction + 2 - map_directions.size();
         front_directions.emplace_back(map_directions[index_offset]);
     }
     else
@@ -3689,9 +3689,9 @@ std::vector<int> GetBackDirectionCandidates(int front_direction)
 
     for(int i = 0; i <= 4; i++)
     {
-        if(first_direction + i > map_directions.size()-1)
+        if(first_direction + i >= map_directions.size())
         {
-            int index_offset = first_direction + i - (map_directions.size()-1);
+            int index_offset = first_direction + i - map_directions.size();
             back_directions.emplace_back(map_directions[index_offset]);
         }
         else
@@ -3729,9 +3729,9 @@ std::vector<int> GetRightDirectionCandidates(int front_direction)
 
     for(int i = 0; i <= 4; i++)
     {
-        if(front_direction + i > map_directions.size()-1)
+        if(front_direction + i >= map_directions.size())
         {
-            int index_offset = front_direction + i - (map_directions.size()-1);
+            int index_offset = front_direction + i - map_directions.size();
             right_directions.emplace_back(map_directions[index_offset]);
         }
         else
@@ -3889,7 +3889,6 @@ Polygon GetNewObstacle(const cv::Mat& map, Point2D origin, int front_direction, 
         }
     }
 
-
     direction_candidates = GetFrontDirectionCandidates(front_direction);
     turning = false;
     last_curr_pos = curr_pos;
@@ -3924,6 +3923,7 @@ Polygon GetNewObstacle(const cv::Mat& map, Point2D origin, int front_direction, 
             goto FINISH;
         }
     }
+
     for(int i = 1; i <= (robot_radius+1); i++)
     {
         next_pos = GetNextPosition(curr_pos, front_direction, 1);
@@ -3946,7 +3946,6 @@ Polygon GetNewObstacle(const cv::Mat& map, Point2D origin, int front_direction, 
             goto FINISH;
         }
     }
-
 
     direction_candidates = GetLeftDirectionCandidates(front_direction);
     turning = false;
@@ -4256,20 +4255,14 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
                 next_pos = curr_sub_path[j+1];
                 dynamic_path.emplace_back(curr_pos);
                 //
-//                vismap.at<cv::Vec3b>(curr_pos.y, curr_pos.x)=cv::Vec3b(0, 0, 255);
-//                cv::imshow("map", vismap);
-//                cv::waitKey(1);
+                vismap.at<cv::Vec3b>(curr_pos.y, curr_pos.x)=cv::Vec3b(0, 0, 255);
+                cv::imshow("map", vismap);
+                cv::waitKey(1);
                 //
 
                 front_direction = GetFrontDirection(curr_pos, next_pos);
                 if(CollisionOccurs(map, curr_pos, front_direction, robot_radius))
                 {
-                    //
-                    vismap.at<cv::Vec3b>(curr_pos.y, curr_pos.x)=cv::Vec3b(0, 255, 255);
-                    cv::imshow("map", vismap);
-                    cv::waitKey(0);
-                    //
-
                     new_obstacle = GetNewObstacle(map, curr_pos, front_direction, contouring_path, robot_radius);
                     dynamic_path.insert(dynamic_path.end(), contouring_path.begin(), contouring_path.end());
                     //
@@ -4277,9 +4270,8 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
                     {
                         vismap.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(0, 0, 255);
                         cv::imshow("map", vismap);
-                        cv::waitKey(100);
+                        cv::waitKey(1);
                     }
-                    cv::waitKey(0);
                     //
                     contouring_path.clear();
 
@@ -4824,6 +4816,7 @@ int main() {
     std::vector<cv::Point> temp_obstacle_contour2 = {cv::Point(300, 150), cv::Point(300, 250), cv::Point(400, 220), cv::Point(400, 180)};
     std::vector<std::vector<cv::Point>> curr_obstacle_contours = {temp_obstacle_contour1, temp_obstacle_contour2};
     cv::fillPoly(curr_map, curr_obstacle_contours, cv::Scalar(255, 255, 255));
+    cv::fillPoly(curr_map, original_obstacle_contours, cv::Scalar(50, 50, 50));
     PolygonList curr_obstacles = ConstructObstacles(curr_map, curr_obstacle_contours);
 
 
@@ -4835,7 +4828,7 @@ int main() {
 //        }
 //    }
 
-//    std::deque<Point2D> dynamic_path = DynamicPathPlanning(curr_map, original_cell_graph, original_planning_path, robot_radius);
+    std::deque<Point2D> dynamic_path = DynamicPathPlanning(curr_map, original_cell_graph, original_planning_path, robot_radius);
 
 
 
@@ -4844,67 +4837,68 @@ int main() {
 
 
 
-
-
-
-
-
-    Point2D collision_point = Point2D(80, 294); // 80 406; 80, 294; 166, 350; 74, 350
-    std::deque<Point2D> contouring_path;
-    Polygon new_obstacle = GetNewObstacle(curr_map, collision_point, DOWN, contouring_path, robot_radius); // UP ; DOWN, LEFT, RIGHT
-    for(int i = 0; i < contouring_path.size(); i++)
-    {
-        curr_map.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(0, 0, 255);
-    }
-    for(int i = 0; i < new_obstacle.size(); i++)
-    {
-        curr_map.at<cv::Vec3b>(new_obstacle[i].y, new_obstacle[i].x)=cv::Vec3b(0, 255, 0);
-    }
-
-//    std::cout<<"first in contouring path: "<<contouring_path.front().x<<", "<<contouring_path.front().y<<std::endl;
-//    std::cout<<"last in contouring path: "<<contouring_path.back().x<<", "<<contouring_path.back().y<<std::endl;
-    std::cout<<"contouring path point num: "<<contouring_path.size()<<std::endl;
-
-    for(int i = 0; i < contouring_path.size(); i++)
-    {
-        std::cout<<"x: "<<contouring_path[i].x<<", y: "<<contouring_path[i].y<<std::endl;
-    }
-
-
-
-
-
-//    std::vector<CellNode> curr_cell_graph;
-//    PolygonList new_obstacles = {new_obstacle};
-//    std::deque<std::deque<Point2D>> replanning_path = LocalReplanning(curr_map, original_cell_graph[2], new_obstacles, collision_point, curr_cell_graph, RIGHT, robot_radius);
 //
-//    for(int i = 0; i < replanning_path.size(); i++)
+//
+//
+//
+//
+//    Point2D collision_point = Point2D(80, 294); // 80 406; 80, 294; 166, 350; 74, 350
+//    std::deque<Point2D> contouring_path;
+//    Polygon new_obstacle = GetNewObstacle(curr_map, collision_point, DOWN, contouring_path, robot_radius); // UP ; DOWN, LEFT, RIGHT
+//    for(int i = 0; i < contouring_path.size(); i++)
 //    {
-//        for(int j = 0; j < replanning_path[i].size(); j++)
-//        {
-//            curr_map.at<cv::Vec3b>(replanning_path[i][j].y,replanning_path[i][j].x)=cv::Vec3b(0, 255, 255);
-//            cv::imshow("map", curr_map);
-//            cv::waitKey(0);
-//        }
+//        curr_map.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(0, 0, 255);
 //    }
-
-
-
-
-//    PointTypeTest(curr_map, new_obstacle, robot_radius);
-    cv::namedWindow("map", cv::WINDOW_NORMAL);
-    cv::imshow("map", curr_map);
-    cv::waitKey(0);
-
-
+//    for(int i = 0; i < new_obstacle.size(); i++)
+//    {
+//        curr_map.at<cv::Vec3b>(new_obstacle[i].y, new_obstacle[i].x)=cv::Vec3b(0, 255, 0);
+//    }
+//
+////    std::cout<<"first in contouring path: "<<contouring_path.front().x<<", "<<contouring_path.front().y<<std::endl;
+////    std::cout<<"last in contouring path: "<<contouring_path.back().x<<", "<<contouring_path.back().y<<std::endl;
+//    std::cout<<"contouring path point num: "<<contouring_path.size()<<std::endl;
+//
+////    for(int i = 0; i < contouring_path.size(); i++)
+////    {
+////        std::cout<<"x: "<<contouring_path[i].x<<", y: "<<contouring_path[i].y<<std::endl;
+////    }
+//
+//
+//    std::cout<<"point num: "<<new_obstacle.size()<<std::endl;
 //    for(int i = 0; i < new_obstacle.size(); i++)
 //    {
 //        std::cout<<"x: "<<new_obstacle[i].x<<", y: "<<new_obstacle[i].y<<std::endl;
 //    }
-    std::cout<<"point num: "<<new_obstacle.size()<<std::endl;
-
-
-
+//
+//
+//
+//
+////    std::vector<CellNode> curr_cell_graph;
+////    PolygonList new_obstacles = {new_obstacle};
+////    std::deque<std::deque<Point2D>> replanning_path = LocalReplanning(curr_map, original_cell_graph[2], new_obstacles, collision_point, curr_cell_graph, RIGHT, robot_radius);
+////
+////    for(int i = 0; i < replanning_path.size(); i++)
+////    {
+////        for(int j = 0; j < replanning_path[i].size(); j++)
+////        {
+////            curr_map.at<cv::Vec3b>(replanning_path[i][j].y,replanning_path[i][j].x)=cv::Vec3b(0, 255, 255);
+////            cv::imshow("map", curr_map);
+////            cv::waitKey(0);
+////        }
+////    }
+//
+//
+//
+//
+////    PointTypeTest(curr_map, new_obstacle, robot_radius);
+//    cv::namedWindow("map", cv::WINDOW_NORMAL);
+//    cv::imshow("map", curr_map);
+//    cv::waitKey(0);
+//
+//
+//
+//
+//
 
 
 
