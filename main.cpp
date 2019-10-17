@@ -858,66 +858,66 @@ void EventTypeAllocator(const cv::Mat& map, std::vector<Event>& event_list, int 
     }
 
     // filter top and bottom
-    int center_index;
+//    int center_index;
     int temp_index;
-    int in_out_index_list_size = in_out_index_list.size();
-    for(int i = 1; i <= in_out_index_list_size; i++)
-    {
-        if(event_list[in_out_index_list[0]].event_type == IN_TOP
-        && event_list[in_out_index_list[1]].event_type == IN_BOTTOM
-        && abs(event_list[in_out_index_list[0]].y-event_list[in_out_index_list[1]].y)<=robot_radius)
-        {
-            center_index = (in_out_index_list[0]+in_out_index_list[1])%2==0? (in_out_index_list[0]+in_out_index_list[1])/2 : (in_out_index_list[0]+in_out_index_list[1]+1)/2;
-            event_list[in_out_index_list[0]].event_type = MIDDLE;
-            event_list[in_out_index_list[1]].event_type = MIDDLE;
-            event_list[center_index].event_type = IN;
-            in_out_index_list.pop_front();
-            in_out_index_list.pop_front();
-            in_out_index_list.emplace_front(center_index);
-        }
-
-        if(event_list[in_out_index_list[0]].event_type == IN_BOTTOM
-           && event_list[in_out_index_list[1]].event_type == IN_TOP
-           && abs(event_list[in_out_index_list[0]].y-event_list[in_out_index_list[1]].y)<=robot_radius)
-        {
-            center_index = (in_out_index_list[0]+in_out_index_list[1])%2==0? (in_out_index_list[0]+in_out_index_list[1])/2 : (in_out_index_list[0]+in_out_index_list[1]+1)/2;
-            event_list[in_out_index_list[0]].event_type = MIDDLE;
-            event_list[in_out_index_list[1]].event_type = MIDDLE;
-            event_list[center_index].event_type = IN;
-            in_out_index_list.pop_front();
-            in_out_index_list.pop_front();
-            in_out_index_list.emplace_front(center_index);
-        }
-
-        if(event_list[in_out_index_list[0]].event_type == OUT_TOP
-           && event_list[in_out_index_list[1]].event_type == OUT_BOTTOM
-           && abs(event_list[in_out_index_list[0]].y-event_list[in_out_index_list[1]].y)<=robot_radius)
-        {
-            center_index = (in_out_index_list[0]+in_out_index_list[1])%2==0? (in_out_index_list[0]+in_out_index_list[1])/2 : (in_out_index_list[0]+in_out_index_list[1]+1)/2;
-            event_list[in_out_index_list[0]].event_type = MIDDLE;
-            event_list[in_out_index_list[1]].event_type = MIDDLE;
-            event_list[center_index].event_type = OUT;
-            in_out_index_list.pop_front();
-            in_out_index_list.pop_front();
-            in_out_index_list.emplace_front(center_index);
-        }
-
-        if(event_list[in_out_index_list[0]].event_type == OUT_BOTTOM
-           && event_list[in_out_index_list[1]].event_type == OUT_TOP
-           && abs(event_list[in_out_index_list[0]].y-event_list[in_out_index_list[1]].y)<=robot_radius)
-        {
-            center_index = (in_out_index_list[0]+in_out_index_list[1])%2==0? (in_out_index_list[0]+in_out_index_list[1])/2 : (in_out_index_list[0]+in_out_index_list[1]+1)/2;
-            event_list[in_out_index_list[0]].event_type = MIDDLE;
-            event_list[in_out_index_list[1]].event_type = MIDDLE;
-            event_list[center_index].event_type = OUT;
-            in_out_index_list.pop_front();
-            in_out_index_list.pop_front();
-            in_out_index_list.emplace_front(center_index);
-        }
-        temp_index = in_out_index_list.front();
-        in_out_index_list.pop_front();
-        in_out_index_list.emplace_back(temp_index);
-    }
+//    int in_out_index_list_size = in_out_index_list.size();
+//    for(int i = 1; i <= in_out_index_list_size; i++)
+//    {
+//        if(event_list[in_out_index_list[0]].event_type == IN_TOP
+//        && event_list[in_out_index_list[1]].event_type == IN_BOTTOM
+//        && abs(event_list[in_out_index_list[0]].y-event_list[in_out_index_list[1]].y)<=robot_radius)
+//        {
+//            center_index = (in_out_index_list[0]+in_out_index_list[1])%2==0? (in_out_index_list[0]+in_out_index_list[1])/2 : (in_out_index_list[0]+in_out_index_list[1]+1)/2;
+//            event_list[in_out_index_list[0]].event_type = MIDDLE;
+//            event_list[in_out_index_list[1]].event_type = MIDDLE;
+//            event_list[center_index].event_type = IN;
+//            in_out_index_list.pop_front();
+//            in_out_index_list.pop_front();
+//            in_out_index_list.emplace_front(center_index);
+//        }
+//
+//        if(event_list[in_out_index_list[0]].event_type == IN_BOTTOM
+//           && event_list[in_out_index_list[1]].event_type == IN_TOP
+//           && abs(event_list[in_out_index_list[0]].y-event_list[in_out_index_list[1]].y)<=robot_radius)
+//        {
+//            center_index = (in_out_index_list[0]+in_out_index_list[1])%2==0? (in_out_index_list[0]+in_out_index_list[1])/2 : (in_out_index_list[0]+in_out_index_list[1]+1)/2;
+//            event_list[in_out_index_list[0]].event_type = MIDDLE;
+//            event_list[in_out_index_list[1]].event_type = MIDDLE;
+//            event_list[center_index].event_type = IN;
+//            in_out_index_list.pop_front();
+//            in_out_index_list.pop_front();
+//            in_out_index_list.emplace_front(center_index);
+//        }
+//
+//        if(event_list[in_out_index_list[0]].event_type == OUT_TOP
+//           && event_list[in_out_index_list[1]].event_type == OUT_BOTTOM
+//           && abs(event_list[in_out_index_list[0]].y-event_list[in_out_index_list[1]].y)<=robot_radius)
+//        {
+//            center_index = (in_out_index_list[0]+in_out_index_list[1])%2==0? (in_out_index_list[0]+in_out_index_list[1])/2 : (in_out_index_list[0]+in_out_index_list[1]+1)/2;
+//            event_list[in_out_index_list[0]].event_type = MIDDLE;
+//            event_list[in_out_index_list[1]].event_type = MIDDLE;
+//            event_list[center_index].event_type = OUT;
+//            in_out_index_list.pop_front();
+//            in_out_index_list.pop_front();
+//            in_out_index_list.emplace_front(center_index);
+//        }
+//
+//        if(event_list[in_out_index_list[0]].event_type == OUT_BOTTOM
+//           && event_list[in_out_index_list[1]].event_type == OUT_TOP
+//           && abs(event_list[in_out_index_list[0]].y-event_list[in_out_index_list[1]].y)<=robot_radius)
+//        {
+//            center_index = (in_out_index_list[0]+in_out_index_list[1])%2==0? (in_out_index_list[0]+in_out_index_list[1])/2 : (in_out_index_list[0]+in_out_index_list[1]+1)/2;
+//            event_list[in_out_index_list[0]].event_type = MIDDLE;
+//            event_list[in_out_index_list[1]].event_type = MIDDLE;
+//            event_list[center_index].event_type = OUT;
+//            in_out_index_list.pop_front();
+//            in_out_index_list.pop_front();
+//            in_out_index_list.emplace_front(center_index);
+//        }
+//        temp_index = in_out_index_list.front();
+//        in_out_index_list.pop_front();
+//        in_out_index_list.emplace_back(temp_index);
+//    }
 
     // determine inner
     Point2D neighbor_point;
@@ -1939,6 +1939,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                     path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
                 }
                 i += 1;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             // 滞后转
             if((temp_path[i].y-temp_path[i+1].y>=2)&&(i<temp_path.size())&&(i+1<temp_path.size()))
@@ -1953,6 +1957,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                     path.emplace_back(Point2D(temp_path[i+1].x, temp_path[i+1].y + abs(delta) + increment*k));
                 }
                 i += 2;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             path.emplace_back(temp_path[i]);
         }
@@ -1979,6 +1987,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                     path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
                 }
                 i += 1;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             // 滞后转
             if((temp_path[i].y-temp_path[i+1].y>=2)&&(i<temp_path.size())&&(i+1<temp_path.size()))
@@ -1993,6 +2005,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                     path.emplace_back(Point2D(temp_path[i+1].x, temp_path[i+1].y+ abs(delta) +increment*k));
                 }
                 i += 2;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             path.emplace_back(temp_path[i]);
         }
@@ -2015,6 +2031,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                     path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
                 }
                 i += 1;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             // 滞后转
             if((temp_path[i].y-temp_path[i+1].y>=2)&&(i<temp_path.size())&&(i+1<temp_path.size()))
@@ -2029,6 +2049,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                     path.emplace_back(Point2D(temp_path[i+1].x, temp_path[i+1].y+ abs(delta) +increment*k));
                 }
                 i += 2;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             path.emplace_back(temp_path[i]);
         }
@@ -2049,6 +2073,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                     path.emplace_back(Point2D(temp_path[i].x, temp_path[i].y+increment*j));
                 }
                 i += 1;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             // 滞后转
             if((temp_path[i].y-temp_path[i+1].y>=2)&&(i<temp_path.size())&&(i+1<temp_path.size()))
@@ -2063,6 +2091,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                     path.emplace_back(Point2D(temp_path[i+1].x, temp_path[i+1].y+ abs(delta) +increment*k));
                 }
                 i += 2;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             path.emplace_back(temp_path[i]);
         }
@@ -2099,6 +2131,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                 }
 
                 i+= 1;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             //滞后转
             if((temp_path[i+1].y-temp_path[i].y>=2)&&(i+1<temp_path.size())&&(i<temp_path.size()))
@@ -2113,6 +2149,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                     path.emplace_back(Point2D(temp_path[i+1].x, temp_path[i+1].y -abs(delta) + increment*k));
                 }
                 i += 2;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             path.emplace_back(temp_path[i]);
         }
@@ -2137,6 +2177,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                 }
 
                 i+= 1;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             //滞后转
             if((temp_path[i+1].y-temp_path[i].y>=2)&&(i+1<temp_path.size())&&(i<temp_path.size()))
@@ -2151,6 +2195,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                     path.emplace_back(Point2D(temp_path[i+1].x, temp_path[i+1].y -abs(delta) + increment*k));
                 }
                 i += 2;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             path.emplace_back(temp_path[i]);
         }
@@ -2175,6 +2223,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                 }
 
                 i+= 1;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             //滞后转
             if((temp_path[i+1].y-temp_path[i].y>=2)&&(i+1<temp_path.size())&&(i<temp_path.size()))
@@ -2189,6 +2241,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                     path.emplace_back(Point2D(temp_path[i+1].x, temp_path[i+1].y -abs(delta) + increment*k));
                 }
                 i += 2;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             path.emplace_back(temp_path[i]);
         }
@@ -2219,6 +2275,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                 }
 
                 i+= 1;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             //滞后转
             if((temp_path[i+1].y-temp_path[i].y>=2)&&(i+1<temp_path.size())&&(i<temp_path.size()))
@@ -2233,6 +2293,10 @@ std::deque<Point2D> ExitAlongWall(Point2D start, Point2D& end, CellNode cell)
                     path.emplace_back(Point2D(temp_path[i+1].x, temp_path[i+1].y -abs(delta) + increment*k));
                 }
                 i += 2;
+                if(i >= temp_path.size())
+                {
+                    break;
+                }
             }
             path.emplace_back(temp_path[i]);
         }
@@ -2991,6 +3055,82 @@ Polygon ConstructDefaultMapBorder(cv::Mat& map)
 
     return default_map_border;
 }
+
+void PointTypeTest(cv::Mat& map, Polygon obstacle, int robot_radius)
+{
+    PolygonList obstacles = {obstacle};
+
+    std::vector<Event> event_list = EventListGenerator(map, obstacles, robot_radius);
+    for(int i = 0; i < event_list.size(); i++)
+    {
+        if(event_list[i].event_type == IN)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN"<<std::endl;
+            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 0, 255), -1);//bright red
+        }
+        if(event_list[i].event_type == IN_TOP)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN_TOP"<<std::endl;
+            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 0, 255), -1);//bright red
+        }
+        if(event_list[i].event_type == IN_BOTTOM)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN_BOTTOM"<<std::endl;
+            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 0, 255), -1);//bright red
+        }
+        if(event_list[i].event_type == OUT)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT"<<std::endl;
+            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 255, 0), -1);//bright green
+        }
+        if(event_list[i].event_type == OUT_TOP)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT_TOP"<<std::endl;
+            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 255, 0), -1);//bright green
+        }
+        if(event_list[i].event_type == OUT_BOTTOM)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT_BOTTOM"<<std::endl;
+            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 255, 0), -1);//bright green
+        }
+        if(event_list[i].event_type == INNER_IN)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN"<<std::endl;
+        }
+        if(event_list[i].event_type == INNER_IN_TOP)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN_TOP"<<std::endl;
+        }
+        if(event_list[i].event_type == INNER_IN_BOTTOM)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN_BOTTOM"<<std::endl;
+        }
+        if(event_list[i].event_type == INNER_OUT)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT"<<std::endl;
+        }
+        if(event_list[i].event_type == INNER_OUT_TOP)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT_TOP"<<std::endl;
+        }
+        if(event_list[i].event_type == INNER_OUT_BOTTOM)
+        {
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT_BOTTOM"<<std::endl;
+        }
+        if(event_list[i].event_type == MIDDLE)
+        {
+            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(50, 50 ,50);
+        }
+        if(event_list[i].event_type == CEILING)
+        {
+            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(0, 255 ,255);
+        }
+        if(event_list[i].event_type == FLOOR)
+        {
+            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(255, 0 ,0);
+        }
+    }
+}
 //
 
 
@@ -3616,7 +3756,7 @@ int GetCleaningDirection(CellNode cell, Point2D exit)
 
 // 清扫方向只分向左和向右
 // 该cell未清扫过才重新规划
-std::deque<std::deque<Point2D>> LocalReplanning(cv::Mat& map, CellNode outer_cell, PolygonList obstacles, Point2D curr_pos, std::vector<CellNode>& curr_cell_graph, int cleaning_direction, int robot_radius)
+std::deque<std::deque<Point2D>> LocalReplanning(cv::Mat& map, CellNode outer_cell, PolygonList obstacles, Point2D curr_pos, std::vector<CellNode>& curr_cell_graph, int cleaning_direction, int robot_radius, bool visualize_cells=false, bool visualize_path=false)
 {
     //TODO: 边界判断
     int start_x;
@@ -3659,7 +3799,7 @@ std::deque<std::deque<Point2D>> LocalReplanning(cv::Mat& map, CellNode outer_cel
     }
 
     curr_cell_graph = GenerateCells(map, inner_cell, obstacles, robot_radius);
-    std::deque<std::deque<Point2D>> replanning_path = GlobalPathPlanning(map, curr_cell_graph, curr_pos, robot_radius, false, false);
+    std::deque<std::deque<Point2D>> replanning_path = GlobalPathPlanning(map, curr_cell_graph, curr_pos, robot_radius, visualize_cells, visualize_path);
 
     return replanning_path;
 } //回退区域需要几个r+1
@@ -3739,6 +3879,29 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
                 if(CollisionOccurs(map, curr_pos, front_direction, robot_radius))
                 {
                     new_obstacle = GetNewObstacle(map, curr_pos, front_direction, contouring_path, robot_radius);
+
+//
+//                    PointTypeTest(map, new_obstacle, robot_radius);
+//                    cv::imshow("map", vismap);
+//                    cv::waitKey(0);
+//
+//
+                    for(int i = 0; i < new_obstacle.size(); i++)
+                    {
+                        vismap.at<cv::Vec3b>(new_obstacle[i].y, new_obstacle[i].x)=cv::Vec3b(0, 255, 0);
+                    }
+                    cv::imshow("map", vismap);
+                    cv::waitKey(0);
+                    for(int i = 0; i < contouring_path.size(); i++)
+                    {
+                        vismap.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(255, 0, 0);
+                    }
+                    cv::circle(map, cv::Point(contouring_path.front().x, contouring_path.front().y), 2, cv::Scalar(0, 255, 255), -1);
+                    cv::circle(map, cv::Point(contouring_path.back().x, contouring_path.back().y), 2, cv::Scalar(255, 0, 255), -1);
+                    cv::imshow("map", vismap);
+                    cv::waitKey(0);
+//
+//
                     dynamic_path.insert(dynamic_path.end(), contouring_path.begin(), contouring_path.end());
 
                     if(visualize_path)
@@ -3763,7 +3926,6 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
                     }
 
                     visited_obstacle_contours.emplace_back(visited_obstacle_contour);
-                    cv::fillPoly(map, visited_obstacle_contours, cv::Scalar(50, 50, 50));
 
                     curr_cell_index = DetermineCellIndex(curr_cell_graph, curr_pos);
                     curr_cell = curr_cell_graph[curr_cell_index];
@@ -3772,6 +3934,7 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
                     cleaning_direction = GetCleaningDirection(curr_cell, curr_exit);
 
                     replanning_path = LocalReplanning(map, curr_cell, curr_obstacles, curr_pos, curr_cell_graph, cleaning_direction, robot_radius); // 此处会更新curr_cell_graph
+                    cv::fillPoly(map, visited_obstacle_contours, cv::Scalar(50, 50, 50));
 
                     remaining_curr_path.assign(curr_path.begin()+i+1, curr_path.end());
 
@@ -3818,8 +3981,8 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
     return dynamic_path;
 }
 
-//void StaticPathPlanningTest()
-//{
+void StaticPathPlanningTest()
+{
 //    cv::Mat map;
 //    map = cv::Mat::zeros(500, 500, CV_8UC3);
 ////    map = cv::Mat::zeros(600, 600, CV_8UC3);
@@ -4212,82 +4375,6 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
 ////    cv::namedWindow("map", cv::WINDOW_NORMAL);
 ////    cv::imshow("map", map);
 ////    cv::waitKey(0);
-//}
-
-void PointTypeTest(cv::Mat& map, Polygon obstacle, int robot_radius)
-{
-    PolygonList obstacles = {obstacle};
-
-    std::vector<Event> event_list = EventListGenerator(map, obstacles, robot_radius);
-    for(int i = 0; i < event_list.size(); i++)
-    {
-        if(event_list[i].event_type == IN)
-        {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN"<<std::endl;
-            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 0, 255), -1);//bright red
-        }
-        if(event_list[i].event_type == IN_TOP)
-        {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN_TOP"<<std::endl;
-            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 0, 255), -1);//bright red
-        }
-        if(event_list[i].event_type == IN_BOTTOM)
-        {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN_BOTTOM"<<std::endl;
-            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 0, 255), -1);//bright red
-        }
-        if(event_list[i].event_type == OUT)
-        {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT"<<std::endl;
-            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 255, 0), -1);//bright green
-        }
-        if(event_list[i].event_type == OUT_TOP)
-        {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT_TOP"<<std::endl;
-            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 255, 0), -1);//bright green
-        }
-        if(event_list[i].event_type == OUT_BOTTOM)
-        {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT_BOTTOM"<<std::endl;
-            cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 255, 0), -1);//bright green
-        }
-        if(event_list[i].event_type == INNER_IN)
-        {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN"<<std::endl;
-        }
-        if(event_list[i].event_type == INNER_IN_TOP)
-        {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN_TOP"<<std::endl;
-        }
-        if(event_list[i].event_type == INNER_IN_BOTTOM)
-        {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN_BOTTOM"<<std::endl;
-        }
-        if(event_list[i].event_type == INNER_OUT)
-        {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT"<<std::endl;
-        }
-        if(event_list[i].event_type == INNER_OUT_TOP)
-        {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT_TOP"<<std::endl;
-        }
-        if(event_list[i].event_type == INNER_OUT_BOTTOM)
-        {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT_BOTTOM"<<std::endl;
-        }
-        if(event_list[i].event_type == MIDDLE)
-        {
-            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(50, 50 ,50);
-        }
-        if(event_list[i].event_type == CEILING)
-        {
-            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(0, 255 ,255);
-        }
-        if(event_list[i].event_type == FLOOR)
-        {
-            map.at<cv::Vec3b>(event_list[i].y, event_list[i].x) = cv::Vec3b(255, 0 ,0);
-        }
-    }
 }
 
 //void GetNewObstacleTest()
@@ -4364,11 +4451,11 @@ int main() {
 //                cv::Point(175,250),cv::Point(225,300),cv::Point(125,325),cv::Point(125,375),cv::Point(375,375),cv::Point(375,325),
 //                cv::Point(275,325),cv::Point(275,275),cv::Point(325,250),cv::Point(275,200),cv::Point(375,175),cv::Point(375,125)};
 
-    std::vector<cv::Point> original_obstacle_contour1 = {cv::Point(100,100),cv::Point(100,500),cv::Point(150,500),cv::Point(150,150),
-            cv::Point(450,150),cv::Point(450,300),cv::Point(300,300),cv::Point(300,250),cv::Point(350,250),cv::Point(350,200),
-            cv::Point(250,200),cv::Point(250,350),cv::Point(500,350),cv::Point(500,100)};
+//    std::vector<cv::Point> original_obstacle_contour1 = {cv::Point(100,100),cv::Point(100,500),cv::Point(150,500),cv::Point(150,150),
+//            cv::Point(450,150),cv::Point(450,300),cv::Point(300,300),cv::Point(300,250),cv::Point(350,250),cv::Point(350,200),
+//            cv::Point(250,200),cv::Point(250,350),cv::Point(500,350),cv::Point(500,100)};
 
-//    std::vector<cv::Point> original_obstacle_contour1 = {cv::Point(125, 50), cv::Point(50, 125), cv::Point(125, 200), cv::Point(200, 125)};
+    std::vector<cv::Point> original_obstacle_contour1 = {cv::Point(125, 50), cv::Point(50, 125), cv::Point(125, 200), cv::Point(200, 125)};
 
     std::vector<std::vector<cv::Point>> original_obstacle_contours = {original_obstacle_contour1};
     cv::fillPoly(history_map, original_obstacle_contours, cv::Scalar(255, 255, 255));
@@ -4376,16 +4463,16 @@ int main() {
     Polygon original_map_border = ConstructDefaultMapBorder(history_map);
     std::vector<CellNode> original_cell_graph = GenerateCells(history_map, original_map_border, original_obstacles, robot_radius);
     Point2D start = Point2D(10, 10);
-    std::deque<std::deque<Point2D>> original_planning_path = GlobalPathPlanning(history_map, original_cell_graph, start, robot_radius, false, true);
-    std::deque<Point2D> returning_path = ReturningPathPlanning(history_map, original_cell_graph, original_planning_path.back().back(), original_planning_path.front().front(), robot_radius, true);
+    std::deque<std::deque<Point2D>> original_planning_path = GlobalPathPlanning(history_map, original_cell_graph, start, robot_radius, false, false);
+//    std::deque<Point2D> returning_path = ReturningPathPlanning(history_map, original_cell_graph, original_planning_path.back().back(), original_planning_path.front().front(), robot_radius, true);
 
 
-//    cv::Mat curr_map = cv::Mat::zeros(600, 600, CV_8UC3);
-//    std::vector<cv::Point> temp_obstacle_contour1 = {cv::Point(80, 300), cv::Point(80, 400), cv::Point(160, 400), cv::Point(160, 300)}; //cv::Point(120, 350),
-//    std::vector<cv::Point> temp_obstacle_contour2 = {cv::Point(100, 450), cv::Point(100, 550), cv::Point(140, 550), cv::Point(140, 450)};
-//    std::vector<cv::Point> temp_obstacle_contour3 = {cv::Point(300, 150), cv::Point(300, 250), cv::Point(400, 220), cv::Point(400, 180)};
-//    std::vector<std::vector<cv::Point>> curr_obstacle_contours = {temp_obstacle_contour1, temp_obstacle_contour2, temp_obstacle_contour3};
-//
+    cv::Mat curr_map = cv::Mat::zeros(600, 600, CV_8UC3);
+    std::vector<cv::Point> temp_obstacle_contour1 = {cv::Point(80, 300), cv::Point(80, 400), cv::Point(160, 400), cv::Point(120, 350), cv::Point(160, 300)}; //cv::Point(120, 350),
+    std::vector<cv::Point> temp_obstacle_contour2 = {cv::Point(100, 450), cv::Point(100, 550), cv::Point(140, 550), cv::Point(140, 450)};
+    std::vector<cv::Point> temp_obstacle_contour3 = {cv::Point(300, 150), cv::Point(300, 250), cv::Point(400, 220), cv::Point(400, 180)};
+    std::vector<std::vector<cv::Point>> curr_obstacle_contours = {temp_obstacle_contour1, temp_obstacle_contour2, temp_obstacle_contour3};
+
 //    for(int i = 0; i < original_planning_path.size(); i++)
 //    {
 //        for(int j = 0; j < original_planning_path[i].size(); j++)
@@ -4394,12 +4481,46 @@ int main() {
 //        }
 //    }
 //
-//    cv::fillPoly(curr_map, curr_obstacle_contours, cv::Scalar(255, 255, 255));
-//    cv::fillPoly(curr_map, original_obstacle_contours, cv::Scalar(50, 50, 50));
-//    PolygonList curr_obstacles = ConstructObstacles(curr_map, curr_obstacle_contours);
-//
-//    int color_repeats = 50;
-//    std::deque<Point2D> dynamic_path = DynamicPathPlanning(curr_map, original_cell_graph, original_planning_path, robot_radius, true, color_repeats);
+    cv::fillPoly(curr_map, curr_obstacle_contours, cv::Scalar(255, 255, 255));
+    cv::fillPoly(curr_map, original_obstacle_contours, cv::Scalar(50, 50, 50));
+    PolygonList curr_obstacles = ConstructObstacles(curr_map, curr_obstacle_contours);
+
+    int color_repeats = 50;
+    std::deque<Point2D> dynamic_path = DynamicPathPlanning(curr_map, original_cell_graph, original_planning_path, robot_radius, true, color_repeats);
 
     return 0;
+
+
+
+
+
+
+
+
+
+
+//    Point2D collision_point = Point2D(80, 294); // 80 406; 80, 294; 166, 350; 74, 350
+//    std::deque<Point2D> contouring_path;
+//    Polygon new_obstacle = GetNewObstacle(curr_map, collision_point, DOWN, contouring_path, robot_radius); // UP ; DOWN, LEFT, RIGHT
+//    for(int i = 0; i < contouring_path.size(); i++)
+//    {
+//        curr_map.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(0, 0, 255);
+//    }
+//    for(int i = 0; i < new_obstacle.size(); i++)
+//    {
+//        curr_map.at<cv::Vec3b>(new_obstacle[i].y, new_obstacle[i].x)=cv::Vec3b(0, 255, 0);
+//    }
+//
+//    std::cout<<"contouring path point num: "<<contouring_path.size()<<std::endl;
+//
+//    std::cout<<"point num: "<<new_obstacle.size()<<std::endl;
+//
+//    PointTypeTest(curr_map, new_obstacle, robot_radius);
+//
+//    PolygonList new_obstacles = {new_obstacle};
+//    std::deque<std::deque<Point2D>> replanning_path = LocalReplanning(curr_map, original_cell_graph[2], new_obstacles, collision_point, original_cell_graph, RIGHT, robot_radius, true, true);
+//
+//    cv::namedWindow("map", cv::WINDOW_NORMAL);
+//    cv::imshow("map", curr_map);
+//    cv::waitKey(0);
 }
