@@ -2406,7 +2406,7 @@ void ExecuteCellDecomposition(std::vector<CellNode>& cell_graph, std::vector<int
 
 Point2D FindNextEntrance(Point2D curr_point, CellNode next_cell, int& corner_indicator)
 {
-    Point2D next_entrance = Point2D(INT_MAX, INT_MAX);
+    Point2D next_entrance;
 
     int front_x = next_cell.ceiling.front().x;
     int back_x = next_cell.ceiling.back().x;
@@ -2934,7 +2934,7 @@ int DetermineCellIndex(std::vector<CellNode>& cell_graph, Point2D point)
     {
         for(int j = 0; j < cell_graph[i].ceiling.size(); j++)
         {
-            if(point.x ==  cell_graph[i].ceiling[j].x && point.y > cell_graph[i].ceiling[j].y && point.y < cell_graph[i].floor[j].y)
+            if(point.x ==  cell_graph[i].ceiling[j].x && point.y >= cell_graph[i].ceiling[j].y && point.y <= cell_graph[i].floor[j].y)
             {
                 cell_index = i;
                 return cell_index;
@@ -2950,6 +2950,13 @@ std::deque<int> FindShortestPath(std::vector<CellNode>& cell_graph, Point2D star
     int end_cell_index = DetermineCellIndex(cell_graph, end);
 
     std::deque<int> cell_path = {end_cell_index};
+
+    if(start_cell_index == end_cell_index)
+    {
+        cell_path.emplace_back(start_cell_index);
+        return cell_path;
+    }
+
     std::vector<CellNode> cells;
     cells.assign(cell_graph.begin(), cell_graph.end());
 
@@ -3188,7 +3195,6 @@ std::deque<Point2D> WalkingCrossCells(std::vector<CellNode>& cell_graph, std::de
         curr_corner_indicator = next_corner_indicator;
     }
 
-    next_entrance = overall_path.back();
     sub_path = WalkingInsideCell(cells[cell_path.back()], next_entrance, end);
     overall_path.insert(overall_path.end(), sub_path.begin(), sub_path.end());
     sub_path.clear();
@@ -3196,7 +3202,7 @@ std::deque<Point2D> WalkingCrossCells(std::vector<CellNode>& cell_graph, std::de
     return overall_path;
 }
 
-CellNode ContourToCell(cv::Mat map, Polygon contour, int robot_radius)
+CellNode ContourToCell(const cv::Mat& map, Polygon contour, int robot_radius)
 {
     std::vector<Event> event_list = InitializeEventList(contour, -1);
     EventTypeAllocator(map, event_list, robot_radius);
@@ -3260,7 +3266,7 @@ std::vector<CellNode> GenerateCells(const cv::Mat& map, CellNode outermost_cell,
     return cell_graph;
 }
 
-std::deque<std::deque<Point2D>> GlobalPathPlanning(cv::Mat& map, std::vector<CellNode>& cell_graph, Point2D start_point, int robot_radius, bool visualize_cells=true, bool visualize_path=true, int color_repeats=10)
+std::deque<std::deque<Point2D>> GlobalPathPlanning(cv::Mat& map, std::vector<CellNode>& cell_graph, Point2D start_point, int robot_radius, bool visualize_cells, bool visualize_path, int color_repeats=10)
 {
     std::deque<std::deque<Point2D>> global_path;
     std::deque<Point2D> local_path;
@@ -3372,11 +3378,19 @@ std::deque<std::deque<Point2D>> GlobalPathPlanning(cv::Mat& map, std::vector<Cel
 }
 
 // 动态规划时，若是有新的障碍物产生，要先用更新后的障碍物队列来重新更新cell_graph再规划
-std::deque<Point2D> ReturningPathPlanning(cv::Mat& map, std::vector<CellNode>& cell_graph, Point2D curr_pos, Point2D original_pos, int robot_radius, bool visualize_path=true)
+std::deque<Point2D> ReturningPathPlanning(cv::Mat& map, std::vector<CellNode>& cell_graph, Point2D curr_pos, Point2D original_pos, int robot_radius, bool visualize_path)
 {
-
     std::deque<int> return_cell_path = FindShortestPath(cell_graph, curr_pos, original_pos);
-    std::deque<Point2D> returning_path = WalkingCrossCells(cell_graph, return_cell_path, curr_pos, original_pos, robot_radius);
+    std::deque<Point2D> returning_path;
+
+    if(return_cell_path.size() == 1)
+    {
+        returning_path = WalkingInsideCell(cell_graph[return_cell_path.front()], curr_pos, original_pos);
+    }
+    else
+    {
+        returning_path = WalkingCrossCells(cell_graph, return_cell_path, curr_pos, original_pos, robot_radius);
+    }
 
     if(visualize_path)
     {
@@ -3406,7 +3420,7 @@ void InitializeMap(cv::Mat& map)
     **/
 }
 
-PolygonList GetObstacles(cv::Mat original_map, int safe_dist=0) // original_map's type should be 8UC3
+PolygonList GetObstacles(cv::Mat& original_map, int safe_dist=0) // original_map's type should be 8UC3
 {
     // TODO
     /**
@@ -3481,7 +3495,7 @@ Polygon GetMapBorder(cv::Mat map)
     return map_border;
 }
 
-PolygonList ConstructObstacles(cv::Mat map, std::vector<std::vector<cv::Point>> obstacle_contours)
+PolygonList ConstructObstacles(cv::Mat& map, std::vector<std::vector<cv::Point>> obstacle_contours)
 {
     PolygonList obstacles;
 
@@ -3515,7 +3529,7 @@ PolygonList ConstructObstacles(cv::Mat map, std::vector<std::vector<cv::Point>> 
 
 }
 
-Polygon ConstructDefaultMapBorder(cv::Mat map)
+Polygon ConstructDefaultMapBorder(cv::Mat& map)
 {
     std::vector<cv::Point> default_map_border_contour = {cv::Point(0, 0), cv::Point(0, map.rows-1), cv::Point(map.cols-1, map.rows-1), cv::Point(map.cols-1, 0)};
     std::vector<std::vector<cv::Point>>default_map_border_contours = {default_map_border_contour};
@@ -3789,7 +3803,7 @@ Point2D GetNextPosition(Point2D curr_pos, int direction, int steps)
 }
 
 // 模拟碰撞传感器信号
-bool CollisionOccurs(cv::Mat map, Point2D curr_pos, int detect_direction, int robot_radius)
+bool CollisionOccurs(const cv::Mat& map, Point2D curr_pos, int detect_direction, int robot_radius)
 {
     int obstacle_dist = INT_MAX;
     Point2D ray_pos;
@@ -4192,13 +4206,13 @@ std::deque<std::deque<Point2D>> LocalReplanning(cv::Mat& map, CellNode outer_cel
     }
 
     curr_cell_graph = GenerateCells(map, inner_cell, obstacles, robot_radius);
-    std::deque<std::deque<Point2D>> replanning_path = GlobalPathPlanning(map, curr_cell_graph, curr_pos, robot_radius, true, true);
+    std::deque<std::deque<Point2D>> replanning_path = GlobalPathPlanning(map, curr_cell_graph, curr_pos, robot_radius, false, false);
 
     return replanning_path;
 } //回退区域需要几个r+1
 
 // 每一段都是包含前面的linking_path和后面的inner_path
-std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode>& global_cell_graph, std::deque<std::deque<Point2D>> global_path, int robot_radius)
+std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode>& global_cell_graph, std::deque<std::deque<Point2D>> global_path, int robot_radius, bool visualize_path, int color_repeats=10)
 {
     std::deque<Point2D> dynamic_path;
 
@@ -4227,17 +4241,22 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
     std::vector<CellNode> curr_cell_graph;
 
     PolygonList curr_obstacles;
+    std::vector<cv::Point> visited_obstacle_contour;
+    std::vector<std::vector<cv::Point>> visited_obstacle_contours;
 
     std::vector<std::deque<std::deque<Point2D>>> unvisited_paths = {global_path};
     std::vector<std::vector<CellNode>> cell_graph_list = {global_cell_graph};
     std::vector<Point2D> exit_list = {global_path.back().back()};
 
-    //
-    cv::Mat vismap = map.clone();
-    cv::namedWindow("map", cv::WINDOW_NORMAL);
-    cv::imshow("map", vismap);
-    //
 
+    cv::Mat& vismap = map;
+    std::deque<cv::Scalar> JetColorMap;
+    InitializeColorMap(JetColorMap, color_repeats);
+    if(visualize_path)
+    {
+        cv::namedWindow("map", cv::WINDOW_NORMAL);
+        cv::imshow("map", vismap);
+    }
 
 
     while(!unvisited_paths.empty() && !cell_graph_list.empty())
@@ -4254,26 +4273,44 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
                 curr_pos = curr_sub_path[j];
                 next_pos = curr_sub_path[j+1];
                 dynamic_path.emplace_back(curr_pos);
-                //
-                vismap.at<cv::Vec3b>(curr_pos.y, curr_pos.x)=cv::Vec3b(0, 0, 255);
-                cv::imshow("map", vismap);
-                cv::waitKey(1);
-                //
+
+                if(visualize_path)
+                {
+                    vismap.at<cv::Vec3b>(curr_pos.y, curr_pos.x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+                    UpdateColorMap(JetColorMap);
+                    cv::imshow("map", vismap);
+                    cv::waitKey(1);
+                }
 
                 front_direction = GetFrontDirection(curr_pos, next_pos);
                 if(CollisionOccurs(map, curr_pos, front_direction, robot_radius))
                 {
                     new_obstacle = GetNewObstacle(map, curr_pos, front_direction, contouring_path, robot_radius);
                     dynamic_path.insert(dynamic_path.end(), contouring_path.begin(), contouring_path.end());
-                    //
-                    for(int i = 0; i < contouring_path.size(); i++)
+
+                    if(visualize_path)
                     {
-                        vismap.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(0, 0, 255);
-                        cv::imshow("map", vismap);
-                        cv::waitKey(1);
+                        for(int i = 0; i < contouring_path.size(); i++)
+                        {
+                            vismap.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+                            UpdateColorMap(JetColorMap);
+                            cv::imshow("map", vismap);
+                            cv::waitKey(1);
+                        }
                     }
-                    //
+
                     contouring_path.clear();
+
+                    visited_obstacle_contour.clear();
+                    visited_obstacle_contours.clear();
+
+                    for(int i = 0; i < new_obstacle.size(); i++)
+                    {
+                        visited_obstacle_contour.emplace_back(cv::Point(new_obstacle[i].x,new_obstacle[i].y));
+                    }
+
+                    visited_obstacle_contours.emplace_back(visited_obstacle_contour);
+                    cv::fillPoly(map, visited_obstacle_contours, cv::Scalar(50, 50, 50));
 
                     curr_cell_index = DetermineCellIndex(curr_cell_graph, curr_pos);
                     curr_cell = curr_cell_graph[curr_cell_index];
@@ -4282,15 +4319,6 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
                     cleaning_direction = GetCleaningDirection(curr_cell, curr_exit);
 
                     replanning_path = LocalReplanning(map, curr_cell, curr_obstacles, curr_pos, curr_cell_graph, cleaning_direction, robot_radius); // 此处会更新curr_cell_graph
-//                    if(!curr_cell.isCleaned)
-//                    {
-//                        replanning_path = LocalReplanning(map, curr_cell, curr_obstacles, curr_pos, curr_cell_graph, cleaning_direction, robot_radius); // 此处会更新curr_cell_graph
-//                    }
-//                    else
-//                    {
-//                        curr_cell_graph = GenerateCells2(map, curr_cell, curr_obstacles, robot_radius);
-//                        replanning_path = {ReturningPathPlanning(map, curr_cell_graph, dynamic_path.back(), curr_exit, robot_radius, false)};
-//                    }
 
                     remaining_curr_path.assign(curr_path.begin()+i+1, curr_path.end());
 
@@ -4303,6 +4331,17 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
         {
             linking_path = ReturningPathPlanning(map, cell_graph_list.back(), dynamic_path.back(), exit_list.back(), robot_radius, false);
             dynamic_path.insert(dynamic_path.end(), linking_path.begin(), linking_path.end());
+
+            if(visualize_path)
+            {
+                for(int i = 0; i < linking_path.size(); i++)
+                {
+                    vismap.at<cv::Vec3b>(linking_path[i].y, linking_path[i].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+                    UpdateColorMap(JetColorMap);
+                    cv::imshow("map", vismap);
+                    cv::waitKey(1);
+                }
+            }
         }
 
         exit_list.pop_back();
@@ -4316,6 +4355,11 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
         unvisited_paths.emplace_back(remaining_curr_path);
         unvisited_paths.emplace_back(replanning_path);
         cell_graph_list.emplace_back(curr_cell_graph);
+    }
+
+    if(visualize_path)
+    {
+        cv::waitKey(0);
     }
 
     return dynamic_path;
@@ -4815,20 +4859,21 @@ int main() {
     std::vector<cv::Point> temp_obstacle_contour1 = {cv::Point(80, 300), cv::Point(80, 400), cv::Point(160, 400), cv::Point(160, 300)}; //cv::Point(120, 350),
     std::vector<cv::Point> temp_obstacle_contour2 = {cv::Point(300, 150), cv::Point(300, 250), cv::Point(400, 220), cv::Point(400, 180)};
     std::vector<std::vector<cv::Point>> curr_obstacle_contours = {temp_obstacle_contour1, temp_obstacle_contour2};
+
+    for(int i = 0; i < original_planning_path.size(); i++)
+    {
+        for(int j = 0; j < original_planning_path[i].size(); j++)
+        {
+            curr_map.at<cv::Vec3b>(original_planning_path[i][j].y, original_planning_path[i][j].x)=cv::Vec3b(50, 50, 50);
+        }
+    }
+
     cv::fillPoly(curr_map, curr_obstacle_contours, cv::Scalar(255, 255, 255));
     cv::fillPoly(curr_map, original_obstacle_contours, cv::Scalar(50, 50, 50));
     PolygonList curr_obstacles = ConstructObstacles(curr_map, curr_obstacle_contours);
 
 
-//    for(int i = 0; i < original_planning_path.size(); i++)
-//    {
-//        for(int j = 0; j < original_planning_path[i].size(); j++)
-//        {
-//            curr_map.at<cv::Vec3b>(original_planning_path[i][j].y, original_planning_path[i][j].x)=cv::Vec3b(50, 50, 50);
-//        }
-//    }
-
-    std::deque<Point2D> dynamic_path = DynamicPathPlanning(curr_map, original_cell_graph, original_planning_path, robot_radius);
+    std::deque<Point2D> dynamic_path = DynamicPathPlanning(curr_map, original_cell_graph, original_planning_path, robot_radius, true, 50);
 
 
 
@@ -4837,9 +4882,9 @@ int main() {
 
 
 
-//
-//
-//
+
+
+
 //
 //
 //    Point2D collision_point = Point2D(80, 294); // 80 406; 80, 294; 166, 350; 74, 350
