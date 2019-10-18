@@ -2941,12 +2941,14 @@ void InitializeMap(cv::Mat& map)
     **/
 }
 
-PolygonList GetObstacles(cv::Mat& original_map, int safe_dist=0) // original_map's type should be 8UC3
+PolygonList GetContouringAreas(cv::Mat& original_map, int robot_radius) // original_map's type should be 8UC3
 {
     // TODO
     /**
      如果最上层的外轮廓是图像边缘，需要将其剔除，提取下一层的所有外轮廓
     **/
+
+    int safe_dist = robot_radius/2*3;
 
     cv::Mat map = original_map.clone();
     map.convertTo(map, CV_8UC1);
@@ -3016,6 +3018,9 @@ Polygon GetMapBorder(cv::Mat map)
     return map_border;
 }
 
+//
+
+
 PolygonList ConstructObstacles(cv::Mat& map, std::vector<std::vector<cv::Point>> obstacle_contours)
 {
     PolygonList obstacles;
@@ -3058,6 +3063,45 @@ Polygon ConstructDefaultMapBorder(cv::Mat& map)
     Polygon default_map_border = ConstructObstacles(map, default_map_border_contours).front();
 
     return default_map_border;
+}
+
+Polygon GetSingleContouringArea(const cv::Mat& original_map, Polygon obstacle, int robot_radius) // original_map's type should be 8UC3
+{
+    int safe_dist = robot_radius;
+
+    cv::Mat map = cv::Mat::zeros(original_map.rows, original_map.cols, CV_8UC3);
+
+    std::vector<cv::Point> contour;
+    std::vector<std::vector<cv::Point>> contours;
+
+    for(int i = 0; i < obstacle.size(); i++)
+    {
+        contour.emplace_back(cv::Point(obstacle[i].x, obstacle[i].y));
+        cv::circle(map, cv::Point(obstacle[i].x, obstacle[i].y), safe_dist, cv::Scalar(255, 255, 255), -1);
+    }
+
+    contours.emplace_back(contour);
+    cv::fillPoly(map, contours, cv::Scalar(255, 255, 255));
+
+    map.convertTo(map, CV_8UC1);
+    cv::cvtColor(map, map, cv::COLOR_BGR2GRAY);
+
+    int binary_thresh = 200;
+    cv::threshold(map, map, binary_thresh, 255, cv::THRESH_BINARY);
+
+    std::vector<std::vector<cv::Point>> dilated_contours;
+    std::vector<cv::Vec4i> dilated_contours_hierarcy;
+    cv::findContours(map, dilated_contours, dilated_contours_hierarcy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+
+    std::vector<cv::Point> approx_obstacle;
+    cv::approxPolyDP(cv::Mat(dilated_contours.front()), approx_obstacle, 1, true);
+
+    std::vector<std::vector<cv::Point>> approx_obstacles = {approx_obstacle};
+    PolygonList contouring_areas = ConstructObstacles(map, approx_obstacles);
+
+    Polygon contouring_area = contouring_areas.front();
+
+    return contouring_area;
 }
 
 void PointTypeTest(cv::Mat& map, Polygon obstacle)
@@ -3135,7 +3179,7 @@ void PointTypeTest(cv::Mat& map, Polygon obstacle)
         }
     }
 }
-//
+
 
 
 
@@ -3875,6 +3919,7 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
     int cleaning_direction;
 
     Polygon new_obstacle;
+//    Polygon temp_new_obstacle;
 
     int curr_cell_index;
     CellNode curr_cell;
@@ -3927,6 +3972,7 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
                 if(CollisionOccurs(map, curr_pos, front_direction, robot_radius))
                 {
                     new_obstacle = GetNewObstacle(map, curr_pos, front_direction, contouring_path, robot_radius);
+//                    new_obstacle = GetSingleContouringArea(map, temp_new_obstacle, robot_radius);
                     overall_obstacles.emplace_back(new_obstacle);
 
                     // for debugging
@@ -4569,47 +4615,10 @@ int main()
     std::vector<cv::Point> temp_obstacle_contour3 = {cv::Point(300, 150), cv::Point(300, 250), cv::Point(400, 220), cv::Point(400, 180)};
     std::vector<std::vector<cv::Point>> curr_obstacle_contours = {temp_obstacle_contour0, temp_obstacle_contour1, temp_obstacle_contour2, temp_obstacle_contour3};
 
-//    for(int i = 0; i < original_planning_path.size(); i++)
-//    {
-//        for(int j = 0; j < original_planning_path[i].size(); j++)
-//        {
-//            curr_map.at<cv::Vec3b>(original_planning_path[i][j].y, original_planning_path[i][j].x)=cv::Vec3b(50, 50, 50);
-//        }
-//    }
-//
     cv::fillPoly(curr_map, curr_obstacle_contours, cv::Scalar(255, 255, 255));
 
     int color_repeats = 50;
     std::deque<Point2D> dynamic_path = DynamicPathPlanning(curr_map, original_cell_graph, original_planning_path, robot_radius, true, true, color_repeats);
 
     return 0;
-
-
-
-
-
-//    Point2D collision_point = Point2D(80, 294); // 80 406; 80, 294; 166, 350; 74, 350
-//    std::deque<Point2D> contouring_path;
-//    Polygon new_obstacle = GetNewObstacle(curr_map, collision_point, DOWN, contouring_path, robot_radius); // UP ; DOWN, LEFT, RIGHT
-//    for(int i = 0; i < contouring_path.size(); i++)
-//    {
-//        curr_map.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(0, 0, 255);
-//    }
-//    for(int i = 0; i < new_obstacle.size(); i++)
-//    {
-//        curr_map.at<cv::Vec3b>(new_obstacle[i].y, new_obstacle[i].x)=cv::Vec3b(0, 255, 0);
-//    }
-//
-//    std::cout<<"contouring path point num: "<<contouring_path.size()<<std::endl;
-//
-//    std::cout<<"point num: "<<new_obstacle.size()<<std::endl;
-//
-//    PointTypeTest(curr_map, new_obstacle, robot_radius);
-//
-//    PolygonList new_obstacles = {new_obstacle};
-//    std::deque<std::deque<Point2D>> replanning_path = LocalReplanning(curr_map, original_cell_graph[2], new_obstacles, collision_point, original_cell_graph, RIGHT, robot_radius, true, true);
-//
-//    cv::namedWindow("map", cv::WINDOW_NORMAL);
-//    cv::imshow("map", curr_map);
-//    cv::waitKey(0);
 }
