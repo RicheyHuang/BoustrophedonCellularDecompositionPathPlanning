@@ -710,7 +710,7 @@ std::vector<Event> InitializeEventList(Polygon polygon, int polygon_index)
     return event_list;
 }
 
-void EventTypeAllocator(const cv::Mat& map, std::vector<Event>& event_list, int robot_radius)
+void EventTypeAllocator(const cv::Mat& map, std::vector<Event>& event_list)
 {
     int half_size = event_list.size()%2==0? event_list.size()/2 : (event_list.size()+1)/2;
     std::vector<Event> header(event_list.begin()+half_size, event_list.end());
@@ -857,71 +857,9 @@ void EventTypeAllocator(const cv::Mat& map, std::vector<Event>& event_list, int 
 
     }
 
-    // filter top and bottom
-//    int center_index;
-    int temp_index;
-//    int in_out_index_list_size = in_out_index_list.size();
-//    for(int i = 1; i <= in_out_index_list_size; i++)
-//    {
-//        if(event_list[in_out_index_list[0]].event_type == IN_TOP
-//        && event_list[in_out_index_list[1]].event_type == IN_BOTTOM
-//        && abs(event_list[in_out_index_list[0]].y-event_list[in_out_index_list[1]].y)<=robot_radius)
-//        {
-//            center_index = (in_out_index_list[0]+in_out_index_list[1])%2==0? (in_out_index_list[0]+in_out_index_list[1])/2 : (in_out_index_list[0]+in_out_index_list[1]+1)/2;
-//            event_list[in_out_index_list[0]].event_type = MIDDLE;
-//            event_list[in_out_index_list[1]].event_type = MIDDLE;
-//            event_list[center_index].event_type = IN;
-//            in_out_index_list.pop_front();
-//            in_out_index_list.pop_front();
-//            in_out_index_list.emplace_front(center_index);
-//        }
-//
-//        if(event_list[in_out_index_list[0]].event_type == IN_BOTTOM
-//           && event_list[in_out_index_list[1]].event_type == IN_TOP
-//           && abs(event_list[in_out_index_list[0]].y-event_list[in_out_index_list[1]].y)<=robot_radius)
-//        {
-//            center_index = (in_out_index_list[0]+in_out_index_list[1])%2==0? (in_out_index_list[0]+in_out_index_list[1])/2 : (in_out_index_list[0]+in_out_index_list[1]+1)/2;
-//            event_list[in_out_index_list[0]].event_type = MIDDLE;
-//            event_list[in_out_index_list[1]].event_type = MIDDLE;
-//            event_list[center_index].event_type = IN;
-//            in_out_index_list.pop_front();
-//            in_out_index_list.pop_front();
-//            in_out_index_list.emplace_front(center_index);
-//        }
-//
-//        if(event_list[in_out_index_list[0]].event_type == OUT_TOP
-//           && event_list[in_out_index_list[1]].event_type == OUT_BOTTOM
-//           && abs(event_list[in_out_index_list[0]].y-event_list[in_out_index_list[1]].y)<=robot_radius)
-//        {
-//            center_index = (in_out_index_list[0]+in_out_index_list[1])%2==0? (in_out_index_list[0]+in_out_index_list[1])/2 : (in_out_index_list[0]+in_out_index_list[1]+1)/2;
-//            event_list[in_out_index_list[0]].event_type = MIDDLE;
-//            event_list[in_out_index_list[1]].event_type = MIDDLE;
-//            event_list[center_index].event_type = OUT;
-//            in_out_index_list.pop_front();
-//            in_out_index_list.pop_front();
-//            in_out_index_list.emplace_front(center_index);
-//        }
-//
-//        if(event_list[in_out_index_list[0]].event_type == OUT_BOTTOM
-//           && event_list[in_out_index_list[1]].event_type == OUT_TOP
-//           && abs(event_list[in_out_index_list[0]].y-event_list[in_out_index_list[1]].y)<=robot_radius)
-//        {
-//            center_index = (in_out_index_list[0]+in_out_index_list[1])%2==0? (in_out_index_list[0]+in_out_index_list[1])/2 : (in_out_index_list[0]+in_out_index_list[1]+1)/2;
-//            event_list[in_out_index_list[0]].event_type = MIDDLE;
-//            event_list[in_out_index_list[1]].event_type = MIDDLE;
-//            event_list[center_index].event_type = OUT;
-//            in_out_index_list.pop_front();
-//            in_out_index_list.pop_front();
-//            in_out_index_list.emplace_front(center_index);
-//        }
-//        temp_index = in_out_index_list.front();
-//        in_out_index_list.pop_front();
-//        in_out_index_list.emplace_back(temp_index);
-//    }
-
     // determine inner
     Point2D neighbor_point;
-
+    int temp_index;
     for(int i = 0; i < in_out_index_list.size(); i++)
     {
         if(event_list[in_out_index_list[i]].event_type == OUT)
@@ -1147,7 +1085,7 @@ void EventTypeAllocator(const cv::Mat& map, std::vector<Event>& event_list, int 
 } // robot_radius的用法还需要考虑
 
 // 各个多边形按照其左顶点的x值从小到大的顺序进行排列
-std::vector<Event> EventListGenerator(const cv::Mat& map, PolygonList polygons, int robot_radius)
+std::vector<Event> EventListGenerator(const cv::Mat& map, PolygonList polygons)
 {
     std::vector<Event> event_list;
     std::vector<Event> event_sublist;
@@ -1155,7 +1093,7 @@ std::vector<Event> EventListGenerator(const cv::Mat& map, PolygonList polygons, 
     for(int i = 0; i < polygons.size(); i++)
     {
         event_sublist = InitializeEventList(polygons[i], i);
-        EventTypeAllocator(map, event_sublist, robot_radius);
+        EventTypeAllocator(map, event_sublist);
         event_list.insert(event_list.end(), event_sublist.begin(), event_sublist.end());
         event_sublist.clear();
     }
@@ -2555,14 +2493,14 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end)
         {
             increment_x = delta_x / abs(delta_x);
         }
-        for(int i = 1; i <= abs(delta_x); i++)
+        for(int i = 0; i < abs(delta_x); i++)
         {
             // 提前转
-            if((cell.ceiling[start_ceiling_index_offset+increment_x*(i+1)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i-1+1)].y>=2)
+            if((cell.ceiling[start_ceiling_index_offset+increment_x*(i+1)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i)].y>=2)
             &&(i+1 <= abs(delta_x))
-            &&(i-1+1 <= abs(delta_x)))
+            &&(i <= abs(delta_x)))
             {
-                int delta = cell.ceiling[start_ceiling_index_offset+increment_x*(i+1)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i-1+1)].y;
+                int delta = cell.ceiling[start_ceiling_index_offset+increment_x*(i+1)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i)].y;
                 int increment = delta/abs(delta);
                 for(int j = 0; j <= abs(delta); j++)
                 {
@@ -2570,6 +2508,10 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end)
                 }
 
                 i += 1;
+                if(i >= abs(delta_x))
+                {
+                    break;
+                }
             }
             // 滞后转
             if((cell.ceiling[start_ceiling_index_offset+increment_x*(i)].y-cell.ceiling[start_ceiling_index_offset+increment_x*(i+1)].y>=2)
@@ -2586,6 +2528,10 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end)
                     inner_path.emplace_back(Point2D(cell.ceiling[start_ceiling_index_offset+increment_x*(i+1)].x, cell.ceiling[start_ceiling_index_offset+increment_x*(i+1)].y+abs(delta)+increment*(k)));
                 }
                 i += 2;
+                if(i >= abs(delta_x))
+                {
+                    break;
+                }
             }
             inner_path.emplace_back(cell.ceiling[start_ceiling_index_offset+(increment_x*i)]);
         }
@@ -2595,7 +2541,7 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end)
         {
             second_increment_y = second_ceiling_delta_y/abs(second_ceiling_delta_y);
         }
-        for(int i = 1; i < abs(second_ceiling_delta_y); i++)
+        for(int i = 1; i <= abs(second_ceiling_delta_y); i++)
         {
             inner_path.emplace_back(Point2D(cell.ceiling[end_ceiling_index_offset].x, cell.ceiling[end_ceiling_index_offset].y+(second_increment_y*i)));
         }
@@ -2618,20 +2564,24 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end)
         {
             increment_x = delta_x / abs(delta_x);
         }
-        for(int i = 1; i <= abs(delta_x); i++)
+        for(int i = 0; i < abs(delta_x); i++)
         {
             //提前转
-            if((cell.floor[start_floor_index_offset+increment_x*(i-1+1)].y-cell.floor[start_floor_index_offset+increment_x*(i+1)].y>=2)
-            &&(i-1+1<=abs(delta_x))
+            if((cell.floor[start_floor_index_offset+increment_x*(i)].y-cell.floor[start_floor_index_offset+increment_x*(i+1)].y>=2)
+            &&(i<=abs(delta_x))
             &&(i+1<=abs(delta_x)))
             {
-                int delta = cell.floor[start_floor_index_offset+increment_x*(i+1)].y-cell.floor[start_floor_index_offset+increment_x*(i-1+1)].y;
+                int delta = cell.floor[start_floor_index_offset+increment_x*(i+1)].y-cell.floor[start_floor_index_offset+increment_x*(i)].y;
                 int increment = delta/abs(delta);
                 for(int j = 0; j <= abs(delta); j++)
                 {
                     inner_path.emplace_back(Point2D(cell.floor[start_floor_index_offset+increment_x*(i)].x, cell.floor[start_floor_index_offset+increment_x*(i)].y+increment*(j)));
                 }
                 i += 1;
+                if(i >= abs(delta_x))
+                {
+                    break;
+                }
             }
             //滞后转
             if((cell.floor[start_floor_index_offset+increment_x*(i+1)].y-cell.floor[start_floor_index_offset+increment_x*(i)].y>=2)
@@ -2648,6 +2598,10 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end)
                     inner_path.emplace_back(Point2D(cell.floor[start_floor_index_offset+increment_x*(i+1)].x, cell.floor[start_floor_index_offset+increment_x*(i+1)].y-abs(delta) +increment*(k)));
                 }
                 i += 2;
+                if(i >= abs(delta_x))
+                {
+                    break;
+                }
             }
             inner_path.emplace_back(cell.floor[start_floor_index_offset+(increment_x*i)]);
         }
@@ -2657,7 +2611,7 @@ std::deque<Point2D> WalkingInsideCell(CellNode cell, Point2D start, Point2D end)
         {
             second_increment_y = second_floor_delta_y/abs(second_floor_delta_y);
         }
-        for(int i = 1; i < abs(second_floor_delta_y); i++)
+        for(int i = 1; i <= abs(second_floor_delta_y); i++)
         {
             inner_path.emplace_back(Point2D(cell.floor[end_floor_index_offset].x, cell.floor[end_floor_index_offset].y+(second_increment_y*i)));
         }
@@ -2716,10 +2670,10 @@ std::deque<Point2D> WalkingCrossCells(std::vector<CellNode>& cell_graph, std::de
     return overall_path;
 }
 
-CellNode ContourToCell(const cv::Mat& map, Polygon contour, int robot_radius)
+CellNode ContourToCell(const cv::Mat& map, Polygon contour)
 {
     std::vector<Event> event_list = InitializeEventList(contour, -1);
-    EventTypeAllocator(map, event_list, robot_radius);
+    EventTypeAllocator(map, event_list);
     std::sort(event_list.begin(), event_list.end());
 
     CellNode cell;
@@ -2737,11 +2691,11 @@ CellNode ContourToCell(const cv::Mat& map, Polygon contour, int robot_radius)
     return cell;
 }
 
-std::vector<CellNode> GenerateCells(const cv::Mat& map, Polygon map_border, PolygonList obstacles, int robot_radius)
+std::vector<CellNode> GenerateCells(const cv::Mat& map, Polygon map_border, PolygonList obstacles)
 {
-    CellNode outermost_cell = ContourToCell(map, map_border, robot_radius);
+    CellNode outermost_cell = ContourToCell(map, map_border);
 
-    std::vector<Event> event_list = EventListGenerator(map, obstacles, robot_radius);
+    std::vector<Event> event_list = EventListGenerator(map, obstacles);
     std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
 
     std::vector<CellNode> cell_graph;
@@ -2759,9 +2713,9 @@ std::vector<CellNode> GenerateCells(const cv::Mat& map, Polygon map_border, Poly
 
     return cell_graph;
 } // 考虑挨得太近的top和bottom点
-std::vector<CellNode> GenerateCells(const cv::Mat& map, CellNode outermost_cell, PolygonList obstacles, int robot_radius)
+std::vector<CellNode> GenerateCells(const cv::Mat& map, CellNode outermost_cell, PolygonList obstacles)
 {
-    std::vector<Event> event_list = EventListGenerator(map, obstacles, robot_radius);
+    std::vector<Event> event_list = EventListGenerator(map, obstacles);
     std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
 
     std::vector<CellNode> cell_graph;
@@ -3056,11 +3010,11 @@ Polygon ConstructDefaultMapBorder(cv::Mat& map)
     return default_map_border;
 }
 
-void PointTypeTest(cv::Mat& map, Polygon obstacle, int robot_radius)
+void PointTypeTest(cv::Mat& map, Polygon obstacle)
 {
     PolygonList obstacles = {obstacle};
 
-    std::vector<Event> event_list = EventListGenerator(map, obstacles, robot_radius);
+    std::vector<Event> event_list = EventListGenerator(map, obstacles);
     for(int i = 0; i < event_list.size(); i++)
     {
         if(event_list[i].event_type == IN)
@@ -3766,9 +3720,9 @@ std::deque<std::deque<Point2D>> LocalReplanning(cv::Mat& map, CellNode outer_cel
     {
         start_x = outer_cell.ceiling.front().x;
 
-        if(curr_pos.x + (robot_radius + 1) <= outer_cell.ceiling.back().x)
+        if(curr_pos.x + 2*(robot_radius + 1) <= outer_cell.ceiling.back().x)
         {
-            end_x =  curr_pos.x + (robot_radius + 1);
+            end_x =  curr_pos.x + 2*(robot_radius + 1);
         }
         else
         {
@@ -3779,9 +3733,9 @@ std::deque<std::deque<Point2D>> LocalReplanning(cv::Mat& map, CellNode outer_cel
     {
         end_x = outer_cell.ceiling.back().x;
 
-        if(curr_pos.x - (robot_radius + 1) >= outer_cell.ceiling.front().x)
+        if(curr_pos.x - 2*(robot_radius + 1) >= outer_cell.ceiling.front().x)
         {
-            start_x = curr_pos.x - (robot_radius + 1);
+            start_x = curr_pos.x - 2*(robot_radius + 1);
         }
         else
         {
@@ -3798,7 +3752,7 @@ std::deque<std::deque<Point2D>> LocalReplanning(cv::Mat& map, CellNode outer_cel
         inner_cell.floor.emplace_back(outer_cell.floor[i]);
     }
 
-    curr_cell_graph = GenerateCells(map, inner_cell, obstacles, robot_radius);
+    curr_cell_graph = GenerateCells(map, inner_cell, obstacles);
     std::deque<std::deque<Point2D>> replanning_path = GlobalPathPlanning(map, curr_cell_graph, curr_pos, robot_radius, visualize_cells, visualize_path);
 
     return replanning_path;
@@ -3880,28 +3834,21 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
                 {
                     new_obstacle = GetNewObstacle(map, curr_pos, front_direction, contouring_path, robot_radius);
 
-//
-//                    PointTypeTest(map, new_obstacle, robot_radius);
+//                    for(int i = 0; i < new_obstacle.size(); i++)
+//                    {
+//                        vismap.at<cv::Vec3b>(new_obstacle[i].y, new_obstacle[i].x)=cv::Vec3b(0, 255, 0);
+//                    }
 //                    cv::imshow("map", vismap);
-//                    cv::waitKey(0);
-//
-//
-                    for(int i = 0; i < new_obstacle.size(); i++)
-                    {
-                        vismap.at<cv::Vec3b>(new_obstacle[i].y, new_obstacle[i].x)=cv::Vec3b(0, 255, 0);
-                    }
-                    cv::imshow("map", vismap);
-                    cv::waitKey(0);
-                    for(int i = 0; i < contouring_path.size(); i++)
-                    {
-                        vismap.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(255, 0, 0);
-                    }
-                    cv::circle(map, cv::Point(contouring_path.front().x, contouring_path.front().y), 2, cv::Scalar(0, 255, 255), -1);
-                    cv::circle(map, cv::Point(contouring_path.back().x, contouring_path.back().y), 2, cv::Scalar(255, 0, 255), -1);
-                    cv::imshow("map", vismap);
-                    cv::waitKey(0);
-//
-//
+//                    cv::waitKey(10);
+//                    for(int i = 0; i < contouring_path.size(); i++)
+//                    {
+//                        vismap.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(255, 0, 0);
+//                    }
+//                    cv::circle(map, cv::Point(contouring_path.front().x, contouring_path.front().y), 2, cv::Scalar(0, 255, 255), -1);
+//                    cv::circle(map, cv::Point(contouring_path.back().x, contouring_path.back().y), 2, cv::Scalar(255, 0, 255), -1);
+//                    cv::imshow("map", vismap);
+//                    cv::waitKey(10);
+
                     dynamic_path.insert(dynamic_path.end(), contouring_path.begin(), contouring_path.end());
 
                     if(visualize_path)
@@ -3933,7 +3880,7 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
                     curr_exit = curr_sub_path.back();
                     cleaning_direction = GetCleaningDirection(curr_cell, curr_exit);
 
-                    replanning_path = LocalReplanning(map, curr_cell, curr_obstacles, curr_pos, curr_cell_graph, cleaning_direction, robot_radius); // 此处会更新curr_cell_graph
+                    replanning_path = LocalReplanning(map, curr_cell, curr_obstacles, curr_pos, curr_cell_graph, cleaning_direction, robot_radius, false, false); // 此处会更新curr_cell_graph
                     cv::fillPoly(map, visited_obstacle_contours, cv::Scalar(50, 50, 50));
 
                     remaining_curr_path.assign(curr_path.begin()+i+1, curr_path.end());
@@ -4461,7 +4408,7 @@ int main() {
     cv::fillPoly(history_map, original_obstacle_contours, cv::Scalar(255, 255, 255));
     PolygonList original_obstacles = ConstructObstacles(history_map, original_obstacle_contours);
     Polygon original_map_border = ConstructDefaultMapBorder(history_map);
-    std::vector<CellNode> original_cell_graph = GenerateCells(history_map, original_map_border, original_obstacles, robot_radius);
+    std::vector<CellNode> original_cell_graph = GenerateCells(history_map, original_map_border, original_obstacles);
     Point2D start = Point2D(10, 10);
     std::deque<std::deque<Point2D>> original_planning_path = GlobalPathPlanning(history_map, original_cell_graph, start, robot_radius, false, false);
 //    std::deque<Point2D> returning_path = ReturningPathPlanning(history_map, original_cell_graph, original_planning_path.back().back(), original_planning_path.front().front(), robot_radius, true);
