@@ -3513,7 +3513,9 @@ bool WalkAlongObstacle(const cv::Mat& map, const Point2D& obstacle_origin, const
             last_curr_pos = curr_pos;
         }
 
-        if(std::find(contouring_path.begin(), (contouring_path.end()-1), next_pos)!=(contouring_path.end()-1)&&contouring_path.size()>1)
+        if(std::find(contouring_path.begin(), (contouring_path.end()-1), next_pos)!=(contouring_path.end()-1)
+        &&contouring_path.size()>1
+        &&isObstacleCompleted)
         {
             return false;
         }
@@ -3524,7 +3526,9 @@ bool WalkAlongObstacle(const cv::Mat& map, const Point2D& obstacle_origin, const
         contouring_path.emplace_back(next_pos);
         curr_pos = next_pos;
 
-        if(std::find(contouring_path.begin(), (contouring_path.end()-1), next_pos)!=(contouring_path.end()-1)&&contouring_path.size()>1)
+        if(std::find(contouring_path.begin(), (contouring_path.end()-1), next_pos)!=(contouring_path.end()-1)
+        &&contouring_path.size()>1
+        &&isObstacleCompleted)
         {
             return false;
         }
@@ -3535,7 +3539,9 @@ bool WalkAlongObstacle(const cv::Mat& map, const Point2D& obstacle_origin, const
         contouring_path.emplace_back(next_pos);
         curr_pos = next_pos;
 
-        if(std::find(contouring_path.begin(), (contouring_path.end()-1), next_pos)!=(contouring_path.end()-1)&&contouring_path.size()>1)
+        if(std::find(contouring_path.begin(), (contouring_path.end()-1), next_pos)!=(contouring_path.end()-1)
+        &&contouring_path.size()>1
+        &&isObstacleCompleted)
         {
             return false;
         }
@@ -3601,17 +3607,11 @@ Polygon GetNewObstacle(const cv::Mat& map, Point2D origin, int front_direction, 
         temp_direction_candidates = direction_candidates_list.front();
         direction_candidates_list.pop_front();
         direction_candidates_list.emplace_back(temp_direction_candidates);
-
-        //
-        std::cout<<"new obstacle size:"<<new_obstacle.size()<<std::endl;
-        std::cout<<"obstacle size:"<<obstacle.size()<<std::endl;
-        //
     }
 
     contouring_path.pop_front();
 
-    return new_obstacle;
-
+    return obstacle;
 
 } //考虑使用contouring path当障碍物
 
@@ -3767,6 +3767,11 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
                     // for debugging
 //                    for(int i = 0; i < new_obstacle.size(); i++)
 //                    {
+//                        std::cout<<"x:"<< new_obstacle[i].x <<", y:"<< new_obstacle[i].y <<std::endl;
+//                    }
+//
+//                    for(int i = 0; i < new_obstacle.size(); i++)
+//                    {
 //                        vismap.at<cv::Vec3b>(new_obstacle[i].y, new_obstacle[i].x)=cv::Vec3b(0, 255, 0);
 //                    }
 //                    for(int i = 0; i < contouring_path.size(); i++)
@@ -3810,11 +3815,10 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
                     curr_exit = curr_sub_path.back();
 
                     // for debugging
-//                    DrawCells(map, curr_cell, cv::Scalar(0, 0, 255));
+//                    DrawCells(map, curr_cell, cv::Scalar(255, 0, 255));
 //                    vismap.at<cv::Vec3b>(curr_exit.y, curr_exit.x)=cv::Vec3b(0,255,255);
 //                    cv::imshow("map", vismap);
 //                    cv::waitKey(0);
-//
 
                     cleaning_direction = GetCleaningDirection(curr_cell, curr_exit);
 
@@ -4404,12 +4408,12 @@ int main()
     std::vector<cv::Point> temp_obstacle_contour3 = {cv::Point(300, 150), cv::Point(300, 250), cv::Point(400, 220), cv::Point(400, 180)};
     std::vector<std::vector<cv::Point>> curr_obstacle_contours = {temp_obstacle_contour0, temp_obstacle_contour1, temp_obstacle_contour2, temp_obstacle_contour3};
 
-//    cv::fillPoly(curr_map, curr_obstacle_contours, cv::Scalar(255, 255, 255));
-    cv::circle(curr_map, cv::Point(400, 400), 80, cv::Scalar(255, 255, 255), -1);
+    cv::fillPoly(curr_map, curr_obstacle_contours, cv::Scalar(255, 255, 255));
+    cv::circle(curr_map, cv::Point(350, 400), 25, cv::Scalar(255, 255, 255), -1);
 
 
     int color_repeats = 50;
-//    std::deque<Point2D> dynamic_path = DynamicPathPlanning(curr_map, original_cell_graph, original_planning_path, robot_radius, true, true, color_repeats);
+    std::deque<Point2D> dynamic_path = DynamicPathPlanning(curr_map, original_cell_graph, original_planning_path, robot_radius, true, true, color_repeats);
 
 
 
@@ -4417,22 +4421,27 @@ int main()
 
 
     // test
-    cv::namedWindow("map", cv::WINDOW_NORMAL);
+//    cv::namedWindow("map", cv::WINDOW_NORMAL);
 
-    Point2D collision_point = Point2D(325, 367); //(400, 314) (325, 367)
-    std::deque<Point2D> contouring_path;
-    Polygon new_obstacle = GetNewObstacle(curr_map, collision_point, DOWN, contouring_path, robot_radius);
+//    Point2D collision_point = Point2D(325, 367); //(400, 314) (325, 367)
+//    std::deque<Point2D> contouring_path;
+//    Polygon new_obstacle = GetNewObstacle(curr_map, collision_point, DOWN, contouring_path, robot_radius);
 
-    for(int i = 0; i < new_obstacle.size(); i++)
-    {
-        curr_map.at<cv::Vec3b>(new_obstacle[i].y, new_obstacle[i].x)=cv::Vec3b(0, 255, 0);
-    }
+//    for(int i = 0; i < new_obstacle.size(); i++)
+//    {
+//        curr_map.at<cv::Vec3b>(new_obstacle[i].y, new_obstacle[i].x)=cv::Vec3b(0, 255, 0);
+//    }
 //    for(int i = 0; i < contouring_path.size(); i++)
 //    {
 //        curr_map.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(255, 0, 0);
 //    }
 
 //    PointTypeTest(curr_map, new_obstacle);
+
+//    for(int i = 0; i < new_obstacle.size(); i++)
+//    {
+//        std::cout<<"x:"<< new_obstacle[i].x <<", y:"<< new_obstacle[i].y <<std::endl;
+//    }
 
 //    PolygonList obstacles = {new_obstacle};
 //    Polygon map_border = ConstructDefaultMapBorder(curr_map);
@@ -4443,8 +4452,8 @@ int main()
 //        cv::imshow("map", curr_map);
 //        cv::waitKey(0);
 //    }
-    cv::imshow("map", curr_map);
-    cv::waitKey(0);
+//    cv::imshow("map", curr_map);
+//    cv::waitKey(0);
 //    std::deque<std::deque<Point2D>> path = StaticPathPlanning(curr_map, cell_graph, Point2D(1,1), robot_radius, true, true, 50);
 
     return 0;
