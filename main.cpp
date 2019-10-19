@@ -3468,13 +3468,87 @@ bool CollisionOccurs(const cv::Mat& map, Point2D curr_pos, int detect_direction,
     return (obstacle_dist == (robot_radius+1));
 }
 
+// 结束返回false, 继续则返回true
+bool WalkAlongObstacle(const cv::Mat& map, const Point2D& obstacle_origin, const Point2D& contouring_origin, int detecting_direction, const std::vector<int>& direction_candidates,
+                       Point2D& curr_pos, int first_turning_direction, int second_turning_direction,
+                       Polygon& obstacle, Polygon& new_obstacle, bool& isObstacleCompleted, std::deque<Point2D>& contouring_path, int robot_radius)
+{
+    bool turning = false;
+    Point2D last_curr_pos = curr_pos;
+    Point2D next_pos;
+    Point2D obstacle_point;
+
+    while(!turning)
+    {
+        for (int i = 0; i < direction_candidates.size(); i++) {
+            next_pos = GetNextPosition(curr_pos, direction_candidates[i], 1);
+            if(next_pos.x < 0 || next_pos.y < 0 || next_pos.x >= map.cols || next_pos.y >= map.rows)
+            {
+                continue;
+            }
+
+            if (CollisionOccurs(map, next_pos, detecting_direction, robot_radius))
+            {
+                contouring_path.emplace_back(next_pos);
+                curr_pos = next_pos;
+                obstacle_point = GetNextPosition(next_pos, detecting_direction, robot_radius+1);
+                if(obstacle_point.x==obstacle_origin.x && obstacle_point.y == obstacle_origin.y)
+                {
+                    if(!isObstacleCompleted)
+                    {
+                        obstacle.assign(new_obstacle.begin(), new_obstacle.end());
+                        isObstacleCompleted = true;
+                    }
+                }
+                new_obstacle.emplace_back(obstacle_point);
+                break;
+            }
+        }
+        if(curr_pos.x==last_curr_pos.x&&curr_pos.y==last_curr_pos.y)
+        {
+            turning = true;
+        }
+        else
+        {
+            last_curr_pos = curr_pos;
+        }
+
+        if(std::find(contouring_path.begin(), (contouring_path.end()-1), next_pos)!=(contouring_path.end()-1)&&contouring_path.size()>1)
+        {
+            return false;
+        }
+    }
+    for(int i = 1; i <= (robot_radius+1); i++)
+    {
+        next_pos = GetNextPosition(curr_pos, first_turning_direction, 1);
+        contouring_path.emplace_back(next_pos);
+        curr_pos = next_pos;
+
+        if(std::find(contouring_path.begin(), (contouring_path.end()-1), next_pos)!=(contouring_path.end()-1)&&contouring_path.size()>1)
+        {
+            return false;
+        }
+    }
+    for(int i = 1; i <= (robot_radius+1); i++)
+    {
+        next_pos = GetNextPosition(curr_pos, second_turning_direction, 1);
+        contouring_path.emplace_back(next_pos);
+        curr_pos = next_pos;
+
+        if(std::find(contouring_path.begin(), (contouring_path.end()-1), next_pos)!=(contouring_path.end()-1)&&contouring_path.size()>1)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 // TODO：解决障碍物横跨cell的情况，即边界情况
 Polygon GetNewObstacle(const cv::Mat& map, Point2D origin, int front_direction, std::deque<Point2D>& contouring_path, int robot_radius)
 {
+    contouring_path.emplace_back(origin);
+
     Point2D curr_pos = origin;
-    Point2D last_curr_pos;
-    Point2D next_pos;
-    std::vector<int> direction_candidates;
 
     Point2D obstacle_point;
     Polygon new_obstacle;
@@ -3486,342 +3560,57 @@ Polygon GetNewObstacle(const cv::Mat& map, Point2D origin, int front_direction, 
     int right_direction = GetRightDirection(front_direction);
     int back_direction = GetBackDirection(front_direction);
 
+    std::deque<int> direcition_list = {right_direction, front_direction, left_direction, back_direction};
+
+    std::vector<int> right_direction_candidates = GetRightDirectionCandidates(front_direction);
+    std::vector<int> front_direction_candidates = GetFrontDirectionCandidates(front_direction);
+    std::vector<int> left_direction_candidates = GetLeftDirectionCandidates(front_direction);
+    std::vector<int> back_direction_candidates = GetBackDirectionCandidates(front_direction);
+
+    std::deque<std::vector<int>> direction_candidates_list = {right_direction_candidates, front_direction_candidates, left_direction_candidates, back_direction_candidates};
+
     obstacle_point = GetNextPosition(origin, front_direction, robot_radius+1);
     new_obstacle.emplace_back(obstacle_point);
 
     Point2D obstacle_origin = new_obstacle.front();
 
-    direction_candidates = GetRightDirectionCandidates(front_direction);
-    bool turning = false;
-    last_curr_pos = curr_pos;
-    while(!turning)
+    int detecting_direction;
+    int first_turning_direction;
+    int second_turning_direction;
+    int temp_direction;
+
+    bool keepContouring = true;
+    std::vector<int> direction_candidates;
+    std::vector<int> temp_direction_candidates;
+
+
+    while(keepContouring)
     {
-        for (int i = 0; i < direction_candidates.size(); i++) {
-            next_pos = GetNextPosition(curr_pos, direction_candidates[i], 1);
-            if(next_pos.x < 0 || next_pos.y < 0 || next_pos.x >= map.cols || next_pos.y >= map.rows)
-            {
-                continue;
-            }
+        direction_candidates = direction_candidates_list[0];
+        first_turning_direction = direcition_list[0];
+        second_turning_direction = direcition_list[1];
+        detecting_direction = direcition_list[1];
 
-            if (CollisionOccurs(map, next_pos, front_direction, robot_radius))
-            {
-                contouring_path.emplace_back(next_pos);
-                curr_pos = next_pos;
-                obstacle_point = GetNextPosition(next_pos, front_direction, robot_radius+1);
-                if(obstacle_point.x==obstacle_origin.x && obstacle_point.y == obstacle_origin.y)
-                {
-                    if(!isObstacleCompleted)
-                    {
-                        obstacle.assign(new_obstacle.begin(), new_obstacle.end());
-                        isObstacleCompleted = true;
-                    }
-                }
-                new_obstacle.emplace_back(obstacle_point);
-                break;
-            }
-        }
-        if(curr_pos.x==last_curr_pos.x&&curr_pos.y==last_curr_pos.y)
-        {
-            turning = true;
-        }
-        else
-        {
-            last_curr_pos = curr_pos;
-        }
+        keepContouring = WalkAlongObstacle(map, obstacle_origin, origin, detecting_direction, direction_candidates, curr_pos, first_turning_direction, second_turning_direction
+                , obstacle, new_obstacle, isObstacleCompleted, contouring_path, robot_radius);
 
-        if(next_pos.x==origin.x && next_pos.y==origin.y)
-        {
-            goto FINISH;
-        }
-    }
-    for(int i = 1; i <= (robot_radius+1); i++)
-    {
-        next_pos = GetNextPosition(curr_pos, right_direction, 1);
-        contouring_path.emplace_back(next_pos);
-        curr_pos = next_pos;
+        temp_direction = direcition_list.front();
+        direcition_list.pop_front();
+        direcition_list.emplace_back(temp_direction);
 
-        if(next_pos.x==origin.x && next_pos.y==origin.y)
-        {
-            goto FINISH;
-        }
-    }
-    for(int i = 1; i <= (robot_radius+1); i++)
-    {
-        next_pos = GetNextPosition(curr_pos, front_direction, 1);
-        contouring_path.emplace_back(next_pos);
-        curr_pos = next_pos;
+        temp_direction_candidates = direction_candidates_list.front();
+        direction_candidates_list.pop_front();
+        direction_candidates_list.emplace_back(temp_direction_candidates);
 
-        if(next_pos.x==origin.x && next_pos.y==origin.y)
-        {
-            goto FINISH;
-        }
+        //
+        std::cout<<"new obstacle size:"<<new_obstacle.size()<<std::endl;
+        std::cout<<"obstacle size:"<<obstacle.size()<<std::endl;
+        //
     }
 
-    direction_candidates = GetFrontDirectionCandidates(front_direction);
-    turning = false;
-    last_curr_pos = curr_pos;
-    while(!turning)
-    {
-        for (int i = 0; i < direction_candidates.size(); i++) {
-            next_pos = GetNextPosition(curr_pos, direction_candidates[i], 1);
-            if(next_pos.x < 0 || next_pos.y < 0 || next_pos.x >= map.cols || next_pos.y >= map.rows)
-            {
-                continue;
-            }
-            if (CollisionOccurs(map, next_pos, left_direction, robot_radius))
-            {
-                contouring_path.emplace_back(next_pos);
-                curr_pos = next_pos;
-                obstacle_point = GetNextPosition(next_pos, left_direction, robot_radius+1);
-                if(obstacle_point.x==obstacle_origin.x && obstacle_point.y == obstacle_origin.y)
-                {
-                    if(!isObstacleCompleted)
-                    {
-                        obstacle.assign(new_obstacle.begin(), new_obstacle.end());
-                        isObstacleCompleted = true;
-                    }
-                }
-                new_obstacle.emplace_back(obstacle_point);
-                break;
-            }
-        }
-        if(curr_pos.x==last_curr_pos.x&&curr_pos.y==last_curr_pos.y)
-        {
-            turning = true;
-        }
-        else
-        {
-            last_curr_pos = curr_pos;
-        }
+    contouring_path.pop_front();
 
-        if(next_pos.x==origin.x && next_pos.y==origin.y)
-        {
-            goto FINISH;
-        }
-    }
-
-    for(int i = 1; i <= (robot_radius+1); i++)
-    {
-        next_pos = GetNextPosition(curr_pos, front_direction, 1);
-        contouring_path.emplace_back(next_pos);
-        curr_pos = next_pos;
-
-        if(next_pos.x==origin.x && next_pos.y==origin.y)
-        {
-            goto FINISH;
-        }
-    }
-    for(int i = 1; i <= (robot_radius+1); i++)
-    {
-        next_pos = GetNextPosition(curr_pos, left_direction, 1);
-        contouring_path.emplace_back(next_pos);
-        curr_pos = next_pos;
-
-        if(next_pos.x==origin.x && next_pos.y==origin.y)
-        {
-            goto FINISH;
-        }
-    }
-
-    direction_candidates = GetLeftDirectionCandidates(front_direction);
-    turning = false;
-    last_curr_pos = curr_pos;
-    while(!turning)
-    {
-        for (int i = 0; i < direction_candidates.size(); i++) {
-            next_pos = GetNextPosition(curr_pos, direction_candidates[i], 1);
-            if(next_pos.x < 0 || next_pos.y < 0 || next_pos.x >= map.cols || next_pos.y >= map.rows)
-            {
-                continue;
-            }
-            if (CollisionOccurs(map, next_pos, back_direction, robot_radius))
-            {
-                contouring_path.emplace_back(next_pos);
-                curr_pos = next_pos;
-                obstacle_point = GetNextPosition(next_pos, back_direction, robot_radius+1);
-                if(obstacle_point.x==obstacle_origin.x && obstacle_point.y == obstacle_origin.y)
-                {
-                    if(!isObstacleCompleted)
-                    {
-                        obstacle.assign(new_obstacle.begin(), new_obstacle.end());
-                        isObstacleCompleted = true;
-                    }
-                }
-                new_obstacle.emplace_back(obstacle_point);
-                break;
-            }
-        }
-        if(curr_pos.x==last_curr_pos.x&&curr_pos.y==last_curr_pos.y)
-        {
-            turning = true;
-        }
-        else
-        {
-            last_curr_pos = curr_pos;
-        }
-
-        if(next_pos.x==origin.x && next_pos.y==origin.y)
-        {
-            goto FINISH;
-        }
-    }
-    for(int i = 1; i <= (robot_radius+1); i++)
-    {
-        next_pos = GetNextPosition(curr_pos, left_direction, 1);
-        contouring_path.emplace_back(next_pos);
-        curr_pos = next_pos;
-
-        if(next_pos.x==origin.x && next_pos.y==origin.y)
-        {
-            goto FINISH;
-        }
-    }
-    for(int i = 1; i <= (robot_radius+1); i++)
-    {
-        next_pos = GetNextPosition(curr_pos, back_direction, 1);
-        contouring_path.emplace_back(next_pos);
-        curr_pos = next_pos;
-
-        if(next_pos.x==origin.x && next_pos.y==origin.y)
-        {
-            goto FINISH;
-        }
-    }
-
-
-    direction_candidates = GetBackDirectionCandidates(front_direction);
-    turning = false;
-    last_curr_pos = curr_pos;
-    while(!turning)
-    {
-        for (int i = 0; i < direction_candidates.size(); i++) {
-            next_pos = GetNextPosition(curr_pos, direction_candidates[i], 1);
-            if(next_pos.x < 0 || next_pos.y < 0 || next_pos.x >= map.cols || next_pos.y >= map.rows)
-            {
-                continue;
-            }
-            if (CollisionOccurs(map, next_pos, right_direction, robot_radius))
-            {
-                contouring_path.emplace_back(next_pos);
-                curr_pos = next_pos;
-                obstacle_point = GetNextPosition(next_pos, right_direction, robot_radius+1);
-                if(obstacle_point.x==obstacle_origin.x && obstacle_point.y == obstacle_origin.y)
-                {
-                    if(!isObstacleCompleted)
-                    {
-                        obstacle.assign(new_obstacle.begin(), new_obstacle.end());
-                        isObstacleCompleted = true;
-                    }
-                }
-                new_obstacle.emplace_back(obstacle_point);
-                break;
-            }
-        }
-        if(curr_pos.x==last_curr_pos.x&&curr_pos.y==last_curr_pos.y)
-        {
-            turning = true;
-        }
-        else
-        {
-            last_curr_pos = curr_pos;
-        }
-
-        if(next_pos.x==origin.x && next_pos.y==origin.y)
-        {
-            goto FINISH;
-        }
-    }
-    for(int i = 1; i <= (robot_radius+1); i++)
-    {
-        next_pos = GetNextPosition(curr_pos, back_direction, 1);
-        contouring_path.emplace_back(next_pos);
-        curr_pos = next_pos;
-
-        if(next_pos.x==origin.x && next_pos.y==origin.y)
-        {
-            goto FINISH;
-        }
-    }
-    for(int i = 1; i <= (robot_radius+1); i++)
-    {
-        next_pos = GetNextPosition(curr_pos, right_direction, 1);
-        contouring_path.emplace_back(next_pos);
-        curr_pos = next_pos;
-
-        if(next_pos.x==origin.x && next_pos.y==origin.y)
-        {
-            goto FINISH;
-        }
-    }
-
-    direction_candidates = GetRightDirectionCandidates(front_direction);
-    turning = false;
-    last_curr_pos = curr_pos;
-    while(!turning)
-    {
-        for (int i = 0; i < direction_candidates.size(); i++) {
-            next_pos = GetNextPosition(curr_pos, direction_candidates[i], 1);
-            if(next_pos.x < 0 || next_pos.y < 0 || next_pos.x >= map.cols || next_pos.y >= map.rows)
-            {
-                continue;
-            }
-
-            if (CollisionOccurs(map, next_pos, front_direction, robot_radius))
-            {
-                contouring_path.emplace_back(next_pos);
-                curr_pos = next_pos;
-                obstacle_point = GetNextPosition(next_pos, front_direction, robot_radius+1);
-                if(obstacle_point.x==obstacle_origin.x && obstacle_point.y == obstacle_origin.y)
-                {
-                    if(!isObstacleCompleted)
-                    {
-                        obstacle.assign(new_obstacle.begin(), new_obstacle.end());
-                        isObstacleCompleted = true;
-                    }
-                }
-                new_obstacle.emplace_back(obstacle_point);
-                break;
-            }
-        }
-        if(curr_pos.x==last_curr_pos.x&&curr_pos.y==last_curr_pos.y)
-        {
-            turning = true;
-        }
-        else
-        {
-            last_curr_pos = curr_pos;
-        }
-
-        if(next_pos.x==origin.x && next_pos.y==origin.y)
-        {
-            goto FINISH;
-        }
-    }
-    for(int i = 1; i <= (robot_radius+1); i++)
-    {
-        next_pos = GetNextPosition(curr_pos, right_direction, 1);
-        contouring_path.emplace_back(next_pos);
-        curr_pos = next_pos;
-
-        if(next_pos.x==origin.x && next_pos.y==origin.y)
-        {
-            goto FINISH;
-        }
-    }
-    for(int i = 1; i <= (robot_radius+1); i++)
-    {
-        next_pos = GetNextPosition(curr_pos, front_direction, 1);
-        contouring_path.emplace_back(next_pos);
-        curr_pos = next_pos;
-
-        if(next_pos.x==origin.x && next_pos.y==origin.y)
-        {
-            goto FINISH;
-        }
-    }
-
-    FINISH:
-    return obstacle;
+    return new_obstacle;
 
 
 } //考虑使用contouring path当障碍物
@@ -4615,10 +4404,48 @@ int main()
     std::vector<cv::Point> temp_obstacle_contour3 = {cv::Point(300, 150), cv::Point(300, 250), cv::Point(400, 220), cv::Point(400, 180)};
     std::vector<std::vector<cv::Point>> curr_obstacle_contours = {temp_obstacle_contour0, temp_obstacle_contour1, temp_obstacle_contour2, temp_obstacle_contour3};
 
-    cv::fillPoly(curr_map, curr_obstacle_contours, cv::Scalar(255, 255, 255));
+//    cv::fillPoly(curr_map, curr_obstacle_contours, cv::Scalar(255, 255, 255));
+    cv::circle(curr_map, cv::Point(400, 400), 80, cv::Scalar(255, 255, 255), -1);
+
 
     int color_repeats = 50;
-    std::deque<Point2D> dynamic_path = DynamicPathPlanning(curr_map, original_cell_graph, original_planning_path, robot_radius, true, true, color_repeats);
+//    std::deque<Point2D> dynamic_path = DynamicPathPlanning(curr_map, original_cell_graph, original_planning_path, robot_radius, true, true, color_repeats);
+
+
+
+
+
+
+    // test
+    cv::namedWindow("map", cv::WINDOW_NORMAL);
+
+    Point2D collision_point = Point2D(325, 367); //(400, 314) (325, 367)
+    std::deque<Point2D> contouring_path;
+    Polygon new_obstacle = GetNewObstacle(curr_map, collision_point, DOWN, contouring_path, robot_radius);
+
+    for(int i = 0; i < new_obstacle.size(); i++)
+    {
+        curr_map.at<cv::Vec3b>(new_obstacle[i].y, new_obstacle[i].x)=cv::Vec3b(0, 255, 0);
+    }
+//    for(int i = 0; i < contouring_path.size(); i++)
+//    {
+//        curr_map.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(255, 0, 0);
+//    }
+
+//    PointTypeTest(curr_map, new_obstacle);
+
+//    PolygonList obstacles = {new_obstacle};
+//    Polygon map_border = ConstructDefaultMapBorder(curr_map);
+//    std::vector<CellNode> cell_graph = GenerateCells(curr_map, map_border, obstacles);
+//    for(int i = 0; i < cell_graph.size(); i++)
+//    {
+//        DrawCells(curr_map, cell_graph[i], cv::Scalar(0, 255, 255));
+//        cv::imshow("map", curr_map);
+//        cv::waitKey(0);
+//    }
+    cv::imshow("map", curr_map);
+    cv::waitKey(0);
+//    std::deque<std::deque<Point2D>> path = StaticPathPlanning(curr_map, cell_graph, Point2D(1,1), robot_radius, true, true, 50);
 
     return 0;
 }
