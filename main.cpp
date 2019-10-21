@@ -3648,9 +3648,9 @@ std::deque<std::deque<Point2D>> LocalReplanning(cv::Mat& map, CellNode outer_cel
     {
         start_x = outer_cell.ceiling.front().x;
 
-        if(curr_pos.x + (robot_radius + 1) <= outer_cell.ceiling.back().x)
+        if(curr_pos.x + 2*(robot_radius + 1) <= outer_cell.ceiling.back().x)
         {
-            end_x =  curr_pos.x + (robot_radius + 1);
+            end_x =  curr_pos.x + 2*(robot_radius + 1);
         }
         else
         {
@@ -3661,9 +3661,9 @@ std::deque<std::deque<Point2D>> LocalReplanning(cv::Mat& map, CellNode outer_cel
     {
         end_x = outer_cell.ceiling.back().x;
 
-        if(curr_pos.x - (robot_radius + 1) >= outer_cell.ceiling.front().x)
+        if(curr_pos.x - 2*(robot_radius + 1) >= outer_cell.ceiling.front().x)
         {
-            start_x = curr_pos.x - (robot_radius + 1);
+            start_x = curr_pos.x - 2*(robot_radius + 1);
         }
         else
         {
@@ -3822,7 +3822,7 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
 
                     cleaning_direction = GetCleaningDirection(curr_cell, curr_exit);
 
-                    replanning_path = LocalReplanning(map, curr_cell, curr_obstacles, curr_pos, curr_cell_graph, cleaning_direction, robot_radius, false, false); // 此处会更新curr_cell_graph
+                    replanning_path = LocalReplanning(map, curr_cell, curr_obstacles, dynamic_path.back(), curr_cell_graph, cleaning_direction, robot_radius, false, false); // 此处会更新curr_cell_graph
                     cv::fillPoly(map, visited_obstacle_contours, cv::Scalar(50, 50, 50));
                     cv::fillPoly(vismap, visited_obstacle_contours, cv::Scalar(50, 50, 50));
 
