@@ -3748,7 +3748,7 @@ std::deque<std::deque<Point2D>> LocalReplanning(cv::Mat& map, CellNode outer_cel
     return replanning_path;
 } //回退区域需要几个r+1
 
-// 每一段都是包含前面的linking_path和后面的inner_path
+// 每一段都是在一个cell中的路径
 std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode>& global_cell_graph, std::deque<std::deque<Point2D>> global_path, int robot_radius, bool returning_home, bool visualize_path, int color_repeats=10)
 {
     std::deque<Point2D> dynamic_path;
