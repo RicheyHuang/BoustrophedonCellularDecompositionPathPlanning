@@ -2701,10 +2701,8 @@ std::deque<Point2D> WalkingCrossCells(std::vector<CellNode>& cell_graph, std::de
 
     link_path = FindLinkingPath(curr_exit, next_entrance, next_corner_indicator, cells[cell_path[0]], cells[cell_path[1]]);
     sub_path.insert(sub_path.end(), link_path.front().begin(), link_path.front().end());
-    if(!link_path.back().empty())
-    {
-        sub_path.insert(sub_path.end(), link_path.back().begin(), link_path.back().end());
-    }
+    sub_path.insert(sub_path.end(), link_path.back().begin(), link_path.back().end());
+
 
     overall_path.insert(overall_path.end(), sub_path.begin(), sub_path.end());
     sub_path.clear();
@@ -2723,10 +2721,8 @@ std::deque<Point2D> WalkingCrossCells(std::vector<CellNode>& cell_graph, std::de
 
         link_path = FindLinkingPath(curr_exit, next_entrance, next_corner_indicator, cells[cell_path[i]], cells[cell_path[i+1]]);
         sub_path.insert(sub_path.end(), link_path.front().begin(), link_path.front().end());
-        if(!link_path.back().empty())
-        {
-            sub_path.insert(sub_path.end(), link_path.back().begin(), link_path.back().end());
-        }
+        sub_path.insert(sub_path.end(), link_path.back().begin(), link_path.back().end());
+
 
         overall_path.insert(overall_path.end(), sub_path.begin(), sub_path.end());
         sub_path.clear();
@@ -2925,19 +2921,12 @@ std::deque<std::deque<Point2D>> StaticPathPlanning(cv::Mat& map, std::vector<Cel
 //            }
 //            std::cout<<std::endl;
 
-            if(link_path.back().empty())
-            {
-                local_path.insert(local_path.end(), link_path.front().begin(), link_path.front().end());
-                global_path.emplace_back(local_path);
-                local_path.clear();
-            }
-            else
-            {
-                local_path.insert(local_path.end(), link_path.front().begin(), link_path.front().end());
-                global_path.emplace_back(local_path);
-                local_path.clear();
-                local_path.insert(local_path.end(), link_path.back().begin(), link_path.back().end());
-            }
+
+            local_path.insert(local_path.end(), link_path.front().begin(), link_path.front().end());
+            global_path.emplace_back(local_path);
+            local_path.clear();
+            local_path.insert(local_path.end(), link_path.back().begin(), link_path.back().end());
+
 
             if(visualize_path)
             {
@@ -2948,16 +2937,15 @@ std::deque<std::deque<Point2D>> StaticPathPlanning(cv::Mat& map, std::vector<Cel
                     cv::imshow("map", map);
                     cv::waitKey(1);
                 }
-                if(!link_path.back().empty())
+
+                for(int k = 0; k < link_path.back().size(); k++)
                 {
-                    for(int k = 0; k < link_path.back().size(); k++)
-                    {
-                        map.at<cv::Vec3b>(link_path.back()[k].y, link_path.back()[k].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
-                        UpdateColorMap(JetColorMap);
-                        cv::imshow("map", map);
-                        cv::waitKey(1);
-                    }
+                    map.at<cv::Vec3b>(link_path.back()[k].y, link_path.back()[k].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+                    UpdateColorMap(JetColorMap);
+                    cv::imshow("map", map);
+                    cv::waitKey(1);
                 }
+
             }
         }
     }
