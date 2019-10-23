@@ -8,7 +8,9 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-//cv::Mat map;
+#include <Eigen/Core>
+
+
 
 enum EventType
 {
@@ -4787,6 +4789,7 @@ Polygon GetNewObstacle(const cv::Mat& map, Point2D origin, int front_direction, 
 
 } //考虑使用contouring path当障碍物
 
+// TODO: 增加判断的鲁棒性
 int GetCleaningDirection(CellNode cell, Point2D exit)
 {
     std::vector<Point2D> corner_points = ComputeCellCornerPoints(cell);
@@ -5489,6 +5492,180 @@ void StaticPathPlanningTest()
 ////    cv::waitKey(0);
 }
 
+
+
+
+
+
+
+//  process position to motion commands
+
+double ComputeYaw(Eigen::Vector2d curr_direction, Eigen::Vector2d base_direction) // 两个输入参数都需要是单位向量
+{
+    double yaw = std::acos(curr_direction.dot(base_direction))/M_PI*180;
+
+    if(std::atan2(curr_direction[1], curr_direction[0]) < std::atan2(base_direction[1], base_direction[0]))
+    {
+        yaw = yaw*(-1);
+    }
+
+    return yaw;
+}
+
+double ComputeDistance(Point2D start, Point2D end, double meters_per_pix) // 单位为米
+{
+    double dist = std::sqrt(std::pow((end.x-start.x),2)+std::pow((end.y-start.y),2));
+    dist = dist * meters_per_pix;
+    return dist;
+}
+
+class NavigationMessage
+{
+public:
+    NavigationMessage()
+    {
+        foward_distance = 0.0;
+        global_yaw_angle = 0.0;
+        local_yaw_angle = 0.0;
+    }
+    void SetDistance(double dist)
+    {
+        foward_distance = dist;
+    }
+    void SetGlobalYaw(double global_yaw)
+    {
+        global_yaw_angle = global_yaw;
+    }
+    void SetLocalYaw(double local_yaw)
+    {
+        local_yaw_angle = local_yaw;
+    }
+
+    double GetDistance()
+    {
+        return foward_distance;
+    }
+
+    double GetGlobalYaw()
+    {
+        return global_yaw_angle;
+    }
+
+    double GetLocalYaw()
+    {
+        return local_yaw_angle;
+    }
+
+    void GetMotion(double& dist, double& global_yaw, double& local_yaw)
+    {
+        dist = foward_distance;
+        global_yaw = global_yaw_angle;
+        local_yaw = local_yaw_angle;
+    }
+    void Reset()
+    {
+        foward_distance = 0.0;
+        global_yaw_angle = 0.0;
+        local_yaw_angle = 0.0;
+    }
+
+private:
+    double foward_distance;
+    // 欧拉角表示，逆时针为正，顺时针为负
+    double global_yaw_angle;
+    double local_yaw_angle;
+};
+
+std::vector<NavigationMessage> GetNavigationMessage(std::deque<Point2D> pos_path, double meters_per_pix)
+{
+    // initialization
+    Eigen::Vector2d global_base_direction = {0, -1}; // {x, y}
+    Eigen::Vector2d local_base_direction = {DBL_MAX, DBL_MAX};
+
+    Eigen::Vector2d curr_local_direction;
+    Eigen::Vector2d curr_global_direction;
+
+    NavigationMessage message;
+    std::vector<NavigationMessage> message_queue;
+
+    double distance = 0.0;
+    double step_distance = 0.0;
+
+    double prev_global_yaw = DBL_MAX;
+    double prev_local_yaw = DBL_MAX;
+
+    double curr_global_yaw = 0.0;
+    double curr_local_yaw = 0.0;
+
+    message.SetGlobalYaw(DBL_MAX);
+    message.SetLocalYaw(DBL_MAX);
+
+    for(int i = 0; i < pos_path.size()-1; i++)
+    {
+        if(pos_path[i+1]==pos_path[i])
+        {
+            continue;
+        }
+        else
+        {
+            curr_local_direction = {pos_path[i+1].x-pos_path[i].x, pos_path[i+1].y-pos_path[i].y};
+            curr_local_direction.normalize();
+
+            if(local_base_direction[0]==DBL_MAX && local_base_direction[1]==DBL_MAX) // initialization
+            {
+                local_base_direction = curr_local_direction;
+            }
+
+            curr_global_yaw = ComputeYaw(curr_local_direction, global_base_direction);
+            curr_local_yaw = ComputeYaw(curr_local_direction, local_base_direction);
+
+            if(prev_global_yaw == DBL_MAX) // initialization
+            {
+                prev_global_yaw = curr_global_yaw;
+            }
+            if(prev_local_yaw == DBL_MAX) // initialization
+            {
+                prev_local_yaw = curr_local_yaw;
+            }
+
+            if(message.GetGlobalYaw()==DBL_MAX) // initialization
+            {
+                message.SetGlobalYaw(curr_global_yaw);
+            }
+
+            if(message.GetLocalYaw()==DBL_MAX) // initialization
+            {
+                message.SetLocalYaw(curr_local_yaw);
+            }
+
+            if(curr_global_yaw == prev_global_yaw) // 考虑在一定范围内即可
+            {
+                step_distance = ComputeDistance(pos_path[i+1], pos_path[i], meters_per_pix);
+                distance += step_distance;
+            }
+            else
+            {
+                message.SetDistance(distance);
+                message_queue.emplace_back(message);
+
+                message.Reset();
+                message.SetGlobalYaw(curr_global_yaw);
+                message.SetLocalYaw(curr_local_yaw);
+
+                distance = 0.0;
+                step_distance = ComputeDistance(pos_path[i+1], pos_path[i], meters_per_pix);
+                distance += step_distance;
+            }
+            prev_global_yaw = curr_global_yaw;
+            prev_local_yaw = curr_local_yaw;
+
+            local_base_direction = curr_local_direction;
+        }
+    }
+    return message_queue;
+}
+
+
 //void GetNewObstacleTest()
 //{
 //
@@ -5620,7 +5797,7 @@ int main()
 
 //  Static test for contour
 
-    int robot_radius = 5;
+    int robot_radius = 20;
 
     cv::Mat map = cv::Mat(600, 600, CV_8UC3, cv::Scalar(255, 255, 255));
 
@@ -5660,9 +5837,20 @@ int main()
 
 
 
+    std::deque<Point2D> path;
+    for(int i = 0; i < original_planning_path.size(); i++)
+    {
+        path.insert(path.end(), original_planning_path[i].begin(), original_planning_path[i].end());
+    }
+    double meters_per_pix = 0.02;
+    std::vector<NavigationMessage> messages = GetNavigationMessage(path, meters_per_pix);
 
-
-
+    double dist, global_yaw, local_yaw;
+    for(int i = 0; i < messages.size(); i++)
+    {
+        messages[i].GetMotion(dist, global_yaw, local_yaw);
+        std::cout<<"globally rotate "<<global_yaw<<" degree(locally rotate "<<local_yaw<<" degree) and go forward for "<<dist<<" m."<<std::endl;
+    }
 
 //    Contouring path test
 //    cv::namedWindow("map", cv::WINDOW_NORMAL);
