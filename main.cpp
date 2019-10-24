@@ -26,6 +26,20 @@ enum EventType
     INNER_OUT,
     INNER_OUT_TOP,
     INNER_OUT_BOTTOM,
+
+    IN_EX,
+    IN_TOP_EX,
+    IN_BOTTOM_EX,
+    OUT_EX,
+    OUT_TOP_EX,
+    OUT_BOTTOM_EX,
+    INNER_IN_EX,
+    INNER_IN_TOP_EX,
+    INNER_IN_BOTTOM_EX,
+    INNER_OUT_EX,
+    INNER_OUT_TOP_EX,
+    INNER_OUT_BOTTOM_EX,
+
     MIDDLE,
     CEILING,
     FLOOR,
@@ -1121,7 +1135,7 @@ void EventTypeAllocatorExternal(const cv::Mat& map, std::vector<Event>& event_li
     {
         if(event_list_ex[i].x < event_list_ex[i-1].x && event_list_ex[i].x < event_list_ex[i+1].x)
         {
-            event_list[i-half_size].event_type = IN;
+            event_list[i-half_size].event_type = IN_EX;
             in_out_index_list.emplace_back(i-half_size);
         }
         if(event_list_ex[i].x < event_list_ex[i-1].x && event_list_ex[i].x == event_list_ex[i+1].x && event_list_ex[i].y < event_list_ex[i+1].y)
@@ -1133,7 +1147,7 @@ void EventTypeAllocatorExternal(const cv::Mat& map, std::vector<Event>& event_li
             }
             if(event_list_ex[i].x < event_list_ex[i+index_offset].x && event_list_ex[i].y < event_list_ex[i+index_offset].y)
             {
-                event_list[i-half_size].event_type = IN_TOP;
+                event_list[i-half_size].event_type = IN_TOP_EX;
                 in_out_index_list.emplace_back(i-half_size);
             }
         }
@@ -1147,7 +1161,7 @@ void EventTypeAllocatorExternal(const cv::Mat& map, std::vector<Event>& event_li
             }
             if(event_list_ex[i].x < event_list_ex[i+index_offset].x && event_list_ex[i].y > event_list_ex[i+index_offset].y)
             {
-                event_list[i-half_size].event_type = IN_BOTTOM;
+                event_list[i-half_size].event_type = IN_BOTTOM_EX;
                 in_out_index_list.emplace_back(i-half_size);
             }
         }
@@ -1166,7 +1180,7 @@ void EventTypeAllocatorExternal(const cv::Mat& map, std::vector<Event>& event_li
             }
             if(event_list_ex[i].x < event_list_ex[i-index_offset].x && event_list_ex[i].y > event_list_ex[i-index_offset].y)
             {
-                event_list[i-half_size].event_type = IN_BOTTOM;
+                event_list[i-half_size].event_type = IN_BOTTOM_EX;
                 in_out_index_list.emplace_back(i-half_size);
             }
         }
@@ -1180,7 +1194,7 @@ void EventTypeAllocatorExternal(const cv::Mat& map, std::vector<Event>& event_li
             }
             if(event_list_ex[i].x < event_list_ex[i-index_offset].x && event_list_ex[i].y < event_list_ex[i-index_offset].y)
             {
-                event_list[i-half_size].event_type = IN_TOP;
+                event_list[i-half_size].event_type = IN_TOP_EX;
                 in_out_index_list.emplace_back(i-half_size);
             }
         }
@@ -1194,7 +1208,7 @@ void EventTypeAllocatorExternal(const cv::Mat& map, std::vector<Event>& event_li
             }
             if(event_list_ex[i].x > event_list_ex[i-index_offset].x && event_list_ex[i].y < event_list_ex[i-index_offset].y)
             {
-                event_list[i-half_size].event_type = OUT_TOP;
+                event_list[i-half_size].event_type = OUT_TOP_EX;
                 in_out_index_list.emplace_back(i-half_size);
             }
         }
@@ -1208,7 +1222,7 @@ void EventTypeAllocatorExternal(const cv::Mat& map, std::vector<Event>& event_li
             }
             if(event_list_ex[i].x > event_list_ex[i-index_offset].x && event_list_ex[i].y > event_list_ex[i-index_offset].y)
             {
-                event_list[i-half_size].event_type = OUT_BOTTOM;
+                event_list[i-half_size].event_type = OUT_BOTTOM_EX;
                 in_out_index_list.emplace_back(i-half_size);
             }
         }
@@ -1216,7 +1230,7 @@ void EventTypeAllocatorExternal(const cv::Mat& map, std::vector<Event>& event_li
 
         if(event_list_ex[i].x > event_list_ex[i-1].x && event_list_ex[i].x > event_list_ex[i+1].x)
         {
-            event_list[i-half_size].event_type = OUT;
+            event_list[i-half_size].event_type = OUT_EX;
             in_out_index_list.emplace_back(i-half_size);
         }
         if(event_list_ex[i].x > event_list_ex[i-1].x && event_list_ex[i].x == event_list_ex[i+1].x && event_list_ex[i].y > event_list_ex[i+1].y)
@@ -1228,7 +1242,7 @@ void EventTypeAllocatorExternal(const cv::Mat& map, std::vector<Event>& event_li
             }
             if(event_list_ex[i].x > event_list_ex[i+index_offset].x && event_list_ex[i].y > event_list_ex[i+index_offset].y)
             {
-                event_list[i-half_size].event_type = OUT_BOTTOM;
+                event_list[i-half_size].event_type = OUT_BOTTOM_EX;
                 in_out_index_list.emplace_back(i-half_size);
             }
         }
@@ -1242,7 +1256,7 @@ void EventTypeAllocatorExternal(const cv::Mat& map, std::vector<Event>& event_li
             }
             if(event_list_ex[i].x > event_list_ex[i+index_offset].x && event_list_ex[i].y < event_list_ex[i+index_offset].y)
             {
-                event_list[i-half_size].event_type = OUT_TOP;
+                event_list[i-half_size].event_type = OUT_TOP_EX;
                 in_out_index_list.emplace_back(i-half_size);
             }
         }
@@ -1255,59 +1269,59 @@ void EventTypeAllocatorExternal(const cv::Mat& map, std::vector<Event>& event_li
     int temp_index;
     for(int i = 0; i < in_out_index_list.size(); i++)
     {
-        if(event_list[in_out_index_list[i]].event_type == OUT)
+        if(event_list[in_out_index_list[i]].event_type == OUT_EX)
         {
             neighbor_point = Point2D(event_list[in_out_index_list[i]].x+1, event_list[in_out_index_list[i]].y);
             if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0) && neighbor_point.x < map.cols)
             {
-                event_list[in_out_index_list[i]].event_type = INNER_OUT;
+                event_list[in_out_index_list[i]].event_type = INNER_OUT_EX;
             }
         }
 
-        if(event_list[in_out_index_list[i]].event_type == OUT_TOP)
+        if(event_list[in_out_index_list[i]].event_type == OUT_TOP_EX)
         {
             neighbor_point = Point2D(event_list[in_out_index_list[i]].x+1, event_list[in_out_index_list[i]].y);
             if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0) && neighbor_point.x < map.cols)
             {
-                event_list[in_out_index_list[i]].event_type = INNER_OUT_TOP;
+                event_list[in_out_index_list[i]].event_type = INNER_OUT_TOP_EX;
             }
         }
 
-        if(event_list[in_out_index_list[i]].event_type == OUT_BOTTOM)
+        if(event_list[in_out_index_list[i]].event_type == OUT_BOTTOM_EX)
         {
             neighbor_point = Point2D(event_list[in_out_index_list[i]].x+1, event_list[in_out_index_list[i]].y);
             if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0) && neighbor_point.x < map.cols)
             {
-                event_list[in_out_index_list[i]].event_type = INNER_OUT_BOTTOM;
+                event_list[in_out_index_list[i]].event_type = INNER_OUT_BOTTOM_EX;
             }
 
         }
 
-        if(event_list[in_out_index_list[i]].event_type == IN)
+        if(event_list[in_out_index_list[i]].event_type == IN_EX)
         {
             neighbor_point = Point2D(event_list[in_out_index_list[i]].x-1, event_list[in_out_index_list[i]].y);
             if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0) && neighbor_point.x>=0)
             {
-                event_list[in_out_index_list[i]].event_type = INNER_IN;
+                event_list[in_out_index_list[i]].event_type = INNER_IN_EX;
             }
         }
 
 
-        if(event_list[in_out_index_list[i]].event_type == IN_TOP)
+        if(event_list[in_out_index_list[i]].event_type == IN_TOP_EX)
         {
             neighbor_point = Point2D(event_list[in_out_index_list[i]].x-1, event_list[in_out_index_list[i]].y);
             if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0) && neighbor_point.x>=0)
             {
-                event_list[in_out_index_list[i]].event_type = INNER_IN_TOP;
+                event_list[in_out_index_list[i]].event_type = INNER_IN_TOP_EX;
             }
         }
 
-        if(event_list[in_out_index_list[i]].event_type == IN_BOTTOM)
+        if(event_list[in_out_index_list[i]].event_type == IN_BOTTOM_EX)
         {
             neighbor_point = Point2D(event_list[in_out_index_list[i]].x-1, event_list[in_out_index_list[i]].y);
             if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0) && neighbor_point.x>=0)
             {
-                event_list[in_out_index_list[i]].event_type = INNER_IN_BOTTOM;
+                event_list[in_out_index_list[i]].event_type = INNER_IN_BOTTOM_EX;
             }
         }
     }
@@ -1318,19 +1332,19 @@ void EventTypeAllocatorExternal(const cv::Mat& map, std::vector<Event>& event_li
     for(int i = 0; i < in_out_index_list.size(); i++)
     {
         if(
-                (event_list[in_out_index_list[0]].event_type==OUT
-                 ||event_list[in_out_index_list[0]].event_type==OUT_TOP
-                 ||event_list[in_out_index_list[0]].event_type==OUT_BOTTOM
-                 ||event_list[in_out_index_list[0]].event_type==INNER_OUT
-                 ||event_list[in_out_index_list[0]].event_type==INNER_OUT_TOP
-                 ||event_list[in_out_index_list[0]].event_type==INNER_OUT_BOTTOM)
+                (event_list[in_out_index_list[0]].event_type==OUT_EX
+                 ||event_list[in_out_index_list[0]].event_type==OUT_TOP_EX
+                 ||event_list[in_out_index_list[0]].event_type==OUT_BOTTOM_EX
+                 ||event_list[in_out_index_list[0]].event_type==INNER_OUT_EX
+                 ||event_list[in_out_index_list[0]].event_type==INNER_OUT_TOP_EX
+                 ||event_list[in_out_index_list[0]].event_type==INNER_OUT_BOTTOM_EX)
                 &&
-                (event_list[in_out_index_list[1]].event_type==IN
-                 ||event_list[in_out_index_list[1]].event_type==IN_TOP
-                 ||event_list[in_out_index_list[1]].event_type==IN_BOTTOM
-                 ||event_list[in_out_index_list[1]].event_type==INNER_IN
-                 ||event_list[in_out_index_list[1]].event_type==INNER_IN_TOP
-                 ||event_list[in_out_index_list[1]].event_type==INNER_IN_BOTTOM)
+                (event_list[in_out_index_list[1]].event_type==IN_EX
+                 ||event_list[in_out_index_list[1]].event_type==IN_TOP_EX
+                 ||event_list[in_out_index_list[1]].event_type==IN_BOTTOM_EX
+                 ||event_list[in_out_index_list[1]].event_type==INNER_IN_EX
+                 ||event_list[in_out_index_list[1]].event_type==INNER_IN_TOP_EX
+                 ||event_list[in_out_index_list[1]].event_type==INNER_IN_BOTTOM_EX)
                 )
         {
             if(in_out_index_list[0] < in_out_index_list[1])
@@ -1366,19 +1380,19 @@ void EventTypeAllocatorExternal(const cv::Mat& map, std::vector<Event>& event_li
         }
 
         if(
-                (event_list[in_out_index_list[0]].event_type==IN
-                 ||event_list[in_out_index_list[0]].event_type==IN_TOP
-                 ||event_list[in_out_index_list[0]].event_type==IN_BOTTOM
-                 ||event_list[in_out_index_list[0]].event_type==INNER_IN
-                 ||event_list[in_out_index_list[0]].event_type==INNER_IN_TOP
-                 ||event_list[in_out_index_list[0]].event_type==INNER_IN_BOTTOM)
+                (event_list[in_out_index_list[0]].event_type==IN_EX
+                 ||event_list[in_out_index_list[0]].event_type==IN_TOP_EX
+                 ||event_list[in_out_index_list[0]].event_type==IN_BOTTOM_EX
+                 ||event_list[in_out_index_list[0]].event_type==INNER_IN_EX
+                 ||event_list[in_out_index_list[0]].event_type==INNER_IN_TOP_EX
+                 ||event_list[in_out_index_list[0]].event_type==INNER_IN_BOTTOM_EX)
                 &&
-                (event_list[in_out_index_list[1]].event_type==OUT
-                 ||event_list[in_out_index_list[1]].event_type==OUT_TOP
-                 ||event_list[in_out_index_list[1]].event_type==OUT_BOTTOM
-                 ||event_list[in_out_index_list[1]].event_type==INNER_OUT
-                 ||event_list[in_out_index_list[1]].event_type==INNER_OUT_TOP
-                 ||event_list[in_out_index_list[1]].event_type==INNER_OUT_BOTTOM)
+                (event_list[in_out_index_list[1]].event_type==OUT_EX
+                 ||event_list[in_out_index_list[1]].event_type==OUT_TOP_EX
+                 ||event_list[in_out_index_list[1]].event_type==OUT_BOTTOM_EX
+                 ||event_list[in_out_index_list[1]].event_type==INNER_OUT_EX
+                 ||event_list[in_out_index_list[1]].event_type==INNER_OUT_TOP_EX
+                 ||event_list[in_out_index_list[1]].event_type==INNER_OUT_BOTTOM_EX)
                 )
         {
             if(in_out_index_list[0] < in_out_index_list[1])
@@ -2427,7 +2441,7 @@ void ExecuteCellDecompositionExternal(std::vector<CellNode>& cell_graph, std::ve
 
         for(int j = 0; j < curr_slice.size(); j++)
         {
-            if(curr_slice[j].event_type == INNER_IN)
+            if(curr_slice[j].event_type == INNER_IN_EX)
             {
                 event_y = curr_slice[j].y;
                 for(int k = 0; k < cell_index_slice.size(); k++)
@@ -2485,7 +2499,7 @@ void ExecuteCellDecompositionExternal(std::vector<CellNode>& cell_graph, std::ve
                     }
                 }
             }
-            if(curr_slice[j].event_type == INNER_OUT)
+            if(curr_slice[j].event_type == INNER_OUT_EX)
             {
                 event_y = curr_slice[j].y;
                 for(int k = 1; k < cell_index_slice.size(); k++)
@@ -2546,7 +2560,7 @@ void ExecuteCellDecompositionExternal(std::vector<CellNode>& cell_graph, std::ve
                 }
             }
 
-            if(curr_slice[j].event_type == INNER_IN_BOTTOM)
+            if(curr_slice[j].event_type == INNER_IN_BOTTOM_EX)
             {
                 event_y = curr_slice[j].y;
                 for(int k = 0; k < cell_index_slice.size(); k++)
@@ -2610,7 +2624,7 @@ void ExecuteCellDecompositionExternal(std::vector<CellNode>& cell_graph, std::ve
             }
 
 
-            if(curr_slice[j].event_type == INNER_OUT_BOTTOM)
+            if(curr_slice[j].event_type == INNER_OUT_BOTTOM_EX)
             {
                 event_y = curr_slice[j].y;
                 for(int k = 1; k < cell_index_slice.size(); k++)
@@ -2673,7 +2687,7 @@ void ExecuteCellDecompositionExternal(std::vector<CellNode>& cell_graph, std::ve
             }
 
 
-            if(curr_slice[j].event_type == IN)
+            if(curr_slice[j].event_type == IN_EX)
             {
                 event_y = curr_slice[j].y;
 
@@ -2712,7 +2726,7 @@ void ExecuteCellDecompositionExternal(std::vector<CellNode>& cell_graph, std::ve
 
             }
 
-            if(curr_slice[j].event_type == IN_BOTTOM)
+            if(curr_slice[j].event_type == IN_BOTTOM_EX)
             {
                 event_y = curr_slice[j].y;
 
@@ -2771,7 +2785,7 @@ void ExecuteCellDecompositionExternal(std::vector<CellNode>& cell_graph, std::ve
             }
 
 
-            if(curr_slice[j].event_type == OUT)
+            if(curr_slice[j].event_type == OUT_EX)
             {
                 event_y = curr_slice[j].y;
 
@@ -2788,7 +2802,7 @@ void ExecuteCellDecompositionExternal(std::vector<CellNode>& cell_graph, std::ve
                 }
             }
 
-            if(curr_slice[j].event_type == OUT_BOTTOM)
+            if(curr_slice[j].event_type == OUT_BOTTOM_EX)
             {
                 event_y = curr_slice[j].y;
 
@@ -4261,59 +4275,59 @@ void PointTypeTestExternal(cv::Mat& map, Polygon obstacle)
     std::vector<Event> event_list = EventListGeneratorExternal(map, obstacle);
     for(int i = 0; i < event_list.size(); i++)
     {
-        if(event_list[i].event_type == IN)
+        if(event_list[i].event_type == IN_EX)
         {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN"<<std::endl;
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN_EX"<<std::endl;
             cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 0, 255), -1);//bright red
         }
-        if(event_list[i].event_type == IN_TOP)
+        if(event_list[i].event_type == IN_TOP_EX)
         {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN_TOP"<<std::endl;
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN_TOP_EX"<<std::endl;
             cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 0, 255), -1);//bright red
         }
-        if(event_list[i].event_type == IN_BOTTOM)
+        if(event_list[i].event_type == IN_BOTTOM_EX)
         {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN_BOTTOM"<<std::endl;
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", IN_BOTTOM_EX"<<std::endl;
             cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 0, 255), -1);//bright red
         }
-        if(event_list[i].event_type == OUT)
+        if(event_list[i].event_type == OUT_EX)
         {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT"<<std::endl;
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT_EX"<<std::endl;
             cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 255, 0), -1);//bright green
         }
-        if(event_list[i].event_type == OUT_TOP)
+        if(event_list[i].event_type == OUT_TOP_EX)
         {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT_TOP"<<std::endl;
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT_TOP_EX"<<std::endl;
             cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 255, 0), -1);//bright green
         }
-        if(event_list[i].event_type == OUT_BOTTOM)
+        if(event_list[i].event_type == OUT_BOTTOM_EX)
         {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT_BOTTOM"<<std::endl;
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", OUT_BOTTOM_EX"<<std::endl;
             cv::circle(map, cv::Point(event_list[i].x, event_list[i].y), 2, cv::Scalar(0, 255, 0), -1);//bright green
         }
-        if(event_list[i].event_type == INNER_IN)
+        if(event_list[i].event_type == INNER_IN_EX)
         {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN"<<std::endl;
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN_EX"<<std::endl;
         }
-        if(event_list[i].event_type == INNER_IN_TOP)
+        if(event_list[i].event_type == INNER_IN_TOP_EX)
         {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN_TOP"<<std::endl;
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN_TOP_EX"<<std::endl;
         }
-        if(event_list[i].event_type == INNER_IN_BOTTOM)
+        if(event_list[i].event_type == INNER_IN_BOTTOM_EX)
         {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN_BOTTOM"<<std::endl;
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_IN_BOTTOM_EX"<<std::endl;
         }
-        if(event_list[i].event_type == INNER_OUT)
+        if(event_list[i].event_type == INNER_OUT_EX)
         {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT"<<std::endl;
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT_EX"<<std::endl;
         }
-        if(event_list[i].event_type == INNER_OUT_TOP)
+        if(event_list[i].event_type == INNER_OUT_TOP_EX)
         {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT_TOP"<<std::endl;
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT_TOP_EX"<<std::endl;
         }
-        if(event_list[i].event_type == INNER_OUT_BOTTOM)
+        if(event_list[i].event_type == INNER_OUT_BOTTOM_EX)
         {
-            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT_BOTTOM"<<std::endl;
+            std::cout<<event_list[i].x<<", "<<event_list[i].y<<", INNER_OUT_BOTTOM_EX"<<std::endl;
         }
         if(event_list[i].event_type == MIDDLE)
         {
@@ -5763,23 +5777,64 @@ int main()
 
 
 
-//  Static test for contour
 
-    int robot_radius = 20;
 
-    cv::Mat map = cv::Mat(600, 600, CV_8UC3, cv::Scalar(255, 255, 255));
 
-    std::vector<cv::Point> contour = {cv::Point(20,20),cv::Point(20,200),cv::Point(100,200),cv::Point(100,399),
-                cv::Point(20,399),cv::Point(20, 579),cv::Point(200,579),cv::Point(200,499),cv::Point(399,499),cv::Point(399,579),
-                cv::Point(579,579),cv::Point(579,399),cv::Point(499,399),cv::Point(499,200),cv::Point(579,200),cv::Point(579,20),
-                cv::Point(349,20),cv::Point(349,100),cv::Point(250,100),cv::Point(250,20)};
+//  test for real pics
 
-    std::vector<std::vector<cv::Point>> contours = {contour};
-    cv::fillPoly(map, contours, cv::Scalar(0, 0, 0));
+    cv::namedWindow("map", cv::WINDOW_NORMAL);
 
-    Polygon external_contour = ConstructCave(map, contour);
+    cv::Mat image = cv::imread("../map.png", CV_8UC1);
 
-//    PointTypeTestExternal(map, external_contour);
+    cv::Mat original_map;
+    cv::cvtColor(image, original_map, cv::COLOR_GRAY2BGR);
+    original_map.convertTo(original_map, CV_8UC3);
+
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(5,5), cv::Point(-1,-1));
+//    cv::morphologyEx(image, image, cv::MORPH_OPEN, kernel);
+
+    std::vector<std::vector<cv::Point>> original_contours;
+    cv::findContours(image.clone(), original_contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+
+    std::vector<int> indices(original_contours.size());
+    std::iota(indices.begin(), indices.end(), 0);
+
+    std::sort(indices.begin(), indices.end(), [&original_contours](int lhs, int rhs){ return original_contours[lhs].size() > original_contours[rhs].size();});
+
+    std::vector<std::vector<cv::Point>> original_ex_contours = {original_contours[indices.front()]};
+
+    cv::Mat canvas = cv::Mat(image.size(), CV_8UC3, cv::Scalar(255, 255, 255));
+    cv::fillPoly(canvas, original_ex_contours, cv::Scalar(0, 0, 0));
+
+    int robot_radius = 5;
+
+    for(auto point:original_ex_contours.front())
+    {
+        cv::circle(canvas, point, robot_radius, cv::Scalar(255, 255, 255), -1);
+    }
+
+    cv::Mat canvas_;
+    cv::cvtColor(canvas, canvas_, cv::COLOR_BGR2GRAY);
+    canvas_.convertTo(canvas_, CV_8UC1);
+    cv::threshold(canvas_, canvas_, 200, 255, cv::THRESH_BINARY_INV);
+    cv::morphologyEx(canvas_, canvas_, cv::MORPH_OPEN, kernel);
+
+
+    std::vector<std::vector<cv::Point>> dilated_contours;
+    cv::findContours(canvas_, dilated_contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+
+    std::vector<cv::Point> dilated_ex_contour;
+    cv::approxPolyDP(cv::Mat(dilated_contours.front()), dilated_ex_contour, 1, true);
+
+    std::vector<std::vector<cv::Point>> dilated_ex_contours = {dilated_ex_contour};
+
+    cv::Mat map = cv::Mat(image.size(), CV_8UC3, cv::Scalar(255, 255, 255));
+
+    cv::fillPoly(map, dilated_ex_contours, cv::Scalar(0, 0, 0));
+
+    Polygon external_contour = ConstructCave(map, dilated_ex_contour);
+    PointTypeTestExternal(map, external_contour);
+
     std::vector<Event> event_list = EventListGeneratorExternal(map, external_contour);
     std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
 
@@ -5788,28 +5843,31 @@ int main()
     std::vector<int> original_cell_index_slice;
     ExecuteCellDecompositionExternal(cell_graph, cell_index_slice, original_cell_index_slice, slice_list);
 
-//    for(int i = 0; i < cell_graph.size(); i++)
-//    {
-//        DrawCells(map, cell_graph[i], cv::Scalar(0, 255, 255));
-//        cv::imshow("map", map);
-//        cv::waitKey(0);
-//    }
-//
-//    cv::imshow("map", map);
-//    cv::waitKey(0);
-
-    Point2D start = Point2D(300, 300);
-    int color_repeated_times = 50;
+    Point2D start = Point2D(map.cols/2, map.rows/2);
+    int color_repeated_times = 5;
     std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, false, color_repeated_times);
-
-
-
 
     std::deque<Point2D> path;
     for(int i = 0; i < original_planning_path.size(); i++)
     {
         path.insert(path.end(), original_planning_path[i].begin(), original_planning_path[i].end());
     }
+
+    std::deque<cv::Scalar> JetColorMap;
+    InitializeColorMap(JetColorMap, color_repeated_times);
+
+    cv::imshow("map", original_map);
+    cv::waitKey(0);
+
+    for(auto position:path)
+    {
+        original_map.at<cv::Vec3b>(position.y, position.x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+        UpdateColorMap(JetColorMap);
+        cv::imshow("map", original_map);
+        cv::waitKey(2);
+    }
+    cv::waitKey(0);
+
     double meters_per_pix = 0.02;
     Eigen::Vector2d curr_direction = {0, -1};
     std::vector<NavigationMessage> messages = GetNavigationMessage(curr_direction, path, meters_per_pix);
@@ -5820,6 +5878,79 @@ int main()
         messages[i].GetMotion(dist, global_yaw, local_yaw);
         std::cout<<"globally rotate "<<global_yaw<<" degree(locally rotate "<<local_yaw<<" degree) and go forward for "<<dist<<" m."<<std::endl;
     }
+
+
+
+
+
+
+
+
+
+//  Static test for contour
+
+//    int robot_radius = 20;
+//
+//    cv::Mat map = cv::Mat(600, 600, CV_8UC3, cv::Scalar(255, 255, 255));
+//
+//    std::vector<cv::Point> contour = {cv::Point(20,20),cv::Point(20,200),cv::Point(100,200),cv::Point(100,399),
+//                cv::Point(20,399),cv::Point(20, 579),cv::Point(200,579),cv::Point(200,499),cv::Point(399,499),cv::Point(399,579),
+//                cv::Point(579,579),cv::Point(579,399),cv::Point(499,399),cv::Point(499,200),cv::Point(579,200),cv::Point(579,20),
+//                cv::Point(349,20),cv::Point(349,100),cv::Point(250,100),cv::Point(250,20)};
+//
+//    std::vector<std::vector<cv::Point>> contours = {contour};
+//    cv::fillPoly(map, contours, cv::Scalar(0, 0, 0));
+//
+//    Polygon external_contour = ConstructCave(map, contour);
+//
+////    PointTypeTestExternal(map, external_contour);
+//    std::vector<Event> event_list = EventListGeneratorExternal(map, external_contour);
+//    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
+//
+//    std::vector<CellNode> cell_graph;
+//    std::vector<int> cell_index_slice;
+//    std::vector<int> original_cell_index_slice;
+//    ExecuteCellDecompositionExternal(cell_graph, cell_index_slice, original_cell_index_slice, slice_list);
+//
+////    for(int i = 0; i < cell_graph.size(); i++)
+////    {
+////        DrawCells(map, cell_graph[i], cv::Scalar(0, 255, 255));
+////        cv::imshow("map", map);
+////        cv::waitKey(0);
+////    }
+////
+////    cv::imshow("map", map);
+////    cv::waitKey(0);
+//
+//    Point2D start = Point2D(300, 300);
+//    int color_repeated_times = 50;
+//    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, true, true, color_repeated_times);
+//
+//    std::deque<Point2D> path;
+//    for(int i = 0; i < original_planning_path.size(); i++)
+//    {
+//        path.insert(path.end(), original_planning_path[i].begin(), original_planning_path[i].end());
+//    }
+//    double meters_per_pix = 0.02;
+//    Eigen::Vector2d curr_direction = {0, -1};
+//    std::vector<NavigationMessage> messages = GetNavigationMessage(curr_direction, path, meters_per_pix);
+//
+//    double dist, global_yaw, local_yaw;
+//    for(int i = 0; i < messages.size(); i++)
+//    {
+//        messages[i].GetMotion(dist, global_yaw, local_yaw);
+//        std::cout<<"globally rotate "<<global_yaw<<" degree(locally rotate "<<local_yaw<<" degree) and go forward for "<<dist<<" m."<<std::endl;
+//    }
+
+
+
+
+
+
+
+
+
+
 
 //    Contouring path test
 //    cv::namedWindow("map", cv::WINDOW_NORMAL);
