@@ -5502,12 +5502,19 @@ void StaticPathPlanningTest()
 
 double ComputeYaw(Eigen::Vector2d curr_direction, Eigen::Vector2d base_direction) // 两个输入参数都需要是单位向量
 {
-    double yaw = std::acos(curr_direction.dot(base_direction))/M_PI*180;
 
-    if(std::atan2(curr_direction[1], curr_direction[0]) < std::atan2(base_direction[1], base_direction[0]))
+    double yaw = std::atan2(curr_direction[1], curr_direction[0]) - std::atan2(base_direction[1], base_direction[0]);
+
+    if(yaw > M_PI)
     {
-        yaw = yaw*(-1);
+        yaw -= 2*M_PI;
     }
+    if(yaw < (-M_PI))
+    {
+        yaw += 2*M_PI;
+    }
+
+    yaw = yaw / M_PI * 180;
 
     return yaw;
 }
@@ -5832,7 +5839,7 @@ int main()
 
     Point2D start = Point2D(300, 300);
     int color_repeated_times = 50;
-    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, true, color_repeated_times);
+    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, false, color_repeated_times);
 
 
 
