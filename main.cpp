@@ -113,7 +113,10 @@ void WalkingThroughGraph(std::vector<CellNode>& cell_graph, int cell_index, int&
         unvisited_counter--;
     }
     path.emplace_front(cell_graph[cell_index]);
-    std::cout<< "cell: " <<cell_graph[cell_index].cellIndex<<std::endl;
+
+//    for debugging
+//    std::cout<< "cell: " <<cell_graph[cell_index].cellIndex<<std::endl;
+//
 
     CellNode neighbor;
     int neighbor_idx;
@@ -1685,17 +1688,7 @@ void ExecuteCeilOperation(std::vector<CellNode>& cell_graph, int curr_cell_idx, 
     cell_graph[curr_cell_idx].ceiling.emplace_back(ceil_point);
 }
 
-void ExecuteCeilOperationExternal(std::vector<CellNode>& cell_graph, int curr_cell_idx, const Point2D& ceil_point) // finish constructing last ceiling edge
-{
-    cell_graph[curr_cell_idx].ceiling.emplace_back(ceil_point);
-}
-
 void ExecuteFloorOperation(std::vector<CellNode>& cell_graph, int curr_cell_idx, const Point2D& floor_point) // finish constructing last floor edge
-{
-    cell_graph[curr_cell_idx].floor.emplace_back(floor_point);
-}
-
-void ExecuteFloorOperationExternal(std::vector<CellNode>& cell_graph, int curr_cell_idx, const Point2D& floor_point) // finish constructing last floor edge
 {
     cell_graph[curr_cell_idx].floor.emplace_back(floor_point);
 }
@@ -3352,25 +3345,6 @@ std::deque<std::deque<Point2D>> FindLinkingPath(Point2D curr_exit, Point2D& next
 
     return path;
 }
-
-//std::deque<Point2D> PathIninitialization(Point2D start, CellNode cell)
-//{
-//    std::deque<Point2D> path;
-//
-//    int index_offset = std::abs(start.x - cell.ceiling.front().x);
-//
-//    for(int y = start.y; y >= cell.ceiling[index_offset].y; y--)
-//    {
-//        path.emplace_back(Point2D(start.x, y));
-//    }
-//
-//    for(int i = index_offset; i >= 0; i--)
-//    {
-//        path.emplace_back(cell.ceiling[i]);
-//    }
-//
-//    return path;
-//}
 
 void InitializeColorMap(std::deque<cv::Scalar>& JetColorMap, int repeat_times)
 {
