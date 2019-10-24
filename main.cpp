@@ -5502,7 +5502,6 @@ void StaticPathPlanningTest()
 
 double ComputeYaw(Eigen::Vector2d curr_direction, Eigen::Vector2d base_direction) // 两个输入参数都需要是单位向量
 {
-
     double yaw = std::atan2(curr_direction[1], curr_direction[0]) - std::atan2(base_direction[1], base_direction[0]);
 
     if(yaw > M_PI)
@@ -5583,11 +5582,11 @@ private:
     double local_yaw_angle;
 };
 
-std::vector<NavigationMessage> GetNavigationMessage(std::deque<Point2D> pos_path, double meters_per_pix)
+std::vector<NavigationMessage> GetNavigationMessage(Eigen::Vector2d curr_direction, std::deque<Point2D> pos_path, double meters_per_pix)
 {
     // initialization
     Eigen::Vector2d global_base_direction = {0, -1}; // {x, y}
-    Eigen::Vector2d local_base_direction = {DBL_MAX, DBL_MAX};
+    Eigen::Vector2d local_base_direction = curr_direction;
 
     Eigen::Vector2d curr_local_direction;
     Eigen::Vector2d curr_global_direction;
@@ -5598,8 +5597,7 @@ std::vector<NavigationMessage> GetNavigationMessage(std::deque<Point2D> pos_path
     double distance = 0.0;
     double step_distance = 0.0;
 
-    double prev_global_yaw = DBL_MAX;
-    double prev_local_yaw = DBL_MAX;
+    double prev_global_yaw = ComputeYaw(curr_direction, global_base_direction);
 
     double curr_global_yaw = 0.0;
     double curr_local_yaw = 0.0;
@@ -5618,22 +5616,8 @@ std::vector<NavigationMessage> GetNavigationMessage(std::deque<Point2D> pos_path
             curr_local_direction = {pos_path[i+1].x-pos_path[i].x, pos_path[i+1].y-pos_path[i].y};
             curr_local_direction.normalize();
 
-            if(local_base_direction[0]==DBL_MAX && local_base_direction[1]==DBL_MAX) // initialization
-            {
-                local_base_direction = curr_local_direction;
-            }
-
             curr_global_yaw = ComputeYaw(curr_local_direction, global_base_direction);
             curr_local_yaw = ComputeYaw(curr_local_direction, local_base_direction);
-
-            if(prev_global_yaw == DBL_MAX) // initialization
-            {
-                prev_global_yaw = curr_global_yaw;
-            }
-            if(prev_local_yaw == DBL_MAX) // initialization
-            {
-                prev_local_yaw = curr_local_yaw;
-            }
 
             if(message.GetGlobalYaw()==DBL_MAX) // initialization
             {
@@ -5645,7 +5629,7 @@ std::vector<NavigationMessage> GetNavigationMessage(std::deque<Point2D> pos_path
                 message.SetLocalYaw(curr_local_yaw);
             }
 
-            if(curr_global_yaw == prev_global_yaw) // 考虑在一定范围内即可
+            if(curr_global_yaw == prev_global_yaw)
             {
                 step_distance = ComputeDistance(pos_path[i+1], pos_path[i], meters_per_pix);
                 distance += step_distance;
@@ -5664,11 +5648,14 @@ std::vector<NavigationMessage> GetNavigationMessage(std::deque<Point2D> pos_path
                 distance += step_distance;
             }
             prev_global_yaw = curr_global_yaw;
-            prev_local_yaw = curr_local_yaw;
 
             local_base_direction = curr_local_direction;
         }
     }
+
+    message.SetDistance(distance);
+    message_queue.emplace_back(message);
+
     return message_queue;
 }
 
@@ -5850,7 +5837,8 @@ int main()
         path.insert(path.end(), original_planning_path[i].begin(), original_planning_path[i].end());
     }
     double meters_per_pix = 0.02;
-    std::vector<NavigationMessage> messages = GetNavigationMessage(path, meters_per_pix);
+    Eigen::Vector2d curr_direction = {0, -1};
+    std::vector<NavigationMessage> messages = GetNavigationMessage(curr_direction, path, meters_per_pix);
 
     double dist, global_yaw, local_yaw;
     for(int i = 0; i < messages.size(); i++)
