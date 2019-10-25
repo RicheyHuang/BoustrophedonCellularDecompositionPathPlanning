@@ -5501,7 +5501,7 @@ double ComputeYaw(Eigen::Vector2d curr_direction, Eigen::Vector2d base_direction
         yaw += 2*M_PI;
     }
 
-    yaw = yaw / M_PI * 180;
+    yaw = yaw / M_PI * 180.0;
 
     return yaw;
 }
@@ -5782,6 +5782,8 @@ int main()
 
 //  test for real pics
 
+    int robot_radius = 2;
+
     cv::namedWindow("map", cv::WINDOW_NORMAL);
 
     cv::Mat image = cv::imread("../map.png", CV_8UC1);
@@ -5790,8 +5792,7 @@ int main()
     cv::cvtColor(image, original_map, cv::COLOR_GRAY2BGR);
     original_map.convertTo(original_map, CV_8UC3);
 
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(5,5), cv::Point(-1,-1));
-//    cv::morphologyEx(image, image, cv::MORPH_OPEN, kernel);
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(robot_radius,robot_radius), cv::Point(-1,-1));
 
     std::vector<std::vector<cv::Point>> original_contours;
     cv::findContours(image.clone(), original_contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
@@ -5805,8 +5806,6 @@ int main()
 
     cv::Mat canvas = cv::Mat(image.size(), CV_8UC3, cv::Scalar(255, 255, 255));
     cv::fillPoly(canvas, original_ex_contours, cv::Scalar(0, 0, 0));
-
-    int robot_radius = 5;
 
     for(auto point:original_ex_contours.front())
     {
