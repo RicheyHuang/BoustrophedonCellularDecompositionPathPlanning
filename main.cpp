@@ -11,7 +11,6 @@
 #include <Eigen/Core>
 
 
-
 enum EventType
 {
     IN,
@@ -50,6 +49,8 @@ const int TOPLEFT = 0;
 const int BOTTOMLEFT = 1;
 const int BOTTOMRIGHT = 2;
 const int TOPRIGHT = 3;
+
+const int palette_colors = 1530;
 
 class Point2D
 {
@@ -5782,7 +5783,11 @@ int main()
 
 //  test for real pics
 
-    int robot_radius = 2;
+    double meters_per_pix = 0.02;
+
+    double robot_size_in_meters = 0.15;
+
+    int robot_radius = int(robot_size_in_meters / meters_per_pix);
 
     cv::namedWindow("map", cv::WINDOW_NORMAL);
 
@@ -5843,8 +5848,7 @@ int main()
     ExecuteCellDecompositionExternal(cell_graph, cell_index_slice, original_cell_index_slice, slice_list);
 
     Point2D start = Point2D(map.cols/2, map.rows/2);
-    int color_repeated_times = 5;
-    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, false, color_repeated_times);
+    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, false);
 
     std::deque<Point2D> path;
     for(int i = 0; i < original_planning_path.size(); i++)
@@ -5853,21 +5857,45 @@ int main()
     }
 
     std::deque<cv::Scalar> JetColorMap;
+    int color_repeated_times = path.size()/palette_colors + 1;
     InitializeColorMap(JetColorMap, color_repeated_times);
 
-    cv::imshow("map", original_map);
-    cv::waitKey(0);
-
-    for(auto position:path)
+    enum VISUALIZATION_MODE{PATH_MODE, ROBOT_MODE};
+    int vis_mode = ROBOT_MODE;
+    switch (vis_mode)
     {
-        original_map.at<cv::Vec3b>(position.y, position.x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
-        UpdateColorMap(JetColorMap);
-        cv::imshow("map", original_map);
-        cv::waitKey(2);
+        case PATH_MODE:
+            original_map.at<cv::Vec3b>(path.front().y, path.front().x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+            cv::imshow("map", original_map);
+            cv::waitKey(0);
+
+            for(auto position:path)
+            {
+                original_map.at<cv::Vec3b>(position.y, position.x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
+                UpdateColorMap(JetColorMap);
+                cv::imshow("map", original_map);
+                cv::waitKey(2);
+            }
+            break;
+        case ROBOT_MODE:
+            cv::circle(original_map, cv::Point(path.front().x, path.front().y), robot_radius, cv::Scalar(255, 204, 153), -1);
+            cv::imshow("map", original_map);
+            cv::waitKey(0);
+
+            for(auto position:path)
+            {
+                cv::circle(original_map, cv::Point(position.x, position.y), robot_radius, cv::Scalar(255, 204, 153), -1);
+                cv::imshow("map", original_map);
+                cv::waitKey(10);
+
+                cv::circle(original_map, cv::Point(position.x, position.y), robot_radius, cv::Scalar(255, 229, 204), -1);
+            }
+
+            break;
     }
+
     cv::waitKey(0);
 
-    double meters_per_pix = 0.02;
     Eigen::Vector2d curr_direction = {0, -1};
     std::vector<NavigationMessage> messages = GetNavigationMessage(curr_direction, path, meters_per_pix);
 
