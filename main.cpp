@@ -6707,20 +6707,9 @@ int main()
     std::vector<std::vector<cv::Point>> obstacle_contours;
     for(auto obstacle_contour:contours)
     {
-        std::reverse(obstacle_contour.begin(), obstacle_contour.end());
+//        std::reverse(obstacle_contour.begin(), obstacle_contour.end());
         obstacle_contours.emplace_back(obstacle_contour);
     }
-
-
-//    for(auto point:obstacle_contours[3])
-//    {
-//        std::cout<<point.x<<", "<<point.y<<std::endl;
-//    }
-//    for(auto point:obstacle_contours[3])
-//    {
-//        std::cout<<point.x<<", "<<point.y<<std::endl;
-//    }
-
 
     // test results accquired above
 
@@ -6728,17 +6717,17 @@ int main()
     PolygonList inner_contours = ConstructObstacles(map, obstacle_contours);
 
 
-//    for(auto inner_contour:inner_contours)
-//    {
-//        PointTypeTest(map, inner_contour);
-//        cv::imshow("map", map);
-//        cv::waitKey(0);
-//        std::cout<<std::endl;
-//    }
-//
-//    PointTypeTestExternal(map, external_contour);
-//    cv::imshow("map", map);
-//    cv::waitKey(0);
+    for(auto inner_contour:inner_contours)
+    {
+        PointTypeTest(map, inner_contour);
+        cv::imshow("map", map);
+        cv::waitKey(0);
+        std::cout<<std::endl;
+    }
+
+    PointTypeTestExternal(map, external_contour);
+    cv::imshow("map", map);
+    cv::waitKey(0);
 
 
     std::vector<Event> external_event_list = EventListGeneratorExternal(map, external_contour);
@@ -6750,6 +6739,105 @@ int main()
     std::sort(event_list.begin(), event_list.end());
 
     std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
+
+
+    std::deque<Event> slice;
+    for(int i = 0; i < slice_list.size(); i++)
+    {
+        slice = FilterSlice(slice_list[i]);
+        for(int j = 0; j < slice.size(); j++)
+        {
+            EventType type = slice[j].event_type;
+            switch (type)
+            {
+                case IN:
+                    std::cout<<"IN ";
+                    break;
+                case IN_TOP:
+                    std::cout<<"IN_TOP ";
+                    break;
+                case IN_BOTTOM:
+                    std::cout<<"IN_BOTTOM ";
+                    break;
+                case OUT:
+                    std::cout<<"OUT ";
+                    break;
+                case OUT_TOP:
+                    std::cout<<"OUT_TOP ";
+                    break;
+                case OUT_BOTTOM:
+                    std::cout<<"OUT_BOTTOM ";
+                    break;
+                case INNER_IN:
+                    std::cout<<"INNER_IN ";
+                    break;
+                case INNER_IN_TOP:
+                    std::cout<<"INNER_IN_TOP ";
+                    break;
+                case INNER_IN_BOTTOM:
+                    std::cout<<"INNER_IN_BOTTOM ";
+                    break;
+                case INNER_OUT:
+                    std::cout<<"INNER_OUT ";
+                    break;
+                case INNER_OUT_TOP:
+                    std::cout<<"INNER_OUT_TOP ";
+                    break;
+                case INNER_OUT_BOTTOM:
+                    std::cout<<"INNER_OUT_BOTTOM ";
+                    break;
+                case IN_EX:
+                    std::cout<<"IN_EX ";
+                    break;
+                case IN_TOP_EX:
+                    std::cout<<"IN_TOP_EX ";
+                    break;
+                case IN_BOTTOM_EX:
+                    std::cout<<"IN_BOTTOM_EX ";
+                    break;
+                case OUT_EX:
+                    std::cout<<"OUT_EX ";
+                    break;
+                case OUT_TOP_EX:
+                    std::cout<<"OUT_TOP_EX ";
+                    break;
+                case OUT_BOTTOM_EX:
+                    std::cout<<"OUT_BOTTOM_EX ";
+                    break;
+                case INNER_IN_EX:
+                    std::cout<<"INNER_IN_EX ";
+                    break;
+                case INNER_IN_TOP_EX:
+                    std::cout<<"INNER_IN_TOP_EX ";
+                    break;
+                case INNER_IN_BOTTOM_EX:
+                    std::cout<<"INNER_IN_BOTTOM_EX ";
+                    break;
+                case INNER_OUT_EX:
+                    std::cout<<"INNER_OUT_EX ";
+                    break;
+                case INNER_OUT_TOP_EX:
+                    std::cout<<"INNER_OUT_TOP_EX ";
+                    break;
+                case INNER_OUT_BOTTOM_EX:
+                    std::cout<<"INNER_OUT_BOTTOM_EX ";
+                    break;
+                case MIDDLE:
+                    std::cout<<"MIDDLE ";
+                    break;
+                case CEILING:
+                    std::cout<<"CEILING ";
+                    break;
+                case FLOOR:
+                    std::cout<<"FLOOR ";
+                    break;
+                case UNALLOCATED:
+                    std::cout<<"UNALLOCATED ";
+                    break;
+            }
+        }
+        std::cout<<std::endl;
+    }
 
     std::vector<CellNode> cell_graph;
     std::vector<int> cell_index_slice;
