@@ -2000,6 +2000,9 @@ int CountCells(const std::deque<Event>& slice, int curr_idx)
            || (slice[i].event_type==INNER_IN)
            || (slice[i].event_type==INNER_IN_BOTTOM)
            || (slice[i].event_type==FLOOR)
+           || (slice[i].event_type==IN_TOP_EX)
+           || (slice[i].event_type==INNER_IN_EX)
+           || (slice[i].event_type==INNER_IN_BOTTOM_EX)
           )
         {
             cell_num++;
@@ -4691,6 +4694,7 @@ std::deque<std::deque<Point2D>> StaticPathPlanning(cv::Mat& map, std::vector<Cel
             {
                 for(int k = 0; k < link_path.front().size(); k++)
                 {
+//                    map.at<cv::Vec3b>(link_path.front()[k].y, link_path.front()[k].x)=cv::Vec3b(255, 255, 255);
                     map.at<cv::Vec3b>(link_path.front()[k].y, link_path.front()[k].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
                     UpdateColorMap(JetColorMap);
                     cv::imshow("map", map);
@@ -4699,6 +4703,7 @@ std::deque<std::deque<Point2D>> StaticPathPlanning(cv::Mat& map, std::vector<Cel
 
                 for(int k = 0; k < link_path.back().size(); k++)
                 {
+//                    map.at<cv::Vec3b>(link_path.back()[k].y, link_path.back()[k].x)=cv::Vec3b(255, 255, 255);
                     map.at<cv::Vec3b>(link_path.back()[k].y, link_path.back()[k].x)=cv::Vec3b(JetColorMap.front()[0],JetColorMap.front()[1],JetColorMap.front()[2]);
                     UpdateColorMap(JetColorMap);
                     cv::imshow("map", map);
@@ -6676,7 +6681,7 @@ int main()
 
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(original_image, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
-    std::cout<<"find "<<contours.size()<<" contours"<<std::endl;
+//    std::cout<<"find "<<contours.size()<<" contours"<<std::endl;
 
     std::vector<int> wall_cnt_indices(contours.size());
     std::iota(wall_cnt_indices.begin(), wall_cnt_indices.end(), 0);
@@ -6693,7 +6698,7 @@ int main()
     cv::threshold(original_image, original_image, 128, 255, cv::THRESH_BINARY_INV);
 
     cv::findContours(original_image, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
-    std::cout<<"find "<<contours.size()<<" contours"<<std::endl;
+//    std::cout<<"find "<<contours.size()<<" contours"<<std::endl;
 
 //  for debugging
 //    cv::Mat canvas = cv::Mat::zeros(original_image.size(), CV_8UC3);
@@ -6707,7 +6712,6 @@ int main()
     std::vector<std::vector<cv::Point>> obstacle_contours;
     for(auto obstacle_contour:contours)
     {
-//        std::reverse(obstacle_contour.begin(), obstacle_contour.end());
         obstacle_contours.emplace_back(obstacle_contour);
     }
 
@@ -6716,18 +6720,18 @@ int main()
     Polygon external_contour = ConstructCave(map, wall_contour);
     PolygonList inner_contours = ConstructObstacles(map, obstacle_contours);
 
-
-    for(auto inner_contour:inner_contours)
-    {
-        PointTypeTest(map, inner_contour);
-        cv::imshow("map", map);
-        cv::waitKey(0);
-        std::cout<<std::endl;
-    }
-
-    PointTypeTestExternal(map, external_contour);
-    cv::imshow("map", map);
-    cv::waitKey(0);
+//  for debugging
+//    for(auto inner_contour:inner_contours)
+//    {
+//        PointTypeTest(map, inner_contour);
+//        cv::imshow("map", map);
+//        cv::waitKey(0);
+//        std::cout<<std::endl;
+//    }
+//
+//    PointTypeTestExternal(map, external_contour);
+//    cv::imshow("map", map);
+//    cv::waitKey(0);
 
 
     std::vector<Event> external_event_list = EventListGeneratorExternal(map, external_contour);
@@ -6740,124 +6744,125 @@ int main()
 
     std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
 
-
-    std::deque<Event> slice;
-    for(int i = 0; i < slice_list.size(); i++)
-    {
-        slice = FilterSlice(slice_list[i]);
-        for(int j = 0; j < slice.size(); j++)
-        {
-            EventType type = slice[j].event_type;
-            switch (type)
-            {
-                case IN:
-                    std::cout<<"IN ";
-                    break;
-                case IN_TOP:
-                    std::cout<<"IN_TOP ";
-                    break;
-                case IN_BOTTOM:
-                    std::cout<<"IN_BOTTOM ";
-                    break;
-                case OUT:
-                    std::cout<<"OUT ";
-                    break;
-                case OUT_TOP:
-                    std::cout<<"OUT_TOP ";
-                    break;
-                case OUT_BOTTOM:
-                    std::cout<<"OUT_BOTTOM ";
-                    break;
-                case INNER_IN:
-                    std::cout<<"INNER_IN ";
-                    break;
-                case INNER_IN_TOP:
-                    std::cout<<"INNER_IN_TOP ";
-                    break;
-                case INNER_IN_BOTTOM:
-                    std::cout<<"INNER_IN_BOTTOM ";
-                    break;
-                case INNER_OUT:
-                    std::cout<<"INNER_OUT ";
-                    break;
-                case INNER_OUT_TOP:
-                    std::cout<<"INNER_OUT_TOP ";
-                    break;
-                case INNER_OUT_BOTTOM:
-                    std::cout<<"INNER_OUT_BOTTOM ";
-                    break;
-                case IN_EX:
-                    std::cout<<"IN_EX ";
-                    break;
-                case IN_TOP_EX:
-                    std::cout<<"IN_TOP_EX ";
-                    break;
-                case IN_BOTTOM_EX:
-                    std::cout<<"IN_BOTTOM_EX ";
-                    break;
-                case OUT_EX:
-                    std::cout<<"OUT_EX ";
-                    break;
-                case OUT_TOP_EX:
-                    std::cout<<"OUT_TOP_EX ";
-                    break;
-                case OUT_BOTTOM_EX:
-                    std::cout<<"OUT_BOTTOM_EX ";
-                    break;
-                case INNER_IN_EX:
-                    std::cout<<"INNER_IN_EX ";
-                    break;
-                case INNER_IN_TOP_EX:
-                    std::cout<<"INNER_IN_TOP_EX ";
-                    break;
-                case INNER_IN_BOTTOM_EX:
-                    std::cout<<"INNER_IN_BOTTOM_EX ";
-                    break;
-                case INNER_OUT_EX:
-                    std::cout<<"INNER_OUT_EX ";
-                    break;
-                case INNER_OUT_TOP_EX:
-                    std::cout<<"INNER_OUT_TOP_EX ";
-                    break;
-                case INNER_OUT_BOTTOM_EX:
-                    std::cout<<"INNER_OUT_BOTTOM_EX ";
-                    break;
-                case MIDDLE:
-                    std::cout<<"MIDDLE ";
-                    break;
-                case CEILING:
-                    std::cout<<"CEILING ";
-                    break;
-                case FLOOR:
-                    std::cout<<"FLOOR ";
-                    break;
-                case UNALLOCATED:
-                    std::cout<<"UNALLOCATED ";
-                    break;
-            }
-        }
-        std::cout<<std::endl;
-    }
+//    for debugging
+//    std::deque<Event> slice;
+//    for(int i = 0; i < slice_list.size(); i++)
+//    {
+//        slice = FilterSlice(slice_list[i]);
+//        std::cout<<"slice "<<i<<": ";
+//        for(int j = 0; j < slice.size(); j++)
+//        {
+//            EventType type = slice[j].event_type;
+//            switch (type)
+//            {
+//                case IN:
+//                    std::cout<<"IN; ";
+//                    break;
+//                case IN_TOP:
+//                    std::cout<<"IN_TOP; ";
+//                    break;
+//                case IN_BOTTOM:
+//                    std::cout<<"IN_BOTTOM; ";
+//                    break;
+//                case OUT:
+//                    std::cout<<"OUT; ";
+//                    break;
+//                case OUT_TOP:
+//                    std::cout<<"OUT_TOP; ";
+//                    break;
+//                case OUT_BOTTOM:
+//                    std::cout<<"OUT_BOTTOM; ";
+//                    break;
+//                case INNER_IN:
+//                    std::cout<<"INNER_IN; ";
+//                    break;
+//                case INNER_IN_TOP:
+//                    std::cout<<"INNER_IN_TOP; ";
+//                    break;
+//                case INNER_IN_BOTTOM:
+//                    std::cout<<"INNER_IN_BOTTOM; ";
+//                    break;
+//                case INNER_OUT:
+//                    std::cout<<"INNER_OUT; ";
+//                    break;
+//                case INNER_OUT_TOP:
+//                    std::cout<<"INNER_OUT_TOP; ";
+//                    break;
+//                case INNER_OUT_BOTTOM:
+//                    std::cout<<"INNER_OUT_BOTTOM; ";
+//                    break;
+//                case IN_EX:
+//                    std::cout<<"IN_EX; ";
+//                    break;
+//                case IN_TOP_EX:
+//                    std::cout<<"IN_TOP_EX; ";
+//                    break;
+//                case IN_BOTTOM_EX:
+//                    std::cout<<"IN_BOTTOM_EX; ";
+//                    break;
+//                case OUT_EX:
+//                    std::cout<<"OUT_EX; ";
+//                    break;
+//                case OUT_TOP_EX:
+//                    std::cout<<"OUT_TOP_EX; ";
+//                    break;
+//                case OUT_BOTTOM_EX:
+//                    std::cout<<"OUT_BOTTOM_EX; ";
+//                    break;
+//                case INNER_IN_EX:
+//                    std::cout<<"INNER_IN_EX; ";
+//                    break;
+//                case INNER_IN_TOP_EX:
+//                    std::cout<<"INNER_IN_TOP_EX; ";
+//                    break;
+//                case INNER_IN_BOTTOM_EX:
+//                    std::cout<<"INNER_IN_BOTTOM_EX; ";
+//                    break;
+//                case INNER_OUT_EX:
+//                    std::cout<<"INNER_OUT_EX; ";
+//                    break;
+//                case INNER_OUT_TOP_EX:
+//                    std::cout<<"INNER_OUT_TOP_EX; ";
+//                    break;
+//                case INNER_OUT_BOTTOM_EX:
+//                    std::cout<<"INNER_OUT_BOTTOM_EX; ";
+//                    break;
+//                case MIDDLE:
+//                    std::cout<<"MIDDLE; ";
+//                    break;
+//                case CEILING:
+//                    std::cout<<"CEILING; ";
+//                    break;
+//                case FLOOR:
+//                    std::cout<<"FLOOR; ";
+//                    break;
+//                case UNALLOCATED:
+//                    std::cout<<"UNALLOCATED; ";
+//                    break;
+//            }
+//        }
+//        std::cout<<std::endl;
+//    }
 
     std::vector<CellNode> cell_graph;
     std::vector<int> cell_index_slice;
     std::vector<int> original_cell_index_slice;
     ExecuteCellDecompositionOverall(cell_graph, cell_index_slice, original_cell_index_slice, slice_list);
 
-    for(int i = 0; i < cell_graph.size(); i++)
-    {
-        DrawCells(map, cell_graph[i], cv::Scalar(255, 0, 255));
-        cv::imshow("map", map);
-        cv::waitKey(0);
-    }
+//    for(int i = 0; i < cell_graph.size(); i++)
+//    {
+//        DrawCells(map, cell_graph[i], cv::Scalar(255, 0, 255));
+//        cv::imshow("map", map);
+//        cv::waitKey(0);
+//    }
 
-//    cv::imshow("map", map);
-//    cv::waitKey(0);
-//
-//    int robot_radius = 10;
-//    Point2D start = Point2D(100, 100);
-//    int color_repeated_times = 50;
-//    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, true, true, color_repeated_times);
+    cv::imshow("map", map);
+    cv::waitKey(0);
+
+    int robot_radius = 5;
+    Point2D start = cell_graph.front().ceiling.front();
+    int color_repeated_times = 20;
+    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, true, color_repeated_times);
 
 
 
