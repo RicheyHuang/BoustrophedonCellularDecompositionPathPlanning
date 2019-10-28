@@ -1990,9 +1990,9 @@ int CountCells(const std::deque<Event>& slice, int curr_idx)
            || (slice[i].event_type==INNER_IN)
            || (slice[i].event_type==INNER_IN_BOTTOM)
            || (slice[i].event_type==FLOOR)
-           || (slice[i].event_type==IN_TOP_EX)
+           || (slice[i].event_type==IN_BOTTOM_EX)
            || (slice[i].event_type==INNER_IN_EX)
-           || (slice[i].event_type==INNER_IN_BOTTOM_EX)
+           || (slice[i].event_type==INNER_IN_TOP_EX)
           )
         {
             cell_num++;
@@ -2352,7 +2352,7 @@ void ExecuteCellDecomposition(std::vector<CellNode>& cell_graph, std::vector<int
             if(curr_slice[j].event_type == INNER_OUT)
             {
                 event_y = curr_slice[j].y;
-                for(int k = 1; k < cell_index_slice.size(); k++)
+                for(int k = 0; k < cell_index_slice.size(); k++)
                 {
                     if(event_y >= cell_graph[cell_index_slice[k]].ceiling.back().y && event_y <= cell_graph[cell_index_slice[k]].floor.back().y)
                     {
@@ -2368,7 +2368,7 @@ void ExecuteCellDecomposition(std::vector<CellNode>& cell_graph, std::vector<int
             if(curr_slice[j].event_type == INNER_OUT_BOTTOM)
             {
                 event_y = curr_slice[j].y;
-                for(int k = 1; k < cell_index_slice.size(); k++)
+                for(int k = 0; k < cell_index_slice.size(); k++)
                 {
                     if(event_y >= cell_graph[cell_index_slice[k]].ceiling.back().y && event_y <= cell_graph[cell_index_slice[k]].floor.back().y)
                     {
@@ -2783,7 +2783,7 @@ void ExecuteCellDecompositionExternal(std::vector<CellNode>& cell_graph, std::ve
             {
                 event_y = curr_slice[j].y;
 
-                for(int k = 1; k < cell_index_slice.size(); k++)
+                for(int k = 0; k < cell_index_slice.size(); k++)
                 {
                     if(event_y >= cell_graph[cell_index_slice[k]].ceiling.back().y && event_y <= cell_graph[cell_index_slice[k]].floor.back().y)
                     {
@@ -2800,7 +2800,7 @@ void ExecuteCellDecompositionExternal(std::vector<CellNode>& cell_graph, std::ve
             {
                 event_y = curr_slice[j].y;
 
-                for(int k = 1; k < cell_index_slice.size(); k++)
+                for(int k = 0; k < cell_index_slice.size(); k++)
                 {
                     if(event_y >= cell_graph[cell_index_slice[k]].ceiling.back().y && event_y <= cell_graph[cell_index_slice[k]].floor.back().y)
                     {
@@ -3215,7 +3215,7 @@ void ExecuteCellDecompositionOverall(std::vector<CellNode>& cell_graph, std::vec
             {
                 event_y = curr_slice[j].y;
 
-                for(int k = 1; k < cell_index_slice.size(); k++)
+                for(int k = 0; k < cell_index_slice.size(); k++)
                 {
                     if(event_y >= cell_graph[cell_index_slice[k]].ceiling.back().y && event_y <= cell_graph[cell_index_slice[k]].floor.back().y)
                     {
@@ -3232,7 +3232,7 @@ void ExecuteCellDecompositionOverall(std::vector<CellNode>& cell_graph, std::vec
             {
                 event_y = curr_slice[j].y;
 
-                for(int k = 1; k < cell_index_slice.size(); k++)
+                for(int k = 0; k < cell_index_slice.size(); k++)
                 {
                     if(event_y >= cell_graph[cell_index_slice[k]].ceiling.back().y && event_y <= cell_graph[cell_index_slice[k]].floor.back().y)
                     {
@@ -3537,7 +3537,7 @@ void ExecuteCellDecompositionOverall(std::vector<CellNode>& cell_graph, std::vec
             if(curr_slice[j].event_type == INNER_OUT)
             {
                 event_y = curr_slice[j].y;
-                for(int k = 1; k < cell_index_slice.size(); k++)
+                for(int k = 0; k < cell_index_slice.size(); k++)
                 {
                     if(event_y >= cell_graph[cell_index_slice[k]].ceiling.back().y && event_y <= cell_graph[cell_index_slice[k]].floor.back().y)
                     {
@@ -3553,7 +3553,7 @@ void ExecuteCellDecompositionOverall(std::vector<CellNode>& cell_graph, std::vec
             if(curr_slice[j].event_type == INNER_OUT_BOTTOM)
             {
                 event_y = curr_slice[j].y;
-                for(int k = 1; k < cell_index_slice.size(); k++)
+                for(int k = 0; k < cell_index_slice.size(); k++)
                 {
                     if(event_y >= cell_graph[cell_index_slice[k]].ceiling.back().y && event_y <= cell_graph[cell_index_slice[k]].floor.back().y)
                     {
@@ -6597,8 +6597,7 @@ int main()
 
     double robot_size_in_meters = 0.15;
 
-//    int robot_radius = int(robot_size_in_meters / meters_per_pix);
-    int robot_radius = 4;
+    int robot_radius = int(robot_size_in_meters / meters_per_pix);
 
     cv::namedWindow("map", cv::WINDOW_NORMAL);
 
@@ -6649,7 +6648,7 @@ int main()
 
     Polygon external_contour = ConstructCave(map, dilated_ex_contour);
 
-    // for debugging
+//    for debugging
 //    PointTypeTestExternal(map, external_contour);
 //    cv::imshow("map", map);
 //    cv::waitKey(0);
@@ -6661,6 +6660,15 @@ int main()
     std::vector<int> cell_index_slice;
     std::vector<int> original_cell_index_slice;
     ExecuteCellDecompositionExternal(cell_graph, cell_index_slice, original_cell_index_slice, slice_list);
+
+//    for debugging
+//    for(int i = 0; i < cell_graph.size(); i++)
+//    {
+//        DrawCells(map, cell_graph[i], cv::Scalar(255, 0, 255));
+//        cv::imshow("map", map);
+//        cv::waitKey(0);
+//    }
+
 
     Point2D start = Point2D(map.cols/2, map.rows/2);
     std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, false);
@@ -6686,7 +6694,7 @@ int main()
     InitializeColorMap(JetColorMap, color_repeated_times);
 
     enum VISUALIZATION_MODE{PATH_MODE, ROBOT_MODE};
-    int vis_mode = PATH_MODE;
+    int vis_mode = ROBOT_MODE;
     switch (vis_mode)
     {
         case PATH_MODE:
