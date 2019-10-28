@@ -5543,22 +5543,35 @@ int GetCleaningDirection(CellNode cell, Point2D exit)
 {
     std::vector<Point2D> corner_points = ComputeCellCornerPoints(cell);
 
-    if(exit.x == corner_points[TOPLEFT].x && exit.y == corner_points[TOPLEFT].y)
-    {
-        return LEFT;
-    }
-    if(exit.x == corner_points[BOTTOMLEFT].x && exit.y == corner_points[BOTTOMLEFT].y)
-    {
-        return LEFT;
-    }
-    if(exit.x == corner_points[TOPRIGHT].x && exit.y == corner_points[TOPRIGHT].y)
+//    if(exit.x == corner_points[TOPLEFT].x && exit.y == corner_points[TOPLEFT].y)
+//    {
+//        return LEFT;
+//    }
+//    if(exit.x == corner_points[BOTTOMLEFT].x && exit.y == corner_points[BOTTOMLEFT].y)
+//    {
+//        return LEFT;
+//    }
+//    if(exit.x == corner_points[TOPRIGHT].x && exit.y == corner_points[TOPRIGHT].y)
+//    {
+//        return RIGHT;
+//    }
+//    if(exit.x == corner_points[BOTTOMRIGHT].x && exit.y == corner_points[BOTTOMRIGHT].y)
+//    {
+//        return RIGHT;
+//    }
+
+    double dist_to_left = std::abs(exit.x - corner_points[TOPLEFT].x);
+    double dist_to_right = std::abs(exit.x = corner_points[TOPRIGHT].x);
+
+    if(dist_to_left >= dist_to_right)
     {
         return RIGHT;
     }
-    if(exit.x == corner_points[BOTTOMRIGHT].x && exit.y == corner_points[BOTTOMRIGHT].y)
+    else
     {
-        return RIGHT;
+        return LEFT;
     }
+
 }
 
 // 清扫方向只分向左和向右
@@ -6558,6 +6571,9 @@ int main()
 
 
 
+
+
+
 //  Static test for obstacles
 
 //    int robot_radius = 5;
@@ -6580,9 +6596,6 @@ int main()
 //
 //    Point2D start = Point2D(10, 10);
 //    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(history_map, original_cell_graph, start, robot_radius, false, true);
-
-
-
 
 
 
@@ -6711,6 +6724,7 @@ int main()
 //        messages[i].GetMotion(dist, global_yaw, local_yaw);
 //        std::cout<<"globally rotate "<<global_yaw<<" degree(locally rotate "<<local_yaw<<" degree) and go forward for "<<dist<<" m."<<std::endl;
 //    }
+
 
 
 
@@ -6918,76 +6932,76 @@ int main()
 
 //  Static test for wall+obstacle
 
-    int robot_radius = 20;
-
-    cv::Mat map = cv::Mat(600, 600, CV_8UC3, cv::Scalar(255, 255, 255));
-
-    std::vector<cv::Point> wall_contour = {cv::Point(20,20),cv::Point(20,200),cv::Point(100,200),cv::Point(100,399),
-                cv::Point(20,399),cv::Point(20, 579),cv::Point(200,579),cv::Point(200,499),cv::Point(399,499),cv::Point(399,579),
-                cv::Point(579,579),cv::Point(579,399),cv::Point(499,399),cv::Point(499,200),cv::Point(579,200),cv::Point(579,20),
-                cv::Point(349,20),cv::Point(349,100),cv::Point(250,100),cv::Point(250,20)};
-
-    std::vector<std::vector<cv::Point>> wall_contours = {wall_contour};
-    cv::fillPoly(map, wall_contours, cv::Scalar(0, 0, 0));
-
-    Polygon external_contour = ConstructCave(map, wall_contour);
-
-    std::vector<cv::Point> obstacle_contour = {cv::Point(220,220),cv::Point(220,380),cv::Point(380,380),cv::Point(380,220)};
-    std::vector<std::vector<cv::Point>> obstacle_contours = {obstacle_contour};
-    cv::fillPoly(map, obstacle_contours, cv::Scalar(255, 255, 255));
-
-    cv::Mat original_map = map.clone();
-
-    PolygonList inner_contours = ConstructObstacles(map, obstacle_contours);
-
-//    PointTypeTestExternal(map, external_contour);
-
-    std::vector<Event> external_event_list = EventListGeneratorExternal(map, external_contour);
-    std::vector<Event> inner_event_list = EventListGenerator(map, inner_contours);
-
-    std::vector<Event> event_list;
-    event_list.insert(event_list.end(), external_event_list.begin(), external_event_list.end());
-    event_list.insert(event_list.end(), inner_event_list.begin(), inner_event_list.end());
-    std::sort(event_list.begin(), event_list.end());
-
-    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
-
-    std::vector<CellNode> cell_graph;
-    std::vector<int> cell_index_slice;
-    std::vector<int> original_cell_index_slice;
-    ExecuteCellDecompositionOverall(cell_graph, cell_index_slice, original_cell_index_slice, slice_list);
-
-//    for(int i = 0; i < cell_graph.size(); i++)
+//    int robot_radius = 20;
+//
+//    cv::Mat map = cv::Mat(600, 600, CV_8UC3, cv::Scalar(255, 255, 255));
+//
+//    std::vector<cv::Point> wall_contour = {cv::Point(20,20),cv::Point(20,200),cv::Point(100,200),cv::Point(100,399),
+//                cv::Point(20,399),cv::Point(20, 579),cv::Point(200,579),cv::Point(200,499),cv::Point(399,499),cv::Point(399,579),
+//                cv::Point(579,579),cv::Point(579,399),cv::Point(499,399),cv::Point(499,200),cv::Point(579,200),cv::Point(579,20),
+//                cv::Point(349,20),cv::Point(349,100),cv::Point(250,100),cv::Point(250,20)};
+//
+//    std::vector<std::vector<cv::Point>> wall_contours = {wall_contour};
+//    cv::fillPoly(map, wall_contours, cv::Scalar(0, 0, 0));
+//
+//    Polygon external_contour = ConstructCave(map, wall_contour);
+//
+//    std::vector<cv::Point> obstacle_contour = {cv::Point(220,220),cv::Point(220,380),cv::Point(380,380),cv::Point(380,220)};
+//    std::vector<std::vector<cv::Point>> obstacle_contours = {obstacle_contour};
+//    cv::fillPoly(map, obstacle_contours, cv::Scalar(255, 255, 255));
+//
+//    cv::Mat original_map = map.clone();
+//
+//    PolygonList inner_contours = ConstructObstacles(map, obstacle_contours);
+//
+////    PointTypeTestExternal(map, external_contour);
+//
+//    std::vector<Event> external_event_list = EventListGeneratorExternal(map, external_contour);
+//    std::vector<Event> inner_event_list = EventListGenerator(map, inner_contours);
+//
+//    std::vector<Event> event_list;
+//    event_list.insert(event_list.end(), external_event_list.begin(), external_event_list.end());
+//    event_list.insert(event_list.end(), inner_event_list.begin(), inner_event_list.end());
+//    std::sort(event_list.begin(), event_list.end());
+//
+//    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
+//
+//    std::vector<CellNode> cell_graph;
+//    std::vector<int> cell_index_slice;
+//    std::vector<int> original_cell_index_slice;
+//    ExecuteCellDecompositionOverall(cell_graph, cell_index_slice, original_cell_index_slice, slice_list);
+//
+////    for(int i = 0; i < cell_graph.size(); i++)
+////    {
+////        DrawCells(map, cell_graph[i], cv::Scalar(0, 255, 255));
+////        cv::imshow("map", map);
+////        cv::waitKey(0);
+////    }
+//
+//    cv::imshow("map", map);
+//    cv::waitKey(0);
+//
+//    Point2D start = Point2D(200, 200);
+//    int color_repeated_times = 50;
+//    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, false, color_repeated_times);
+//
+//    std::deque<Point2D> path;
+//    for(int i = 0; i < original_planning_path.size(); i++)
 //    {
-//        DrawCells(map, cell_graph[i], cv::Scalar(0, 255, 255));
-//        cv::imshow("map", map);
-//        cv::waitKey(0);
+//        path.insert(path.end(), original_planning_path[i].begin(), original_planning_path[i].end());
 //    }
-
-    cv::imshow("map", map);
-    cv::waitKey(0);
-
-    Point2D start = Point2D(200, 200);
-    int color_repeated_times = 50;
-    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, false, color_repeated_times);
-
-    std::deque<Point2D> path;
-    for(int i = 0; i < original_planning_path.size(); i++)
-    {
-        path.insert(path.end(), original_planning_path[i].begin(), original_planning_path[i].end());
-    }
-    double meters_per_pix = 0.02;
-    Eigen::Vector2d curr_direction = {0, -1};
-    std::vector<NavigationMessage> messages = GetNavigationMessage(curr_direction, path, meters_per_pix);
-
-    double dist, global_yaw, local_yaw;
-    for(int i = 0; i < messages.size(); i++)
-    {
-        messages[i].GetMotion(dist, global_yaw, local_yaw);
-        std::cout<<"globally rotate "<<global_yaw<<" degree(locally rotate "<<local_yaw<<" degree) and go forward for "<<dist<<" m."<<std::endl;
-    }
-
-    MoveAsPathPlannedTest(original_map, meters_per_pix, start, messages);
+//    double meters_per_pix = 0.02;
+//    Eigen::Vector2d curr_direction = {0, -1};
+//    std::vector<NavigationMessage> messages = GetNavigationMessage(curr_direction, path, meters_per_pix);
+//
+//    double dist, global_yaw, local_yaw;
+//    for(int i = 0; i < messages.size(); i++)
+//    {
+//        messages[i].GetMotion(dist, global_yaw, local_yaw);
+//        std::cout<<"globally rotate "<<global_yaw<<" degree(locally rotate "<<local_yaw<<" degree) and go forward for "<<dist<<" m."<<std::endl;
+//    }
+//
+//    MoveAsPathPlannedTest(original_map, meters_per_pix, start, messages);
 
 
 
