@@ -7,3 +7,5 @@
 
 ![](https://github.com/RicheyHuang/BoustrophedonCellularDecompositionPathPlanning/blob/master/cleanbot.gif)
 
+**THE PROJECT IS STILL UNFINISHED**
+**MORE NEW FEATURES ARE COMING**
