@@ -1033,7 +1033,7 @@ void AllocateObstacleEventType(const cv::Mat& map, std::vector<Event>& event_lis
         if(event_list[in_out_index].event_type == OUT)
         {
             neighbor_point = Point2D(event_list[in_out_index].x+1, event_list[in_out_index].y);
-            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255))
+            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0))
             {
                 event_list[in_out_index].event_type = INNER_OUT;
             }
@@ -1042,7 +1042,7 @@ void AllocateObstacleEventType(const cv::Mat& map, std::vector<Event>& event_lis
         if(event_list[in_out_index].event_type == OUT_TOP)
         {
             neighbor_point = Point2D(event_list[in_out_index].x+1, event_list[in_out_index].y);
-            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255))
+            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0))
             {
                 event_list[in_out_index].event_type = INNER_OUT_TOP;
             }
@@ -1051,7 +1051,7 @@ void AllocateObstacleEventType(const cv::Mat& map, std::vector<Event>& event_lis
         if(event_list[in_out_index].event_type == OUT_BOTTOM)
         {
             neighbor_point = Point2D(event_list[in_out_index].x+1, event_list[in_out_index].y);
-            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255))
+            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0))
             {
                 event_list[in_out_index].event_type = INNER_OUT_BOTTOM;
             }
@@ -1061,7 +1061,7 @@ void AllocateObstacleEventType(const cv::Mat& map, std::vector<Event>& event_lis
         if(event_list[in_out_index].event_type == IN)
         {
             neighbor_point = Point2D(event_list[in_out_index].x-1, event_list[in_out_index].y);
-            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255))
+            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0))
             {
                 event_list[in_out_index].event_type = INNER_IN;
             }
@@ -1071,7 +1071,7 @@ void AllocateObstacleEventType(const cv::Mat& map, std::vector<Event>& event_lis
         if(event_list[in_out_index].event_type == IN_TOP)
         {
             neighbor_point = Point2D(event_list[in_out_index].x-1, event_list[in_out_index].y);
-            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255))
+            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0))
             {
                 event_list[in_out_index].event_type = INNER_IN_TOP;
             }
@@ -1080,7 +1080,7 @@ void AllocateObstacleEventType(const cv::Mat& map, std::vector<Event>& event_lis
         if(event_list[in_out_index].event_type == IN_BOTTOM)
         {
             neighbor_point = Point2D(event_list[in_out_index].x-1, event_list[in_out_index].y);
-            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255))
+            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0))
             {
                 event_list[in_out_index].event_type = INNER_IN_BOTTOM;
             }
@@ -1402,7 +1402,7 @@ void AllocateWallEventType(const cv::Mat& map, std::vector<Event>& event_list)
         if(event_list[in_out_index].event_type == OUT_EX)
         {
             neighbor_point = Point2D(event_list[in_out_index].x+1, event_list[in_out_index].y);
-            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0) && neighbor_point.x < map.cols)
+            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255) && neighbor_point.x < map.cols)
             {
                 event_list[in_out_index].event_type = INNER_OUT_EX;
             }
@@ -1411,7 +1411,7 @@ void AllocateWallEventType(const cv::Mat& map, std::vector<Event>& event_list)
         if(event_list[in_out_index].event_type == OUT_TOP_EX)
         {
             neighbor_point = Point2D(event_list[in_out_index].x+1, event_list[in_out_index].y);
-            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0) && neighbor_point.x < map.cols)
+            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255) && neighbor_point.x < map.cols)
             {
                 event_list[in_out_index].event_type = INNER_OUT_TOP_EX;
             }
@@ -1420,7 +1420,7 @@ void AllocateWallEventType(const cv::Mat& map, std::vector<Event>& event_list)
         if(event_list[in_out_index].event_type == OUT_BOTTOM_EX)
         {
             neighbor_point = Point2D(event_list[in_out_index].x+1, event_list[in_out_index].y);
-            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0) && neighbor_point.x < map.cols)
+            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255) && neighbor_point.x < map.cols)
             {
                 event_list[in_out_index].event_type = INNER_OUT_BOTTOM_EX;
             }
@@ -1430,7 +1430,7 @@ void AllocateWallEventType(const cv::Mat& map, std::vector<Event>& event_list)
         if(event_list[in_out_index].event_type == IN_EX)
         {
             neighbor_point = Point2D(event_list[in_out_index].x-1, event_list[in_out_index].y);
-            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0) && neighbor_point.x>=0)
+            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255) && neighbor_point.x>=0)
             {
                 event_list[in_out_index].event_type = INNER_IN_EX;
             }
@@ -1440,7 +1440,7 @@ void AllocateWallEventType(const cv::Mat& map, std::vector<Event>& event_list)
         if(event_list[in_out_index].event_type == IN_TOP_EX)
         {
             neighbor_point = Point2D(event_list[in_out_index].x-1, event_list[in_out_index].y);
-            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0) && neighbor_point.x>=0)
+            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255) && neighbor_point.x>=0)
             {
                 event_list[in_out_index].event_type = INNER_IN_TOP_EX;
             }
@@ -1449,7 +1449,7 @@ void AllocateWallEventType(const cv::Mat& map, std::vector<Event>& event_list)
         if(event_list[in_out_index].event_type == IN_BOTTOM_EX)
         {
             neighbor_point = Point2D(event_list[in_out_index].x-1, event_list[in_out_index].y);
-            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(0,0,0) && neighbor_point.x>=0)
+            if(map.at<cv::Vec3b>(neighbor_point.y, neighbor_point.x) == cv::Vec3b(255,255,255) && neighbor_point.x>=0)
             {
                 event_list[in_out_index].event_type = INNER_IN_BOTTOM_EX;
             }
@@ -3262,13 +3262,13 @@ Polygon ConstructWall(const cv::Mat& original_map, const std::vector<cv::Point>&
 
 }
 
-std::vector<CellNode> ConsturctCellGraph(const cv::Mat& original_map, const std::vector<std::vector<cv::Point>>& wall_contours, const std::vector<std::vector<cv::Point>>& obstacle_contours, const Polygon& wall, const PolygonList& obstacles)
+std::vector<CellNode> ConstructCellGraph(const cv::Mat& original_map, const std::vector<std::vector<cv::Point>>& wall_contours, const std::vector<std::vector<cv::Point>>& obstacle_contours, const Polygon& wall, const PolygonList& obstacles)
 {
     cv::Mat3b map = cv::Mat3b(original_map.size());
-    map.setTo(cv::Scalar(255, 255, 255));
+    map.setTo(cv::Scalar(0, 0, 0));
 
-    cv::fillPoly(map, wall_contours, cv::Scalar(0, 0, 0));
-    cv::fillPoly(map, obstacle_contours, cv::Scalar(255, 255, 255));
+    cv::fillPoly(map, wall_contours, cv::Scalar(255, 255, 255));
+    cv::fillPoly(map, obstacle_contours, cv::Scalar(0, 0, 0));
 
     std::vector<Event> wall_event_list = GenerateWallEventList(map, wall);
     std::vector<Event> obstacle_event_list = GenerateObstacleEventList(map, obstacles);
@@ -3475,8 +3475,11 @@ std::deque<Point2D> FilterTrajectory(const std::deque<std::deque<Point2D>>& raw_
     return trajectory;
 }
 
-void VisualizeTrajectory(cv::Mat& original_map, const std::deque<Point2D>& path, int robot_radius, int vis_mode, int colors=palette_colors)
+void VisualizeTrajectory(const cv::Mat& original_map, const std::deque<Point2D>& path, int robot_radius, int vis_mode, int colors=palette_colors)
 {
+    cv::Mat3b vis_map;
+    cv::cvtColor(original_map, vis_map, cv::COLOR_GRAY2BGR);
+
     cv::namedWindow("map", cv::WINDOW_NORMAL);
 
     std::deque<cv::Scalar> JetColorMap;
@@ -3486,30 +3489,30 @@ void VisualizeTrajectory(cv::Mat& original_map, const std::deque<Point2D>& path,
     switch (vis_mode)
     {
         case PATH_MODE:
-            original_map.at<cv::Vec3b>(path.front().y, path.front().x)=cv::Vec3b(uchar(JetColorMap.front()[0]),uchar(JetColorMap.front()[1]),uchar(JetColorMap.front()[2]));
-            cv::imshow("map", original_map);
+            vis_map.at<cv::Vec3b>(path.front().y, path.front().x)=cv::Vec3b(uchar(JetColorMap.front()[0]),uchar(JetColorMap.front()[1]),uchar(JetColorMap.front()[2]));
+            cv::imshow("map", vis_map);
             cv::waitKey(0);
 
             for(const auto& position:path)
             {
-                original_map.at<cv::Vec3b>(position.y, position.x)=cv::Vec3b(uchar(JetColorMap.front()[0]),uchar(JetColorMap.front()[1]),uchar(JetColorMap.front()[2]));
+                vis_map.at<cv::Vec3b>(position.y, position.x)=cv::Vec3b(uchar(JetColorMap.front()[0]),uchar(JetColorMap.front()[1]),uchar(JetColorMap.front()[2]));
                 UpdateColorMap(JetColorMap);
-                cv::imshow("map", original_map);
+                cv::imshow("map", vis_map);
                 cv::waitKey(10);
             }
             break;
         case ROBOT_MODE:
-            cv::circle(original_map, cv::Point(path.front().x, path.front().y), robot_radius, cv::Scalar(255, 204, 153), -1);
-            cv::imshow("map", original_map);
+            cv::circle(vis_map, cv::Point(path.front().x, path.front().y), robot_radius, cv::Scalar(255, 204, 153), -1);
+            cv::imshow("map", vis_map);
             cv::waitKey(0);
 
             for(const auto& position:path)
             {
-                cv::circle(original_map, cv::Point(position.x, position.y), robot_radius, cv::Scalar(255, 204, 153), -1);
-                cv::imshow("map", original_map);
+                cv::circle(vis_map, cv::Point(position.x, position.y), robot_radius, cv::Scalar(255, 204, 153), -1);
+                cv::imshow("map", vis_map);
                 cv::waitKey(10);
 
-                cv::circle(original_map, cv::Point(position.x, position.y), robot_radius, cv::Scalar(255, 229, 204), -1);
+                cv::circle(vis_map, cv::Point(position.x, position.y), robot_radius, cv::Scalar(255, 229, 204), -1);
             }
             break;
         default:
@@ -3518,6 +3521,7 @@ void VisualizeTrajectory(cv::Mat& original_map, const std::deque<Point2D>& path,
 
     cv::waitKey(0);
 }
+
 
 
 
@@ -4452,36 +4456,62 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
 
 
 // 静态地图路径规划测试多边形
-std::vector<cv::Point> handcrafted_polygon_1_1 = {cv::Point(200,300), cv::Point(300,200), cv::Point(200,100), cv::Point(100,200)};
-std::vector<cv::Point> handcrafted_polygon_1_2 = {cv::Point(300,350), cv::Point(350,300), cv::Point(300,250), cv::Point(250,300)};
+std::vector<std::vector<cv::Point>> ConstructHandcraftedContours1()
+{
+    std::vector<cv::Point> handcrafted_polygon_1_1 = {cv::Point(200,300), cv::Point(300,200), cv::Point(200,100), cv::Point(100,200)};
+    std::vector<cv::Point> handcrafted_polygon_1_2 = {cv::Point(300,350), cv::Point(350,300), cv::Point(300,250), cv::Point(250,300)};
+    std::vector<std::vector<cv::Point>> contours = {handcrafted_polygon_1_1, handcrafted_polygon_1_2};
+    return contours;
+}
 
-std::vector<cv::Point> handcrafted_polygon_2 = {cv::Point(125,125), cv::Point(125,175), cv::Point(225,175), cv::Point(225,225),
-                                                cv::Point(175,250), cv::Point(225,300), cv::Point(125,325), cv::Point(125,375),
-                                                cv::Point(375,375), cv::Point(375,325), cv::Point(275,325), cv::Point(275,275),
-                                                cv::Point(325,250), cv::Point(275,200), cv::Point(375,175), cv::Point(375,125)};
+std::vector<std::vector<cv::Point>> ConstructHandcraftedContours2()
+{
+    std::vector<cv::Point> handcrafted_polygon_2 = {cv::Point(125,125), cv::Point(125,175), cv::Point(225,175), cv::Point(225,225),
+                                                    cv::Point(175,250), cv::Point(225,300), cv::Point(125,325), cv::Point(125,375),
+                                                    cv::Point(375,375), cv::Point(375,325), cv::Point(275,325), cv::Point(275,275),
+                                                    cv::Point(325,250), cv::Point(275,200), cv::Point(375,175), cv::Point(375,125)};
+    std::vector<std::vector<cv::Point>> contours = {handcrafted_polygon_2};
+    return contours;
+}
 
-std::vector<cv::Point> handcrafted_polygon_3 = {cv::Point(100,100), cv::Point(100,500), cv::Point(150,500), cv::Point(150,150),
-                                                cv::Point(450,150), cv::Point(450,300), cv::Point(300,300), cv::Point(300,250),
-                                                cv::Point(350,250), cv::Point(350,200), cv::Point(250,200), cv::Point(250,350),
-                                                cv::Point(500,350), cv::Point(500,100)};
+std::vector<std::vector<cv::Point>> ConstructHandcraftedContours3()
+{
+    std::vector<cv::Point> handcrafted_polygon_3 = {cv::Point(100,100), cv::Point(100,500), cv::Point(150,500), cv::Point(150,150),
+                                                    cv::Point(450,150), cv::Point(450,300), cv::Point(300,300), cv::Point(300,250),
+                                                    cv::Point(350,250), cv::Point(350,200), cv::Point(250,200), cv::Point(250,350),
+                                                    cv::Point(500,350), cv::Point(500,100)};
+    std::vector<std::vector<cv::Point>> contours = {handcrafted_polygon_3};
+    return contours;
+}
 
-std::vector<cv::Point> handcrafted_polygon_4_1 = {cv::Point(20,20),  cv::Point(20,200), cv::Point(100,200),cv::Point(100,399),
-                                                  cv::Point(20,399), cv::Point(20, 579),cv::Point(200,579),cv::Point(200,499),cv::Point(399,499),cv::Point(399,579),
-                                                  cv::Point(579,579),cv::Point(579,399),cv::Point(499,399),cv::Point(499,200),cv::Point(579,200),cv::Point(579,20),
-                                                  cv::Point(349,20), cv::Point(349,100),cv::Point(250,100),cv::Point(250,20)};
-std::vector<cv::Point> handcrafted_polygon_4_2 = {cv::Point(220,220),cv::Point(220,380),cv::Point(380,380),cv::Point(380,220)};
-
+std::vector<std::vector<cv::Point>> ConstructHandcraftedContours4()
+{
+    std::vector<cv::Point> handcrafted_polygon_4_1 = {cv::Point(20,20),  cv::Point(20,200), cv::Point(100,200),cv::Point(100,399),
+                                                      cv::Point(20,399), cv::Point(20, 579),cv::Point(200,579),cv::Point(200,499),cv::Point(399,499),cv::Point(399,579),
+                                                      cv::Point(579,579),cv::Point(579,399),cv::Point(499,399),cv::Point(499,200),cv::Point(579,200),cv::Point(579,20),
+                                                      cv::Point(349,20), cv::Point(349,100),cv::Point(250,100),cv::Point(250,20)};
+    std::vector<cv::Point> handcrafted_polygon_4_2 = {cv::Point(220,220),cv::Point(220,380),cv::Point(380,380),cv::Point(380,220)};
+    std::vector<std::vector<cv::Point>> contours = {handcrafted_polygon_4_1, handcrafted_polygon_4_2};
+    return contours;
+}
 
 // 动态地图路径规划测试多边形
-std::vector<cv::Point> handcrafted_polygon_5_1 = {cv::Point(125, 50), cv::Point(50, 125), cv::Point(125, 200), cv::Point(200, 125)};
-std::vector<cv::Point> handcrafted_polygon_5_2 = {cv::Point(80, 300), cv::Point(80, 400), cv::Point(160, 400), cv::Point(120, 350),
-                                                  cv::Point(160, 300)};
-std::vector<cv::Point> handcrafted_polygon_5_3 = {cv::Point(100, 450), cv::Point(100, 550), cv::Point(140, 550), cv::Point(140, 450)};
-std::vector<cv::Point> handcrafted_polygon_5_4 = {cv::Point(300, 150), cv::Point(300, 250), cv::Point(400, 220), cv::Point(400, 180)};
+std::vector<std::vector<cv::Point>> ConstructHandcraftedContours5()
+{
+    std::vector<cv::Point> handcrafted_polygon_5_1 = {cv::Point(125, 50), cv::Point(50, 125), cv::Point(125, 200), cv::Point(200, 125)};
+    std::vector<cv::Point> handcrafted_polygon_5_2 = {cv::Point(80, 300), cv::Point(80, 400), cv::Point(160, 400), cv::Point(120, 350),
+                                                      cv::Point(160, 300)};
+    std::vector<cv::Point> handcrafted_polygon_5_3 = {cv::Point(100, 450), cv::Point(100, 550), cv::Point(140, 550), cv::Point(140, 450)};
+    std::vector<cv::Point> handcrafted_polygon_5_4 = {cv::Point(300, 150), cv::Point(300, 250), cv::Point(400, 220), cv::Point(400, 180)};
+    std::vector<std::vector<cv::Point>> contours = {handcrafted_polygon_5_1, handcrafted_polygon_5_2, handcrafted_polygon_5_3, handcrafted_polygon_5_4};
+    return contours;
+}
 
 
 
-void VisualizeObstaclePointType(cv::Mat& map, const Polygon& obstacle)
+
+
+void CheckObstaclePointType(cv::Mat& map, const Polygon& obstacle)
 {
     PolygonList obstacles = {obstacle};
 
@@ -4564,7 +4594,7 @@ void VisualizeObstaclePointType(cv::Mat& map, const Polygon& obstacle)
     }
 }
 
-void VisualizeWallPointType(cv::Mat& map, const Polygon& wall)
+void CheckWallPointType(cv::Mat& map, const Polygon& wall)
 {
     std::vector<Event> event_list = GenerateWallEventList(map, wall);
     for(auto event: event_list)
@@ -4644,11 +4674,168 @@ void VisualizeWallPointType(cv::Mat& map, const Polygon& wall)
     }
 }
 
+void CheckPointType(const cv::Mat& map, const Polygon& wall, const PolygonList& obstacles)
+{
+    cv::Mat map_ = map.clone();
 
+    cv::namedWindow("map", cv::WINDOW_NORMAL);
 
+    for(const auto& obstacle:obstacles)
+    {
+        CheckObstaclePointType(map_, obstacle);
+        cv::imshow("map", map_);
+        cv::waitKey(0);
+        std::cout<<std::endl;
+    }
 
+    CheckWallPointType(map_, wall);
+    cv::imshow("map", map_);
+    cv::waitKey(0);
+}
 
-void CheckPath(const std::deque<Point2D>& path)
+void CheckSlicelist(const std::deque<std::deque<Event>>& slice_list)
+{
+    std::deque<Event> slice;
+    for(int i = 0; i < slice_list.size(); i++)
+    {
+        slice = FilterSlice(slice_list[i]);
+        std::cout<<"slice "<<i<<": ";
+        for(const auto& event : slice)
+        {
+            EventType type = event.event_type;
+            switch (type)
+            {
+                case IN:
+                    std::cout<<"IN; ";
+                    break;
+                case IN_TOP:
+                    std::cout<<"IN_TOP; ";
+                    break;
+                case IN_BOTTOM:
+                    std::cout<<"IN_BOTTOM; ";
+                    break;
+                case OUT:
+                    std::cout<<"OUT; ";
+                    break;
+                case OUT_TOP:
+                    std::cout<<"OUT_TOP; ";
+                    break;
+                case OUT_BOTTOM:
+                    std::cout<<"OUT_BOTTOM; ";
+                    break;
+                case INNER_IN:
+                    std::cout<<"INNER_IN; ";
+                    break;
+                case INNER_IN_TOP:
+                    std::cout<<"INNER_IN_TOP; ";
+                    break;
+                case INNER_IN_BOTTOM:
+                    std::cout<<"INNER_IN_BOTTOM; ";
+                    break;
+                case INNER_OUT:
+                    std::cout<<"INNER_OUT; ";
+                    break;
+                case INNER_OUT_TOP:
+                    std::cout<<"INNER_OUT_TOP; ";
+                    break;
+                case INNER_OUT_BOTTOM:
+                    std::cout<<"INNER_OUT_BOTTOM; ";
+                    break;
+                case IN_EX:
+                    std::cout<<"IN_EX; ";
+                    break;
+                case IN_TOP_EX:
+                    std::cout<<"IN_TOP_EX; ";
+                    break;
+                case IN_BOTTOM_EX:
+                    std::cout<<"IN_BOTTOM_EX; ";
+                    break;
+                case OUT_EX:
+                    std::cout<<"OUT_EX; ";
+                    break;
+                case OUT_TOP_EX:
+                    std::cout<<"OUT_TOP_EX; ";
+                    break;
+                case OUT_BOTTOM_EX:
+                    std::cout<<"OUT_BOTTOM_EX; ";
+                    break;
+                case INNER_IN_EX:
+                    std::cout<<"INNER_IN_EX; ";
+                    break;
+                case INNER_IN_TOP_EX:
+                    std::cout<<"INNER_IN_TOP_EX; ";
+                    break;
+                case INNER_IN_BOTTOM_EX:
+                    std::cout<<"INNER_IN_BOTTOM_EX; ";
+                    break;
+                case INNER_OUT_EX:
+                    std::cout<<"INNER_OUT_EX; ";
+                    break;
+                case INNER_OUT_TOP_EX:
+                    std::cout<<"INNER_OUT_TOP_EX; ";
+                    break;
+                case INNER_OUT_BOTTOM_EX:
+                    std::cout<<"INNER_OUT_BOTTOM_EX; ";
+                    break;
+                case MIDDLE:
+                    std::cout<<"MIDDLE; ";
+                    break;
+                case CEILING:
+                    std::cout<<"CEILING; ";
+                    break;
+                case FLOOR:
+                    std::cout<<"FLOOR; ";
+                    break;
+                case UNALLOCATED:
+                    std::cout<<"UNALLOCATED; ";
+                    break;
+            }
+        }
+        std::cout<<std::endl;
+    }
+}
+
+void CheckExtractedContours(const cv::Mat& map, const std::vector<std::vector<cv::Point>>& contours)
+{
+    cv::namedWindow("map", cv::WINDOW_NORMAL);
+
+    cv::Mat3b canvas = cv::Mat3b(map.size(), CV_8U);
+    canvas.setTo(cv::Scalar(0,0,0));
+
+    for(int i = 0; i<=contours.size()-1; i++)
+    {
+        cv::drawContours(canvas, contours, i, cv::Scalar(255, 0, 0));
+        cv::imshow("map", canvas);
+        cv::waitKey(0);
+    }
+}
+
+void CheckGeneratedCells(const cv::Mat& map, const std::vector<CellNode>& cell_graph)
+{
+    cv::Mat map_ = map.clone();
+    cv::namedWindow("map", cv::WINDOW_NORMAL);
+
+    for(const auto& cell : cell_graph)
+    {
+        DrawCells(map_, cell, cv::Scalar(255, 0, 255));
+        cv::imshow("map", map_);
+        cv::waitKey(0);
+    }
+}
+
+void CheckPathNodes(const std::deque<std::deque<Point2D>>& path)
+{
+    for(const auto& subpath : path)
+    {
+        for(const auto& point : subpath)
+        {
+            std::cout<<point.x<<", "<<point.y<<std::endl;
+        }
+        std::cout<<std::endl;
+    }
+}
+
+void CheckPathConsistency(const std::deque<Point2D>& path)
 {
     int breakpoints = 0;
     int duplicates = 0;
@@ -4669,6 +4856,114 @@ void CheckPath(const std::deque<Point2D>& path)
     }
     std::cout<<"breakpoints: "<<breakpoints<<std::endl;
     std::cout<<"duplicates: "<<duplicates<<std::endl;
+}
+
+void CheckMotionCommands(const std::vector<NavigationMessage>& navigation_messages)
+{
+    double dist = 0.0, global_yaw = 0.0, local_yaw = 0.0;
+    for(auto message : navigation_messages)
+    {
+        message.GetMotion(dist, global_yaw, local_yaw);
+        std::cout<<"globally rotate "<<global_yaw<<" degree(locally rotate "<<local_yaw<<" degree) and go forward for "<<dist<<" m."<<std::endl;
+    }
+}
+
+
+// 使用图像数据
+
+void StaticPathPlanningExample1()
+{
+    double meters_per_pix = 0.02;
+    double robot_size_in_meters = 0.15;
+
+    int robot_radius = ComputeRobotRadius(meters_per_pix, robot_size_in_meters);
+
+    cv::Mat1b map = ReadMap("../map.png");
+    map = PreprocessMap(map);
+
+    std::vector<std::vector<cv::Point>> obstacle_contours;
+    std::vector<std::vector<cv::Point>> wall_contours;
+    ExtractContours(map, wall_contours, obstacle_contours, robot_radius);
+
+    Polygon wall = ConstructWall(map, wall_contours.front());
+    PolygonList obstacles = ConstructObstacles(map, obstacle_contours);
+
+    std::vector<CellNode> cell_graph = ConstructCellGraph(map, wall_contours, obstacle_contours, wall, obstacles);
+
+    Point2D start = Point2D(map.cols/2, map.rows/2);
+    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, false);
+
+    std::deque<Point2D> path = FilterTrajectory(original_planning_path);
+    CheckPathConsistency(path);
+
+    VisualizeTrajectory(map, path, robot_radius, PATH_MODE);
+
+    Eigen::Vector2d curr_direction = {0, -1};
+    std::vector<NavigationMessage> messages = GetNavigationMessage(curr_direction, path, meters_per_pix);
+    CheckMotionCommands(messages);
+}
+
+void StaticPathPlanningExample2()
+{
+    int robot_radius = 5;
+
+    cv::Mat1b map = ReadMap("../complicate_map.png");
+    map = PreprocessMap(map);
+
+    std::vector<std::vector<cv::Point>> wall_contours;
+    std::vector<std::vector<cv::Point>> obstacle_contours;
+    ExtractRawContours(map, wall_contours, obstacle_contours);
+
+    Polygon wall = ConstructWall(map, wall_contours.front());
+    PolygonList obstacles = ConstructObstacles(map, obstacle_contours);
+
+    std::vector<CellNode> cell_graph = ConstructCellGraph(map, wall_contours, obstacle_contours, wall, obstacles);
+
+    Point2D start = cell_graph.front().ceiling.front();
+    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, false);
+
+    std::deque<Point2D> path = FilterTrajectory(original_planning_path);
+    CheckPathConsistency(path);
+
+    VisualizeTrajectory(map, path, robot_radius, PATH_MODE);
+}
+
+
+// 使用构造数据
+void StaticPathPlanningExample3()
+{
+    std::vector<std::vector<cv::Point>> contours = ConstructHandcraftedContours1();
+
+}
+
+void StaticPathPlanningExample4()
+{
+    std::vector<std::vector<cv::Point>> contours = ConstructHandcraftedContours2();
+}
+
+void StaticPathPlanningExample5()
+{
+    std::vector<std::vector<cv::Point>> contours = ConstructHandcraftedContours3();
+}
+
+void StaticPathPlanningExample6()
+{
+    std::vector<std::vector<cv::Point>> contours = ConstructHandcraftedContours4();
+}
+
+// 未完成
+void DynamicPathPlanningExample1()
+{
+
+}
+
+
+
+void TestExamples()
+{
+    StaticPathPlanningExample1();
+
+    StaticPathPlanningExample2();
 }
 
 //void MoveAsPathPlannedTest(cv::Mat& map, double meters_per_pix, const Point2D& start, const std::vector<NavigationMessage>& motion_commands)
@@ -4784,251 +5079,12 @@ void CheckPath(const std::deque<Point2D>& path)
 
 int main()
 {
-
-//  test for real pics
-
-//    double meters_per_pix = 0.02;
-//
-//    double robot_size_in_meters = 0.15;
-//
-//    int robot_radius = int(robot_size_in_meters / meters_per_pix);
-//
-//    cv::namedWindow("map", cv::WINDOW_NORMAL);
-//
-//    cv::Mat image = cv::imread("../map.png", CV_8UC1);
-//
-//    cv::Mat vis_map;
-//    cv::cvtColor(image, vis_map, cv::COLOR_GRAY2BGR);
-//    vis_map.convertTo(vis_map, CV_8UC3);
-//
-//    std::vector<std::vector<cv::Point>> obstacle_contours;
-//    std::vector<std::vector<cv::Point>> wall_contours;
-//
-//    ExtractContours(image, wall_contours, obstacle_contours, robot_radius);
-//
-//    cv::Mat map = cv::Mat(image.size(), CV_8UC3, cv::Scalar(255, 255, 255));
-//
-//    cv::fillPoly(map, wall_contours, cv::Scalar(0, 0, 0));
-//
-//    Polygon external_contour = ConstructWall(map, wall_contours.front());
-//
-//    std::vector<Event> wall_event_list = GenerateWallEventList(map, external_contour);
-//    std::vector<Event> obstacle_event_list;
-//    std::deque<std::deque<Event>> slice_list = SliceListGenerator(wall_event_list, obstacle_event_list);
-//
-//    std::vector<CellNode> cell_graph;
-//    std::vector<int> cell_index_slice;
-//    std::vector<int> original_cell_index_slice;
-//    ExecuteCellDecomposition(cell_graph, cell_index_slice, original_cell_index_slice, slice_list);
-//
-//
-//
-//    Point2D start = Point2D(map.cols/2, map.rows/2);
-//    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, false);
-//
-////    for debugging
-////    for(int i = 0; i < original_planning_path.size(); i++)
-////    {
-////        for(int j = 0; j < original_planning_path[i].size(); j++)
-////        {
-////            std::cout<<original_planning_path[i][j].x<<", "<<original_planning_path[i][j].y<<std::endl;
-////        }
-////        std::cout<<std::endl;
-//
-//
-//    std::deque<Point2D> path = FilterTrajectory(original_planning_path);
-//
-//    std::cout<<"path length: "<<path.size()<<std::endl;
-//
-//    CheckPath(path);
-//
-//    VisualizeTrajectory(vis_map, path, robot_radius, PATH_MODE);
-//
-//
-//    Eigen::Vector2d curr_direction = {0, -1};
-//    std::vector<NavigationMessage> messages = GetNavigationMessage(curr_direction, path, meters_per_pix);
-//
-//    double dist, global_yaw, local_yaw;
-//    for(int i = 0; i < messages.size(); i++)
-//    {
-//        messages[i].GetMotion(dist, global_yaw, local_yaw);
-//        std::cout<<"globally rotate "<<global_yaw<<" degree(locally rotate "<<local_yaw<<" degree) and go forward for "<<dist<<" m."<<std::endl;
-//    }
+    TestExamples();
 
 
 
 
 
-
-//  test for extract wall contour and obstacle contour
-
-    cv::namedWindow("map", cv::WINDOW_NORMAL);
-    cv::Mat1b original_image = cv::imread("../complicate_map.png", CV_8U); // 默认是空闲区域为白色，障碍物为黑色
-
-    original_image = PreprocessMap(original_image);
-
-////  for debugging
-////    cv::Mat canvas = cv::Mat::zeros(original_image.size(), CV_8UC3);
-////    for(int i = 0; i<=contours.size()-1; i++)
-////    {
-////        cv::drawContours(canvas, contours, i, cv::Scalar(255, 0, 0));
-////        cv::imshow("map", canvas);
-////        cv::waitKey(0);
-////    }
-
-    // test results accquired above
-
-    int robot_radius = 5;
-
-    std::vector<std::vector<cv::Point>> wall_contours;
-    std::vector<std::vector<cv::Point>> obstacle_contours;
-    ExtractRawContours(original_image, wall_contours, obstacle_contours);
-
-    cv::Mat3b map = cv::Mat3b(original_image.size());
-    map.setTo(cv::Scalar(255, 255, 255));
-
-    cv::fillPoly(map, wall_contours, cv::Scalar(0, 0, 0));
-    cv::fillPoly(map, obstacle_contours, cv::Scalar(255, 255, 255));
-
-    Polygon wall = ConstructWall(map, wall_contours.front());
-    PolygonList obstacles = ConstructObstacles(map, obstacle_contours);
-
-//  for debugging
-//    for(auto inner_contour:inner_contours)
-//    {
-//        PointTypeTest(map, inner_contour);
-//        cv::imshow("map", map);
-//        cv::waitKey(0);
-//        std::cout<<std::endl;
-//    }
-//
-//    PointTypeTestExternal(map, external_contour);
-//    cv::imshow("map", map);
-//    cv::waitKey(0);
-
-
-    std::vector<Event> wall_event_list = GenerateWallEventList(map, wall);
-    std::vector<Event> obstacle_event_list = GenerateObstacleEventList(map, obstacles);
-    std::deque<std::deque<Event>> slice_list = SliceListGenerator(wall_event_list, obstacle_event_list);
-
-//    for debugging
-//    std::deque<Event> slice;
-//    for(int i = 0; i < slice_list.size(); i++)
-//    {
-//        slice = FilterSlice(slice_list[i]);
-//        std::cout<<"slice "<<i<<": ";
-//        for(int j = 0; j < slice.size(); j++)
-//        {
-//            EventType type = slice[j].event_type;
-//            switch (type)
-//            {
-//                case IN:
-//                    std::cout<<"IN; ";
-//                    break;
-//                case IN_TOP:
-//                    std::cout<<"IN_TOP; ";
-//                    break;
-//                case IN_BOTTOM:
-//                    std::cout<<"IN_BOTTOM; ";
-//                    break;
-//                case OUT:
-//                    std::cout<<"OUT; ";
-//                    break;
-//                case OUT_TOP:
-//                    std::cout<<"OUT_TOP; ";
-//                    break;
-//                case OUT_BOTTOM:
-//                    std::cout<<"OUT_BOTTOM; ";
-//                    break;
-//                case INNER_IN:
-//                    std::cout<<"INNER_IN; ";
-//                    break;
-//                case INNER_IN_TOP:
-//                    std::cout<<"INNER_IN_TOP; ";
-//                    break;
-//                case INNER_IN_BOTTOM:
-//                    std::cout<<"INNER_IN_BOTTOM; ";
-//                    break;
-//                case INNER_OUT:
-//                    std::cout<<"INNER_OUT; ";
-//                    break;
-//                case INNER_OUT_TOP:
-//                    std::cout<<"INNER_OUT_TOP; ";
-//                    break;
-//                case INNER_OUT_BOTTOM:
-//                    std::cout<<"INNER_OUT_BOTTOM; ";
-//                    break;
-//                case IN_EX:
-//                    std::cout<<"IN_EX; ";
-//                    break;
-//                case IN_TOP_EX:
-//                    std::cout<<"IN_TOP_EX; ";
-//                    break;
-//                case IN_BOTTOM_EX:
-//                    std::cout<<"IN_BOTTOM_EX; ";
-//                    break;
-//                case OUT_EX:
-//                    std::cout<<"OUT_EX; ";
-//                    break;
-//                case OUT_TOP_EX:
-//                    std::cout<<"OUT_TOP_EX; ";
-//                    break;
-//                case OUT_BOTTOM_EX:
-//                    std::cout<<"OUT_BOTTOM_EX; ";
-//                    break;
-//                case INNER_IN_EX:
-//                    std::cout<<"INNER_IN_EX; ";
-//                    break;
-//                case INNER_IN_TOP_EX:
-//                    std::cout<<"INNER_IN_TOP_EX; ";
-//                    break;
-//                case INNER_IN_BOTTOM_EX:
-//                    std::cout<<"INNER_IN_BOTTOM_EX; ";
-//                    break;
-//                case INNER_OUT_EX:
-//                    std::cout<<"INNER_OUT_EX; ";
-//                    break;
-//                case INNER_OUT_TOP_EX:
-//                    std::cout<<"INNER_OUT_TOP_EX; ";
-//                    break;
-//                case INNER_OUT_BOTTOM_EX:
-//                    std::cout<<"INNER_OUT_BOTTOM_EX; ";
-//                    break;
-//                case MIDDLE:
-//                    std::cout<<"MIDDLE; ";
-//                    break;
-//                case CEILING:
-//                    std::cout<<"CEILING; ";
-//                    break;
-//                case FLOOR:
-//                    std::cout<<"FLOOR; ";
-//                    break;
-//                case UNALLOCATED:
-//                    std::cout<<"UNALLOCATED; ";
-//                    break;
-//            }
-//        }
-//        std::cout<<std::endl;
-//    }
-
-    std::vector<CellNode> cell_graph;
-    std::vector<int> cell_index_slice;
-    std::vector<int> original_cell_index_slice;
-    ExecuteCellDecomposition(cell_graph, cell_index_slice, original_cell_index_slice, slice_list);
-
-//    for(int i = 0; i < cell_graph.size(); i++)
-//    {
-//        DrawCells(map, cell_graph[i], cv::Scalar(255, 0, 255));
-//        cv::imshow("map", map);
-//        cv::waitKey(0);
-//    }
-
-    cv::imshow("map", map);
-    cv::waitKey(0);
-
-    Point2D start = cell_graph.front().ceiling.front();
-    int color_repeated_times = 20;
-    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, true, color_repeated_times);
 
 
 
@@ -5058,7 +5114,6 @@ int main()
 //
 //    PolygonList inner_contours = ConstructObstacles(map, obstacle_contours);
 //
-////    PointTypeTestExternal(map, external_contour);
 //
 //    std::vector<Event> external_event_list = EventListGeneratorExternal(map, external_contour);
 //    std::vector<Event> inner_event_list = EventListGenerator(map, inner_contours);
@@ -5074,13 +5129,6 @@ int main()
 //    std::vector<int> cell_index_slice;
 //    std::vector<int> original_cell_index_slice;
 //    ExecuteCellDecompositionOverall(cell_graph, cell_index_slice, original_cell_index_slice, slice_list);
-//
-////    for(int i = 0; i < cell_graph.size(); i++)
-////    {
-////        DrawCells(map, cell_graph[i], cv::Scalar(0, 255, 255));
-////        cv::imshow("map", map);
-////        cv::waitKey(0);
-////    }
 //
 //    cv::imshow("map", map);
 //    cv::waitKey(0);
@@ -5105,48 +5153,9 @@ int main()
 //        std::cout<<"globally rotate "<<global_yaw<<" degree(locally rotate "<<local_yaw<<" degree) and go forward for "<<dist<<" m."<<std::endl;
 //    }
 //
-//    MoveAsPathPlannedTest(original_map, meters_per_pix, start, messages);
 
 
 
-
-
-
-//    Contouring path test
-//    cv::namedWindow("map", cv::WINDOW_NORMAL);
-
-//    Point2D collision_point = Point2D(325, 367); //(400, 314) (325, 367)
-//    std::deque<Point2D> contouring_path;
-//    Polygon new_obstacle = GetNewObstacle(curr_map, collision_point, DOWN, contouring_path, robot_radius);
-
-//    for(int i = 0; i < new_obstacle.size(); i++)
-//    {
-//        curr_map.at<cv::Vec3b>(new_obstacle[i].y, new_obstacle[i].x)=cv::Vec3b(0, 255, 0);
-//    }
-//    for(int i = 0; i < contouring_path.size(); i++)
-//    {
-//        curr_map.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(255, 0, 0);
-//    }
-
-//    PointTypeTest(curr_map, new_obstacle);
-
-//    for(int i = 0; i < new_obstacle.size(); i++)
-//    {
-//        std::cout<<"x:"<< new_obstacle[i].x <<", y:"<< new_obstacle[i].y <<std::endl;
-//    }
-
-//    PolygonList obstacles = {new_obstacle};
-//    Polygon map_border = ConstructDefaultMapBorder(curr_map);
-//    std::vector<CellNode> cell_graph = GenerateCells(curr_map, map_border, obstacles);
-//    for(int i = 0; i < cell_graph.size(); i++)
-//    {
-//        DrawCells(curr_map, cell_graph[i], cv::Scalar(0, 255, 255));
-//        cv::imshow("map", curr_map);
-//        cv::waitKey(0);
-//    }
-//    cv::imshow("map", curr_map);
-//    cv::waitKey(0);
-//    std::deque<std::deque<Point2D>> path = StaticPathPlanning(curr_map, cell_graph, Point2D(1,1), robot_radius, true, true, 50);
 
     return 0;
 }
