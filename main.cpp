@@ -11,6 +11,8 @@
 #include <Eigen/Core>
 
 
+/** 地图默认是空闲区域为白色，障碍物为黑色 **/
+
 enum EventType
 {
     IN,
@@ -143,6 +145,12 @@ bool operator!=(const Point2D& p1, const Point2D& p2)
 {
     return !(p1==p2);
 }
+
+
+
+
+/** 路径规划功能函数 **/
+
 
 int WrappedIndex(int index, int list_length)
 {
@@ -3094,6 +3102,8 @@ void UpdateColorMap(std::deque<cv::Scalar>& JetColorMap)
 
 
 
+/** 静态路径规划流程 **/
+
 
 int ComputeRobotRadius(const double& meters_per_pix, const double& robot_size_in_meters)
 {
@@ -3114,7 +3124,6 @@ cv::Mat1b PreprocessMap(const cv::Mat1b& original_map)
     return map;
 }
 
-/** 默认是空闲区域为白色，障碍物为黑色 **/
 void ExtractRawContours(const cv::Mat& original_map, std::vector<std::vector<cv::Point>>& raw_wall_contours, std::vector<std::vector<cv::Point>>& raw_obstacle_contours)
 {
     cv::Mat map = original_map.clone();
@@ -3145,49 +3154,53 @@ void ExtractRawContours(const cv::Mat& original_map, std::vector<std::vector<cv:
     raw_obstacle_contours = contours;
 }
 
-/** 默认是空闲区域为白色，障碍物为黑色 **/
-void ExtractContours(const cv::Mat& original_map, std::vector<std::vector<cv::Point>>& wall_contours, std::vector<std::vector<cv::Point>>& obstacle_contours, int robot_radius)
+void ExtractContours(const cv::Mat& original_map, std::vector<std::vector<cv::Point>>& wall_contours, std::vector<std::vector<cv::Point>>& obstacle_contours, int robot_radius=0)
 {
     ExtractRawContours(original_map, wall_contours, obstacle_contours);
 
-    cv::Mat canvas = cv::Mat(original_map.size(), CV_8UC3, cv::Scalar(255, 255, 255));
-    cv::fillPoly(canvas, wall_contours, cv::Scalar(0, 0, 0));
-    for(const auto& point:wall_contours.front())
+    if(robot_radius != 0)
     {
-        cv::circle(canvas, point, robot_radius, cv::Scalar(255, 255, 255), -1);
-    }
+        cv::Mat3b canvas = cv::Mat3b(original_map.size(), CV_8U);
+        canvas.setTo(cv::Scalar(255, 255, 255));
 
-    cv::fillPoly(canvas, obstacle_contours, cv::Scalar(255, 255, 255));
-    for(const auto& obstacle_contour:obstacle_contours)
-    {
-        for(const auto& point:obstacle_contour)
+        cv::fillPoly(canvas, wall_contours, cv::Scalar(0, 0, 0));
+        for(const auto& point:wall_contours.front())
         {
             cv::circle(canvas, point, robot_radius, cv::Scalar(255, 255, 255), -1);
         }
+
+        cv::fillPoly(canvas, obstacle_contours, cv::Scalar(255, 255, 255));
+        for(const auto& obstacle_contour:obstacle_contours)
+        {
+            for(const auto& point:obstacle_contour)
+            {
+                cv::circle(canvas, point, robot_radius, cv::Scalar(255, 255, 255), -1);
+            }
+        }
+
+        cv::Mat canvas_;
+        cv::cvtColor(canvas, canvas_, cv::COLOR_BGR2GRAY);
+        cv::threshold(canvas_, canvas_, 200, 255, cv::THRESH_BINARY_INV);
+
+        cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(robot_radius,robot_radius), cv::Point(-1,-1));
+        cv::morphologyEx(canvas_, canvas_, cv::MORPH_OPEN, kernel);
+
+        ExtractRawContours(canvas_, wall_contours, obstacle_contours);
+
+
+
+        std::vector<cv::Point> processed_wall_contour;
+        cv::approxPolyDP(cv::Mat(wall_contours.front()), processed_wall_contour, 1, true);
+
+        std::vector<std::vector<cv::Point>> processed_obstacle_contours(obstacle_contours.size());
+        for(int i = 0; i < obstacle_contours.size(); i++)
+        {
+            cv::approxPolyDP(cv::Mat(obstacle_contours[i]), processed_obstacle_contours[i], 1, true);
+        }
+
+        wall_contours = {processed_wall_contour};
+        obstacle_contours = processed_obstacle_contours;
     }
-
-    cv::Mat canvas_;
-    cv::cvtColor(canvas, canvas_, cv::COLOR_BGR2GRAY);
-    cv::threshold(canvas_, canvas_, 200, 255, cv::THRESH_BINARY_INV);
-
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(robot_radius,robot_radius), cv::Point(-1,-1));
-    cv::morphologyEx(canvas_, canvas_, cv::MORPH_OPEN, kernel);
-
-    ExtractRawContours(canvas_, wall_contours, obstacle_contours);
-
-
-
-    std::vector<cv::Point> processed_wall_contour;
-    cv::approxPolyDP(cv::Mat(wall_contours.front()), processed_wall_contour, 1, true);
-
-    std::vector<std::vector<cv::Point>> processed_obstacle_contours(obstacle_contours.size());
-    for(int i = 0; i < obstacle_contours.size(); i++)
-    {
-        cv::approxPolyDP(cv::Mat(obstacle_contours[i]), processed_obstacle_contours[i], 1, true);
-    }
-
-    wall_contours = {processed_wall_contour};
-    obstacle_contours = processed_obstacle_contours;
 }
 
 PolygonList ConstructObstacles(const cv::Mat& original_map, const std::vector<std::vector<cv::Point>>& obstacle_contours)
@@ -3230,9 +3243,9 @@ Polygon ConstructDefaultWall(const cv::Mat& original_map)
     return default_wall;
 }
 
-Polygon ConstructWall(const cv::Mat& original_map, const std::vector<cv::Point>& wall_contour)
+Polygon ConstructWall(const cv::Mat& original_map, std::vector<cv::Point>& wall_contour)
 {
-    Polygon contour;
+    Polygon wall;
 
     if(!wall_contour.empty())
     {
@@ -3241,25 +3254,30 @@ Polygon ConstructWall(const cv::Mat& original_map, const std::vector<cv::Point>&
             cv::LineIterator line(original_map, wall_contour[i], wall_contour[i+1]);
             for(int j = 0; j < line.count-1; j++)
             {
-                contour.emplace_back(Point2D(line.pos().x, line.pos().y));
+                wall.emplace_back(Point2D(line.pos().x, line.pos().y));
                 line++;
             }
         }
         cv::LineIterator line(original_map, wall_contour.back(), wall_contour.front());
         for(int i = 0; i < line.count-1; i++)
         {
-            contour.emplace_back(Point2D(line.pos().x, line.pos().y));
+            wall.emplace_back(Point2D(line.pos().x, line.pos().y));
             line++;
         }
 
-        return contour;
+        return wall;
     }
     else
     {
-        contour = ConstructDefaultWall(original_map);
-        return contour;
-    }
+        wall = ConstructDefaultWall(original_map);
 
+        for(const auto& point : wall)
+        {
+            wall_contour.emplace_back(cv::Point(point.x, point.y));
+        }
+
+        return wall;
+    }
 }
 
 std::vector<CellNode> ConstructCellGraph(const cv::Mat& original_map, const std::vector<std::vector<cv::Point>>& wall_contours, const std::vector<std::vector<cv::Point>>& obstacle_contours, const Polygon& wall, const PolygonList& obstacles)
@@ -3282,8 +3300,11 @@ std::vector<CellNode> ConstructCellGraph(const cv::Mat& original_map, const std:
     return cell_graph;
 }
 
-std::deque<std::deque<Point2D>> StaticPathPlanning(cv::Mat& map, std::vector<CellNode>& cell_graph, const Point2D& start_point, int robot_radius, bool visualize_cells, bool visualize_path, int color_repeats=10)
+std::deque<std::deque<Point2D>> StaticPathPlanning(const cv::Mat& map, std::vector<CellNode>& cell_graph, const Point2D& start_point, int robot_radius, bool visualize_cells, bool visualize_path, int color_repeats=10)
 {
+    cv::Mat3b vis_map;
+    cv::cvtColor(map, vis_map, cv::COLOR_GRAY2BGR);
+
     std::deque<std::deque<Point2D>> global_path;
     std::deque<Point2D> local_path;
     int corner_indicator = TOPLEFT;
@@ -3298,7 +3319,7 @@ std::deque<std::deque<Point2D>> StaticPathPlanning(cv::Mat& map, std::vector<Cel
     if(visualize_cells||visualize_path)
     {
         cv::namedWindow("map", cv::WINDOW_NORMAL);
-        cv::imshow("map", map);
+        cv::imshow("map", vis_map);
     }
 
     if(visualize_cells)
@@ -3314,8 +3335,8 @@ std::deque<std::deque<Point2D>> StaticPathPlanning(cv::Mat& map, std::vector<Cel
 
         for(const auto& cell : cell_graph)
         {
-            DrawCells(map, cell);
-            cv::imshow("map", map);
+            DrawCells(vis_map, cell);
+            cv::imshow("map", vis_map);
             cv::waitKey(500);
         }
     }
@@ -3325,12 +3346,12 @@ std::deque<std::deque<Point2D>> StaticPathPlanning(cv::Mat& map, std::vector<Cel
 
     if(visualize_path)
     {
-        cv::circle(map, cv::Point(start_point.x, start_point.y), 1, cv::Scalar(0, 0, 255), -1);
+        cv::circle(vis_map, cv::Point(start_point.x, start_point.y), 1, cv::Scalar(0, 0, 255), -1);
         for(const auto& point : init_path)
         {
-            map.at<cv::Vec3b>(point.y, point.x)=cv::Vec3b(uchar(JetColorMap.front()[0]),uchar(JetColorMap.front()[1]),uchar(JetColorMap.front()[2]));
+            vis_map.at<cv::Vec3b>(point.y, point.x)=cv::Vec3b(uchar(JetColorMap.front()[0]),uchar(JetColorMap.front()[1]),uchar(JetColorMap.front()[2]));
             UpdateColorMap(JetColorMap);
-            cv::imshow("map", map);
+            cv::imshow("map", vis_map);
             cv::waitKey(1);
         }
     }
@@ -3351,9 +3372,9 @@ std::deque<std::deque<Point2D>> StaticPathPlanning(cv::Mat& map, std::vector<Cel
         {
             for(const auto& point : inner_path)
             {
-                map.at<cv::Vec3b>(point.y, point.x)=cv::Vec3b(uchar(JetColorMap.front()[0]),uchar(JetColorMap.front()[1]),uchar(JetColorMap.front()[2]));
+                vis_map.at<cv::Vec3b>(point.y, point.x)=cv::Vec3b(uchar(JetColorMap.front()[0]),uchar(JetColorMap.front()[1]),uchar(JetColorMap.front()[2]));
                 UpdateColorMap(JetColorMap);
-                cv::imshow("map", map);
+                cv::imshow("map", vis_map);
                 cv::waitKey(1);
             }
         }
@@ -3392,19 +3413,19 @@ std::deque<std::deque<Point2D>> StaticPathPlanning(cv::Mat& map, std::vector<Cel
             {
                 for(const auto& point : link_path.front())
                 {
-//                    map.at<cv::Vec3b>(point.y, point.x)=cv::Vec3b(255, 255, 255);
-                    map.at<cv::Vec3b>(point.y, point.x)=cv::Vec3b(uchar(JetColorMap.front()[0]),uchar(JetColorMap.front()[1]),uchar(JetColorMap.front()[2]));
+//                    vis_map.at<cv::Vec3b>(point.y, point.x)=cv::Vec3b(255, 255, 255);
+                    vis_map.at<cv::Vec3b>(point.y, point.x)=cv::Vec3b(uchar(JetColorMap.front()[0]),uchar(JetColorMap.front()[1]),uchar(JetColorMap.front()[2]));
                     UpdateColorMap(JetColorMap);
-                    cv::imshow("map", map);
+                    cv::imshow("map", vis_map);
                     cv::waitKey(1);
                 }
 
                 for(const auto& point: link_path.back())
                 {
-//                    map.at<cv::Vec3b>(point.y, point.x)=cv::Vec3b(255, 255, 255);
-                    map.at<cv::Vec3b>(point.y, point.x)=cv::Vec3b(uchar(JetColorMap.front()[0]),uchar(JetColorMap.front()[1]),uchar(JetColorMap.front()[2]));
+//                    vis_map.at<cv::Vec3b>(point.y, point.x)=cv::Vec3b(255, 255, 255);
+                    vis_map.at<cv::Vec3b>(point.y, point.x)=cv::Vec3b(uchar(JetColorMap.front()[0]),uchar(JetColorMap.front()[1]),uchar(JetColorMap.front()[2]));
                     UpdateColorMap(JetColorMap);
-                    cv::imshow("map", map);
+                    cv::imshow("map", vis_map);
                     cv::waitKey(1);
                 }
 
@@ -3475,7 +3496,7 @@ std::deque<Point2D> FilterTrajectory(const std::deque<std::deque<Point2D>>& raw_
     return trajectory;
 }
 
-void VisualizeTrajectory(const cv::Mat& original_map, const std::deque<Point2D>& path, int robot_radius, int vis_mode, int colors=palette_colors)
+void VisualizeTrajectory(const cv::Mat& original_map, const std::deque<Point2D>& path, int robot_radius, int vis_mode, int time_interval=10, int colors=palette_colors)
 {
     cv::Mat3b vis_map;
     cv::cvtColor(original_map, vis_map, cv::COLOR_GRAY2BGR);
@@ -3498,7 +3519,7 @@ void VisualizeTrajectory(const cv::Mat& original_map, const std::deque<Point2D>&
                 vis_map.at<cv::Vec3b>(position.y, position.x)=cv::Vec3b(uchar(JetColorMap.front()[0]),uchar(JetColorMap.front()[1]),uchar(JetColorMap.front()[2]));
                 UpdateColorMap(JetColorMap);
                 cv::imshow("map", vis_map);
-                cv::waitKey(10);
+                cv::waitKey(time_interval);
             }
             break;
         case ROBOT_MODE:
@@ -3510,7 +3531,7 @@ void VisualizeTrajectory(const cv::Mat& original_map, const std::deque<Point2D>&
             {
                 cv::circle(vis_map, cv::Point(position.x, position.y), robot_radius, cv::Scalar(255, 204, 153), -1);
                 cv::imshow("map", vis_map);
-                cv::waitKey(10);
+                cv::waitKey(time_interval);
 
                 cv::circle(vis_map, cv::Point(position.x, position.y), robot_radius, cv::Scalar(255, 229, 204), -1);
             }
@@ -3526,6 +3547,7 @@ void VisualizeTrajectory(const cv::Mat& original_map, const std::deque<Point2D>&
 
 
 
+/** 生成运动指令 **/
 
 
 /** 两个输入参数都需要是单位向量, 输出的偏航角为正，则是顺时针旋转，为负则是逆时针旋转 **/
@@ -3692,7 +3714,10 @@ std::vector<NavigationMessage> GetNavigationMessage(const Eigen::Vector2d& curr_
 
 
 
+/** 动态路径规划（未完成） **/
 
+
+// 待重写
 const int UP = 0, UPRIGHT = 1, RIGHT = 2, DOWNRIGHT = 3, DOWN = 4, DOWNLEFT = 5, LEFT = 6, UPLEFT = 7, CENTER = 8;
 const std::vector<int> map_directions = {UP, UPRIGHT, RIGHT, DOWNRIGHT, DOWN, DOWNLEFT, LEFT, UPLEFT};
 
@@ -4443,19 +4468,56 @@ std::deque<Point2D> DynamicPathPlanning(cv::Mat& map, const std::vector<CellNode
     return dynamic_path;
 }
 
+void MoveAsPathPlannedTest(cv::Mat& map, double meters_per_pix, const Point2D& start, const std::vector<NavigationMessage>& motion_commands)
+{
+    int pixs;
+    Point2D begin = start, end;
+
+    cv::namedWindow("original_map", cv::WINDOW_NORMAL);
+
+    for(auto command:motion_commands)
+    {
+        pixs = int(command.GetDistance()/meters_per_pix);
+        if(command.GetGlobalYaw()==0.0)
+        {
+            end = Point2D(begin.x, begin.y-pixs);
+            cv::line(map, cv::Point(begin.x, begin.y), cv::Point(end.x, end.y), cv::Scalar(0, 0, 255));
+            cv::imshow("original_map", map);
+            cv::waitKey(100);
+        }
+        if(command.GetGlobalYaw()==180.0)
+        {
+            end = Point2D(begin.x, begin.y+pixs);
+            cv::line(map, cv::Point(begin.x, begin.y), cv::Point(end.x, end.y), cv::Scalar(255, 0, 0));
+            cv::imshow("original_map", map);
+            cv::waitKey(100);
+        }
+        if(command.GetGlobalYaw()==90.0)
+        {
+            end = Point2D(begin.x+pixs, begin.y);
+            cv::line(map, cv::Point(begin.x, begin.y), cv::Point(end.x, end.y), cv::Scalar(0, 255, 0));
+            cv::imshow("original_map", map);
+            cv::waitKey(100);
+        }
+        if(command.GetGlobalYaw()==-90.0)
+        {
+            end = Point2D(begin.x-pixs, begin.y);
+            cv::line(map, cv::Point(begin.x, begin.y), cv::Point(end.x, end.y), cv::Scalar(0, 255, 255));
+            cv::imshow("original_map", map);
+            cv::waitKey(100);
+        }
+        begin = end;
+    }
+    cv::waitKey(0);
+}
 
 
 
 
+/** 测试数据 **/
 
 
-
-
-
-
-
-
-// 静态地图路径规划测试多边形
+/** 静态地图路径规划测试多边形 **/
 std::vector<std::vector<cv::Point>> ConstructHandcraftedContours1()
 {
     std::vector<cv::Point> handcrafted_polygon_1_1 = {cv::Point(200,300), cv::Point(300,200), cv::Point(200,100), cv::Point(100,200)};
@@ -4495,7 +4557,7 @@ std::vector<std::vector<cv::Point>> ConstructHandcraftedContours4()
     return contours;
 }
 
-// 动态地图路径规划测试多边形
+/** 动态地图路径规划测试多边形 **/
 std::vector<std::vector<cv::Point>> ConstructHandcraftedContours5()
 {
     std::vector<cv::Point> handcrafted_polygon_5_1 = {cv::Point(125, 50), cv::Point(50, 125), cv::Point(125, 200), cv::Point(200, 125)};
@@ -4509,6 +4571,7 @@ std::vector<std::vector<cv::Point>> ConstructHandcraftedContours5()
 
 
 
+/** 测试辅助函数 **/
 
 
 void CheckObstaclePointType(cv::Mat& map, const Polygon& obstacle)
@@ -4676,20 +4739,21 @@ void CheckWallPointType(cv::Mat& map, const Polygon& wall)
 
 void CheckPointType(const cv::Mat& map, const Polygon& wall, const PolygonList& obstacles)
 {
-    cv::Mat map_ = map.clone();
+    cv::Mat vis_map = map.clone();
+    cv::cvtColor(vis_map, vis_map, cv::COLOR_GRAY2BGR);
 
     cv::namedWindow("map", cv::WINDOW_NORMAL);
 
     for(const auto& obstacle:obstacles)
     {
-        CheckObstaclePointType(map_, obstacle);
-        cv::imshow("map", map_);
+        CheckObstaclePointType(vis_map, obstacle);
+        cv::imshow("map", vis_map);
         cv::waitKey(0);
         std::cout<<std::endl;
     }
 
-    CheckWallPointType(map_, wall);
-    cv::imshow("map", map_);
+    CheckWallPointType(vis_map, wall);
+    cv::imshow("map", vis_map);
     cv::waitKey(0);
 }
 
@@ -4812,13 +4876,15 @@ void CheckExtractedContours(const cv::Mat& map, const std::vector<std::vector<cv
 
 void CheckGeneratedCells(const cv::Mat& map, const std::vector<CellNode>& cell_graph)
 {
-    cv::Mat map_ = map.clone();
+    cv::Mat vis_map = map.clone();
+    cv::cvtColor(vis_map, vis_map, cv::COLOR_GRAY2BGR);
+
     cv::namedWindow("map", cv::WINDOW_NORMAL);
 
     for(const auto& cell : cell_graph)
     {
-        DrawCells(map_, cell, cv::Scalar(255, 0, 255));
-        cv::imshow("map", map_);
+        DrawCells(vis_map, cell, cv::Scalar(255, 0, 255));
+        cv::imshow("map", vis_map);
         cv::waitKey(0);
     }
 }
@@ -4869,8 +4935,10 @@ void CheckMotionCommands(const std::vector<NavigationMessage>& navigation_messag
 }
 
 
-// 使用图像数据
+/** 测试用例 **/
 
+
+/** 使用图像数据 **/
 void StaticPathPlanningExample1()
 {
     double meters_per_pix = 0.02;
@@ -4912,7 +4980,7 @@ void StaticPathPlanningExample2()
 
     std::vector<std::vector<cv::Point>> wall_contours;
     std::vector<std::vector<cv::Point>> obstacle_contours;
-    ExtractRawContours(map, wall_contours, obstacle_contours);
+    ExtractContours(map, wall_contours, obstacle_contours);
 
     Polygon wall = ConstructWall(map, wall_contours.front());
     PolygonList obstacles = ConstructObstacles(map, obstacle_contours);
@@ -4925,30 +4993,163 @@ void StaticPathPlanningExample2()
     std::deque<Point2D> path = FilterTrajectory(original_planning_path);
     CheckPathConsistency(path);
 
-    VisualizeTrajectory(map, path, robot_radius, PATH_MODE);
+    int time_interval = 1;
+    VisualizeTrajectory(map, path, robot_radius, PATH_MODE, time_interval);
 }
 
 
-// 使用构造数据
+/** 使用构造数据 **/
 void StaticPathPlanningExample3()
 {
-    std::vector<std::vector<cv::Point>> contours = ConstructHandcraftedContours1();
+    int robot_radius = 5;
 
+    cv::Mat1b map = cv::Mat1b(cv::Size(500, 500), CV_8U);
+    map.setTo(255);
+
+    std::vector<std::vector<cv::Point>> contours = ConstructHandcraftedContours1();
+    cv::fillPoly(map, contours, 0);
+
+    std::vector<std::vector<cv::Point>> obstacle_contours;
+    std::vector<std::vector<cv::Point>> wall_contours;
+    ExtractContours(map, wall_contours, obstacle_contours);
+    CheckExtractedContours(map, wall_contours);
+    CheckExtractedContours(map, obstacle_contours);
+
+    PolygonList obstacles = ConstructObstacles(map, obstacle_contours);
+    Polygon wall = ConstructWall(map, wall_contours.front());
+
+    std::vector<CellNode> cell_graph = ConstructCellGraph(map, wall_contours, obstacle_contours, wall, obstacles);
+    CheckPointType(map, wall ,obstacles);
+    CheckGeneratedCells(map, cell_graph);
+
+    Point2D start = cell_graph.front().ceiling.front();
+    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, false);
+    CheckPathNodes(original_planning_path);
+
+    std::deque<Point2D> path = FilterTrajectory(original_planning_path);
+    CheckPathConsistency(path);
+
+    int time_interval = 1;
+    VisualizeTrajectory(map, path, robot_radius, PATH_MODE, time_interval);
 }
 
 void StaticPathPlanningExample4()
 {
+    int robot_radius = 5;
+
+    cv::Mat1b map = cv::Mat1b(cv::Size(600, 600), CV_8U);
+    map.setTo(255);
+
     std::vector<std::vector<cv::Point>> contours = ConstructHandcraftedContours2();
+    cv::fillPoly(map, contours, 0);
+
+    std::vector<std::vector<cv::Point>> obstacle_contours;
+    std::vector<std::vector<cv::Point>> wall_contours;
+    ExtractContours(map, wall_contours, obstacle_contours);
+    CheckExtractedContours(map, wall_contours);
+    CheckExtractedContours(map, obstacle_contours);
+
+    PolygonList obstacles = ConstructObstacles(map, obstacle_contours);
+    Polygon wall = ConstructWall(map, wall_contours.front());
+
+    cv::Mat3b map_ = cv::Mat3b(map.size());
+    map_.setTo(cv::Scalar(0, 0, 0));
+
+    cv::fillPoly(map_, wall_contours, cv::Scalar(255, 255, 255));
+    cv::fillPoly(map_, obstacle_contours, cv::Scalar(0, 0, 0));
+
+    std::vector<Event> wall_event_list = GenerateWallEventList(map_, wall);
+    std::vector<Event> obstacle_event_list = GenerateObstacleEventList(map_, obstacles);
+    std::deque<std::deque<Event>> slice_list = SliceListGenerator(wall_event_list, obstacle_event_list);
+    CheckSlicelist(slice_list);
+
+    std::vector<CellNode> cell_graph;
+    std::vector<int> cell_index_slice;
+    std::vector<int> original_cell_index_slice;
+    ExecuteCellDecomposition(cell_graph, cell_index_slice, original_cell_index_slice, slice_list);
+    CheckPointType(map, wall ,obstacles);
+    CheckGeneratedCells(map, cell_graph);
+
+    Point2D start = cell_graph.front().ceiling.front();
+    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, false);
+    CheckPathNodes(original_planning_path);
+
+    std::deque<Point2D> path = FilterTrajectory(original_planning_path);
+    CheckPathConsistency(path);
+
+    int time_interval = 1;
+    VisualizeTrajectory(map, path, robot_radius, PATH_MODE, time_interval);
 }
 
 void StaticPathPlanningExample5()
 {
+    int robot_radius = 5;
+
+    cv::Mat1b map = cv::Mat1b(cv::Size(600, 600), CV_8U);
+    map.setTo(255);
+
     std::vector<std::vector<cv::Point>> contours = ConstructHandcraftedContours3();
+    cv::fillPoly(map, contours, 0);
+
+    std::vector<std::vector<cv::Point>> obstacle_contours;
+    std::vector<std::vector<cv::Point>> wall_contours;
+    ExtractContours(map, wall_contours, obstacle_contours);
+    CheckExtractedContours(map, wall_contours);
+    CheckExtractedContours(map, obstacle_contours);
+
+    PolygonList obstacles = ConstructObstacles(map, obstacle_contours);
+    Polygon wall = ConstructWall(map, wall_contours.front());
+
+    std::vector<CellNode> cell_graph = ConstructCellGraph(map, wall_contours, obstacle_contours, wall, obstacles);
+    CheckPointType(map, wall ,obstacles);
+    CheckGeneratedCells(map, cell_graph);
+
+    Point2D start = cell_graph.front().ceiling.front();
+    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, false);
+    CheckPathNodes(original_planning_path);
+
+    std::deque<Point2D> path = FilterTrajectory(original_planning_path);
+    CheckPathConsistency(path);
+
+    int time_interval = 1;
+    VisualizeTrajectory(map, path, robot_radius, PATH_MODE, time_interval);
 }
 
 void StaticPathPlanningExample6()
 {
+    int robot_radius = 5;
+
+    cv::Mat1b map = cv::Mat1b(cv::Size(600, 600), CV_8U);
+    map.setTo(0);
+
     std::vector<std::vector<cv::Point>> contours = ConstructHandcraftedContours4();
+    std::vector<std::vector<cv::Point>> external_contours = {contours.front()};
+    std::vector<std::vector<cv::Point>> inner_contours = {contours.back()};
+    cv::fillPoly(map, external_contours, 255);
+    cv::fillPoly(map, inner_contours, 0);
+
+    std::vector<std::vector<cv::Point>> obstacle_contours;
+    std::vector<std::vector<cv::Point>> wall_contours;
+    ExtractContours(map, wall_contours, obstacle_contours);
+    CheckExtractedContours(map, wall_contours);
+    CheckExtractedContours(map, obstacle_contours);
+
+    PolygonList obstacles = ConstructObstacles(map, obstacle_contours);
+    Polygon wall = ConstructWall(map, wall_contours.front());
+
+    std::vector<CellNode> cell_graph = ConstructCellGraph(map, wall_contours, obstacle_contours, wall, obstacles);
+    CheckPointType(map, wall ,obstacles);
+    CheckGeneratedCells(map, cell_graph);
+
+    Point2D start = cell_graph.front().ceiling.front();
+    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, false);
+    CheckPathNodes(original_planning_path);
+
+    std::deque<Point2D> path = FilterTrajectory(original_planning_path);
+    CheckPathConsistency(path);
+
+    int time_interval = 1;
+    VisualizeTrajectory(map, path, robot_radius, PATH_MODE, time_interval);
 }
 
 // 未完成
@@ -4958,204 +5159,25 @@ void DynamicPathPlanningExample1()
 }
 
 
-
-void TestExamples()
+void TestAllExamples()
 {
     StaticPathPlanningExample1();
 
     StaticPathPlanningExample2();
+
+    StaticPathPlanningExample3();
+
+    StaticPathPlanningExample4();
+
+    StaticPathPlanningExample5();
+
+    StaticPathPlanningExample6();
 }
 
-//void MoveAsPathPlannedTest(cv::Mat& map, double meters_per_pix, const Point2D& start, const std::vector<NavigationMessage>& motion_commands)
-//{
-//    int pixs;
-//    Point2D begin = start, end;
-//
-//    cv::namedWindow("original_map", cv::WINDOW_NORMAL);
-//
-//    for(auto command:motion_commands)
-//    {
-//        pixs = int(command.GetDistance()/meters_per_pix);
-//        if(command.GetGlobalYaw()==0.0)
-//        {
-//            end = Point2D(begin.x, begin.y-pixs);
-//            cv::line(map, cv::Point(begin.x, begin.y), cv::Point(end.x, end.y), cv::Scalar(0, 0, 255));
-//            cv::imshow("original_map", map);
-//            cv::waitKey(100);
-//        }
-//        if(command.GetGlobalYaw()==180.0)
-//        {
-//            end = Point2D(begin.x, begin.y+pixs);
-//            cv::line(map, cv::Point(begin.x, begin.y), cv::Point(end.x, end.y), cv::Scalar(255, 0, 0));
-//            cv::imshow("original_map", map);
-//            cv::waitKey(100);
-//        }
-//        if(command.GetGlobalYaw()==90.0)
-//        {
-//            end = Point2D(begin.x+pixs, begin.y);
-//            cv::line(map, cv::Point(begin.x, begin.y), cv::Point(end.x, end.y), cv::Scalar(0, 255, 0));
-//            cv::imshow("original_map", map);
-//            cv::waitKey(100);
-//        }
-//        if(command.GetGlobalYaw()==-90.0)
-//        {
-//            end = Point2D(begin.x-pixs, begin.y);
-//            cv::line(map, cv::Point(begin.x, begin.y), cv::Point(end.x, end.y), cv::Scalar(0, 255, 255));
-//            cv::imshow("original_map", map);
-//            cv::waitKey(100);
-//        }
-//        begin = end;
-//    }
-//    cv::waitKey(0);
-//}
-
-
-
-
-
-
-//void GetNewObstacleTest()
-//{
-//
-//
-//    Point2D collision_point = Point2D(80, 294); // 80 406; 80, 294; 166, 350; 74, 350
-//    std::deque<Point2D> contouring_path;
-//    Polygon new_obstacle = GetNewObstacle(curr_map, collision_point, DOWN, contouring_path, robot_radius); // UP ; DOWN, LEFT, RIGHT
-//    for(int i = 0; i < contouring_path.size(); i++)
-//    {
-//        curr_map.at<cv::Vec3b>(contouring_path[i].y, contouring_path[i].x)=cv::Vec3b(0, 0, 255);
-//    }
-//    for(int i = 0; i < new_obstacle.size(); i++)
-//    {
-//        curr_map.at<cv::Vec3b>(new_obstacle[i].y, new_obstacle[i].x)=cv::Vec3b(0, 255, 0);
-//    }
-//
-////    std::cout<<"first in contouring path: "<<contouring_path.front().x<<", "<<contouring_path.front().y<<std::endl;
-////    std::cout<<"last in contouring path: "<<contouring_path.back().x<<", "<<contouring_path.back().y<<std::endl;
-//    std::cout<<"contouring path point num: "<<contouring_path.size()<<std::endl;
-//
-////    for(int i = 0; i < contouring_path.size(); i++)
-////    {
-////        std::cout<<"x: "<<contouring_path[i].x<<", y: "<<contouring_path[i].y<<std::endl;
-////    }
-//
-//
-//    std::cout<<"point num: "<<new_obstacle.size()<<std::endl;
-//    for(int i = 0; i < new_obstacle.size(); i++)
-//    {
-//        std::cout<<"x: "<<new_obstacle[i].x<<", y: "<<new_obstacle[i].y<<std::endl;
-//    }
-//
-//
-//
-//
-////    std::vector<CellNode> curr_cell_graph;
-////    PolygonList new_obstacles = {new_obstacle};
-////    std::deque<std::deque<Point2D>> replanning_path = LocalReplanning(curr_map, original_cell_graph[2], new_obstacles, collision_point, curr_cell_graph, RIGHT, robot_radius);
-////
-////    for(int i = 0; i < replanning_path.size(); i++)
-////    {
-////        for(int j = 0; j < replanning_path[i].size(); j++)
-////        {
-////            curr_map.at<cv::Vec3b>(replanning_path[i][j].y,replanning_path[i][j].x)=cv::Vec3b(0, 255, 255);
-////            cv::imshow("map", curr_map);
-////            cv::waitKey(0);
-////        }
-////    }
-//
-//
-//
-//
-////    PointTypeTest(curr_map, new_obstacle, robot_radius);
-//    cv::namedWindow("map", cv::WINDOW_NORMAL);
-//    cv::imshow("map", curr_map);
-//    cv::waitKey(0);
-//
-//
-//
-//
-//
-//}
 
 int main()
 {
-    TestExamples();
-
-
-
-
-
-
-
-
-
-
-//  Static test for wall+obstacle
-
-//    int robot_radius = 20;
-//
-//    cv::Mat map = cv::Mat(600, 600, CV_8UC3, cv::Scalar(255, 255, 255));
-//
-//    std::vector<cv::Point> wall_contour = {cv::Point(20,20),cv::Point(20,200),cv::Point(100,200),cv::Point(100,399),
-//                cv::Point(20,399),cv::Point(20, 579),cv::Point(200,579),cv::Point(200,499),cv::Point(399,499),cv::Point(399,579),
-//                cv::Point(579,579),cv::Point(579,399),cv::Point(499,399),cv::Point(499,200),cv::Point(579,200),cv::Point(579,20),
-//                cv::Point(349,20),cv::Point(349,100),cv::Point(250,100),cv::Point(250,20)};
-//
-//    std::vector<std::vector<cv::Point>> wall_contours = {wall_contour};
-//    cv::fillPoly(map, wall_contours, cv::Scalar(0, 0, 0));
-//
-//    Polygon external_contour = ConstructCave(map, wall_contour);
-//
-//    std::vector<cv::Point> obstacle_contour = {cv::Point(220,220),cv::Point(220,380),cv::Point(380,380),cv::Point(380,220)};
-//    std::vector<std::vector<cv::Point>> obstacle_contours = {obstacle_contour};
-//    cv::fillPoly(map, obstacle_contours, cv::Scalar(255, 255, 255));
-//
-//    cv::Mat original_map = map.clone();
-//
-//    PolygonList inner_contours = ConstructObstacles(map, obstacle_contours);
-//
-//
-//    std::vector<Event> external_event_list = EventListGeneratorExternal(map, external_contour);
-//    std::vector<Event> inner_event_list = EventListGenerator(map, inner_contours);
-//
-//    std::vector<Event> event_list;
-//    event_list.insert(event_list.end(), external_event_list.begin(), external_event_list.end());
-//    event_list.insert(event_list.end(), inner_event_list.begin(), inner_event_list.end());
-//    std::sort(event_list.begin(), event_list.end());
-//
-//    std::deque<std::deque<Event>> slice_list = SliceListGenerator(event_list);
-//
-//    std::vector<CellNode> cell_graph;
-//    std::vector<int> cell_index_slice;
-//    std::vector<int> original_cell_index_slice;
-//    ExecuteCellDecompositionOverall(cell_graph, cell_index_slice, original_cell_index_slice, slice_list);
-//
-//    cv::imshow("map", map);
-//    cv::waitKey(0);
-//
-//    Point2D start = Point2D(200, 200);
-//    int color_repeated_times = 50;
-//    std::deque<std::deque<Point2D>> original_planning_path = StaticPathPlanning(map, cell_graph, start, robot_radius, false, false, color_repeated_times);
-//
-//    std::deque<Point2D> path;
-//    for(int i = 0; i < original_planning_path.size(); i++)
-//    {
-//        path.insert(path.end(), original_planning_path[i].begin(), original_planning_path[i].end());
-//    }
-//    double meters_per_pix = 0.02;
-//    Eigen::Vector2d curr_direction = {0, -1};
-//    std::vector<NavigationMessage> messages = GetNavigationMessage(curr_direction, path, meters_per_pix);
-//
-//    double dist, global_yaw, local_yaw;
-//    for(int i = 0; i < messages.size(); i++)
-//    {
-//        messages[i].GetMotion(dist, global_yaw, local_yaw);
-//        std::cout<<"globally rotate "<<global_yaw<<" degree(locally rotate "<<local_yaw<<" degree) and go forward for "<<dist<<" m."<<std::endl;
-//    }
-//
-
-
-
+    TestAllExamples();
 
     return 0;
 }
