@@ -322,7 +322,7 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
 
                     if(robot_radius != 0)
                     {
-                        for(int j = 1; j <= robot_radius; j++)
+                        for(int j = 1; j <= robot_radius+1; j++)
                         {
                             // 沿着floor从左往右
                             if( x+j >= floor.back().x)
@@ -333,8 +333,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
 
                             //提前转
                             else if((floor[i+(j)].y-floor[i+(j+1)].y>=2)
-                               &&(j<=robot_radius)
-                               &&(j+1<=robot_radius))
+                               &&(j<=robot_radius+1)
+                               &&(j+1<=robot_radius+1))
                             {
                                 delta = floor[i+(j+1)].y-floor[i+(j)].y;
                                 increment = delta/abs(delta);
@@ -345,8 +345,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
                             }
                             //滞后转
                             else if((floor[i+(j+1)].y-floor[i+(j)].y>=2)
-                                    &&(j+1<=robot_radius)
-                                    &&(j<=robot_radius))
+                                    &&(j+1<=robot_radius+1)
+                                    &&(j<=robot_radius+1))
                             {
                                 path.emplace_back(Point2D(floor[i+(j)].x, floor[i+(j)].y));
 
@@ -390,7 +390,7 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
 
                     if(robot_radius != 0)
                     {
-                        for(int j = 1; j <= robot_radius; j++)
+                        for(int j = 1; j <= robot_radius+1; j++)
                         {
                             // 沿着ceiling从左往右
                             if(x+j >= ceiling.back().x)
@@ -401,8 +401,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
 
                             // 提前转
                             else if((ceiling[i+(j+1)].y-ceiling[i+(j)].y>=2)
-                               &&(j+1 <= robot_radius)
-                               &&(j <= robot_radius))
+                               &&(j+1 <= robot_radius+1)
+                               &&(j <= robot_radius+1))
                             {
                                 delta = ceiling[i+(j+1)].y-ceiling[i+(j)].y;
                                 increment = delta/abs(delta);
@@ -413,8 +413,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
                             }
                             // 滞后转
                             else if((ceiling[i+(j)].y-ceiling[i+(j+1)].y>=2)
-                                    &&(j<=robot_radius)
-                                    &&(j+1<=robot_radius))
+                                    &&(j<=robot_radius+1)
+                                    &&(j+1<=robot_radius+1))
                             {
                                 path.emplace_back(ceiling[i+(j)]);
 
@@ -470,7 +470,7 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
 
                     if(robot_radius != 0)
                     {
-                        for(int j = 1; j <= robot_radius; j++)
+                        for(int j = 1; j <= robot_radius+1; j++)
                         {
                             // 沿着floor从右往左
                             if(x-j <= floor.front().x)
@@ -480,8 +480,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
                             }
                             //提前转
                             else if((floor[i-(j)].y-floor[i-(j+1)].y>=2)
-                               &&(j<=robot_radius)
-                               &&(j+1<=robot_radius))
+                               &&(j<=robot_radius+1)
+                               &&(j+1<=robot_radius+1))
                             {
                                 delta = floor[i-(j+1)].y-floor[i-(j)].y;
                                 increment = delta/abs(delta);
@@ -492,8 +492,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
                             }
                             //滞后转
                             else if((floor[i-(j+1)].y-floor[i-(j)].y>=2)
-                                    &&(j+1<=robot_radius)
-                                    &&(j<=robot_radius))
+                                    &&(j+1<=robot_radius+1)
+                                    &&(j<=robot_radius+1))
                             {
                                 path.emplace_back(Point2D(floor[i-(j)].x, floor[i-(j)].y));
 
@@ -536,7 +536,7 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
 
                     if(robot_radius != 0)
                     {
-                        for(int j = 1; j <= robot_radius; j++)
+                        for(int j = 1; j <= robot_radius+1; j++)
                         {
                             // 沿着ceiling从右往左
                             if( x-j <= ceiling.front().x)
@@ -546,8 +546,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
                             }
                             // 提前转
                             else if((ceiling[i-(j+1)].y-ceiling[i-(j)].y>=2)
-                               &&(j+1 <= robot_radius)
-                               &&(j <= robot_radius))
+                               &&(j+1 <= robot_radius+1)
+                               &&(j <= robot_radius+1))
                             {
                                 delta = ceiling[i-(j+1)].y-ceiling[i-(j)].y;
                                 increment = delta/abs(delta);
@@ -558,8 +558,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
                             }
                             // 滞后转
                             else if((ceiling[i-(j)].y-ceiling[i-(j+1)].y>=2)
-                                    &&(j<=robot_radius)
-                                    &&(j+1<=robot_radius))
+                                    &&(j<=robot_radius+1)
+                                    &&(j+1<=robot_radius+1))
                             {
                                 path.emplace_back(ceiling[i-(j)]);
 
@@ -614,7 +614,7 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
 
                     if(robot_radius != 0)
                     {
-                        for(int j = 1; j <= robot_radius; j++)
+                        for(int j = 1; j <= robot_radius+1; j++)
                         {
                             // 沿着ceiling从左往右
                             if(x+j >= ceiling.back().x)
@@ -624,8 +624,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
                             }
                             // 提前转
                             else if((ceiling[i+(j+1)].y-ceiling[i+(j)].y>=2)
-                               &&(j+1 <= robot_radius)
-                               &&(j <= robot_radius))
+                               &&(j+1 <= robot_radius+1)
+                               &&(j <= robot_radius+1))
                             {
                                 delta = ceiling[i+(j+1)].y-ceiling[i+(j)].y;
                                 increment = delta/abs(delta);
@@ -636,8 +636,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
                             }
                                 // 滞后转
                             else if((ceiling[i+(j)].y-ceiling[i+(j+1)].y>=2)
-                                    &&(j<=robot_radius)
-                                    &&(j+1<=robot_radius))
+                                    &&(j<=robot_radius+1)
+                                    &&(j+1<=robot_radius+1))
                             {
                                 path.emplace_back(ceiling[i+(j)]);
 
@@ -680,7 +680,7 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
 
                     if(robot_radius != 0)
                     {
-                        for(int j = 1; j <= robot_radius; j++)
+                        for(int j = 1; j <= robot_radius+1; j++)
                         {
                             // 沿着floor从左往右
                             if(x+j >= floor.back().x)
@@ -691,8 +691,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
 
                             //提前转
                             else if((floor[i+(j)].y-floor[i+(j+1)].y>=2)
-                               &&(j<=robot_radius)
-                               &&(j+1<=robot_radius))
+                               &&(j<=robot_radius+1)
+                               &&(j+1<=robot_radius+1))
                             {
                                 delta = floor[i+(j+1)].y-floor[i+(j)].y;
                                 increment = delta/abs(delta);
@@ -703,8 +703,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
                             }
                                 //滞后转
                             else if((floor[i+(j+1)].y-floor[i+(j)].y>=2)
-                                    &&(j+1<=robot_radius)
-                                    &&(j<=robot_radius))
+                                    &&(j+1<=robot_radius+1)
+                                    &&(j<=robot_radius+1))
                             {
                                 path.emplace_back(Point2D(floor[i+(j)].x, floor[i+(j)].y));
 
@@ -759,7 +759,7 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
 
                     if(robot_radius != 0)
                     {
-                        for(int j = 1; j <= robot_radius; j++)
+                        for(int j = 1; j <= robot_radius+1; j++)
                         {
                             // 沿着ceiling从右往左
                             if(x-j <= ceiling.front().x)
@@ -769,8 +769,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
                             }
                             // 提前转
                             else if((ceiling[i-(j+1)].y-ceiling[i-(j)].y>=2)
-                               &&(j+1 <= robot_radius)
-                               &&(j <= robot_radius))
+                               &&(j+1 <= robot_radius+1)
+                               &&(j <= robot_radius+1))
                             {
                                 delta = ceiling[i-(j+1)].y-ceiling[i-(j)].y;
                                 increment = delta/abs(delta);
@@ -781,8 +781,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
                             }
                                 // 滞后转
                             else if((ceiling[i-(j)].y-ceiling[i-(j+1)].y>=2)
-                                    &&(j<=robot_radius)
-                                    &&(j+1<=robot_radius))
+                                    &&(j<=robot_radius+1)
+                                    &&(j+1<=robot_radius+1))
                             {
                                 path.emplace_back(ceiling[i-(j)]);
 
@@ -826,7 +826,7 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
 
                     if(robot_radius != 0)
                     {
-                        for(int j = 1; j <= robot_radius; j++)
+                        for(int j = 1; j <= robot_radius+1; j++)
                         {
                             // 沿着floor从右往左
                             if(x-j <= floor.front().x)
@@ -836,8 +836,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
                             }
                             //提前转
                             else if((floor[i-(j)].y-floor[i-(j+1)].y>=2)
-                               &&(j<=robot_radius)
-                               &&(j+1<=robot_radius))
+                               &&(j<=robot_radius+1)
+                               &&(j+1<=robot_radius+1))
                             {
                                 delta = floor[i-(j+1)].y-floor[i-(j)].y;
                                 increment = delta/abs(delta);
@@ -848,8 +848,8 @@ std::deque<Point2D> GetBoustrophedonPath(std::vector<CellNode>& cell_graph, Cell
                             }
                                 //滞后转
                             else if((floor[i-(j+1)].y-floor[i-(j)].y>=2)
-                                    &&(j+1<=robot_radius)
-                                    &&(j<=robot_radius))
+                                    &&(j+1<=robot_radius+1)
+                                    &&(j<=robot_radius+1))
                             {
                                 path.emplace_back(Point2D(floor[i-(j)].x, floor[i-(j)].y));
 
