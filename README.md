@@ -5,6 +5,10 @@
 
 **What it looks like:**
 
+![](https://github.com/RicheyHuang/BoustrophedonCellularDecompositionPathPlanning/blob/master/path_planning.gif)
+
+**Applications:**
+
 ![](https://github.com/RicheyHuang/BoustrophedonCellularDecompositionPathPlanning/blob/master/cleanbot.gif)
 
 **THE PROJECT IS STILL UNFINISHED**
